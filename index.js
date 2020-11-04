@@ -4,10 +4,13 @@ const TweetRouter = require('./Routes/TweetRoutes');
 const UserRouter = require('./Routes/UserRoutes');
 const express = require('express');
 var app = express(); 
+
 const PORT = process.env.PORT || 8080;
+
+
 app.use('/tweet', TweetRouter);
 app.use('/user', UserRouter);
-app.use(express.static('public'));
+app.use(express.static(__dirname+'/public'));
 app.listen(PORT, ()=>{
     console.log("App listening on port" + PORT);
 })
