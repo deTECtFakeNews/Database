@@ -1,0 +1,117 @@
+:root{
+    --border-color: rgb(204, 214, 221);
+}
+
+#table{
+    font-family: Arial, Helvetica, sans-serif;
+    border-collapse: collapse;
+    --even-row-color: rgb(245, 245, 245)
+}
+    #table thead{
+        background: rgb(240, 240, 250);
+        position: sticky;
+        top: 0;
+    }
+    #table tr{
+        cursor: pointer;
+    }
+    #table tr:hover{
+        background: rgb(240, 240, 240);
+    }
+    #table tr:nth-child(even){
+        background: var(--even-row-color);
+    }
+        #table tr td, #table thead td{
+            border: 1px solid var(--border-color);
+            padding: 8px;
+        }
+
+.details-table{
+    width: 100%;
+    max-width: 800px;
+    border-collapse: collapse;
+    /* margin: 8px; */
+}
+    .details-table thead{
+        background: rgb(240, 240, 250);
+    }
+    .details-table tr{
+        border-bottom: 1px solid var(--border-color);
+    }
+        .details-table tr td{
+            padding: 8px 0px;
+        }
+
+.dialog{
+
+}
+    .dialog-overlay{
+        background: rgba(255,255,255,0.5);
+        backdrop-filter: blur(4px);
+        position: fixed;
+        top: 0; bottom: 0; left: 0; right: 0;
+    }
+    .dialog dialog{
+        position: absolute;
+        top: 0; bottom: 0;
+        padding: 0px;
+        width: 800px;
+        max-height: 90vh;
+        border: 1px solid var(--border-color);
+        box-shadow: 0 0 8px 1px rgb(0, 0, 0, 0.32);
+        overflow: auto;
+    }
+    .dialog dialog .head, 
+    .dialog dialog .body{
+        padding: 8px;
+    }
+    .dialog dialog .head{
+        position: sticky;
+        top: 0;
+        display: flex;
+    }
+        .dialog dialog .head .close {
+            margin-left: auto;
+            display: block;
+            width: 16px;
+            height: 16px;
+        }
+
+.tabs{
+    --tabs-border-radius: 8px;
+}
+    .tabs .tabs-list{
+        display: flex;
+        padding: 4px;
+        margin: 0px;
+        padding-bottom: 0px;
+        list-style: none;
+        background: rgb(245, 245, 245);
+        position: sticky;
+        top: 0;
+    }
+        .tabs .tabs-list li{
+            flex: 1;
+            padding: 4px;
+            border: 1px solid transparent;
+            border-top-left-radius: var(--tabs-border-radius);
+            border-top-right-radius: var(--tabs-border-radius);
+            border-bottom-color: var(--border-color);
+            text-align: center;
+        }
+        .tabs .tabs-list li.active{
+            background: white;
+            border: 1px solid var(--border-color);
+            border-bottom: none;
+        }
+        
+        .tabs .tabs-content .body{
+            padding: 4px;
+        }
+
+#commands{
+    background-color: rgb(204, 214, 221);
+    padding: 4px;
+    position: sticky;
+    top: 0;
+}

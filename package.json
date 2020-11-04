@@ -1,0 +1,17 @@
+{
+  "name": "itesm-fake-news-database",
+  "version": "1.0.0",
+  "description": "Cloud API with wrappers for twitter api and mysql, abstracted on different levels",
+  "main": "Data.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Eduardo Villalpando Mello",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.17.1",
+    "expresss": "0.0.0",
+    "mysql": "^2.18.1",
+    "twitter": "^1.7.1"
+  }
+}

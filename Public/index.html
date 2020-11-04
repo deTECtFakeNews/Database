@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Tec Fake News Database</title>
+    <script src="./table.js"></script>
+    <script src="./dialog.js"></script>
+    <script src="./tabs.js"></script>
+    <script src="./TweetClient.js"></script>
+    <script src="./UserClient.js"></script>
+
+    <script async="" src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <h1>Tec Fake News Database</h1>
+    </header>
+    <nav id="commands">
+        <button id="add-tweet">Add Tweet</button>
+    </nav>
+
+    <section id="table-cont"> 
+    </section>
+    <script>
+        (async()=>{
+            let data_raw = await fetch('http://localhost:3000/tweet/read');
+            let data = await data_raw.json();
+
+            document.querySelector("#table-cont").append( new Table(data).dom )
+
+        })()
+
+        document.querySelector("#add-tweet").addEventListener('click', ()=>{
+            let dialog = new Dialog(( ()=>{
+                let content = document.importNode( document.querySelector('#template-new-tweet').content, true )
+                content.querySelector(`[type="submit"]`).addEventListener('click', (e)=>{;
+                    e.stopImmediatePropagation();
+                })
+                content.querySelector("#add-tweet-form").addEventListener('submit', async (e)=>{
+                    e.preventDefault();
+                    try{
+                        let data = await fetch(`http://localhost:3000/tweet/fetchupload/${ document.querySelector('#add-tweet-id').value }`, {method: 'POST'});
+                        console.log(await data.text())
+                        dialog.close();
+                    } catch(e){
+                        console.log(e)
+                    }
+                })
+                return content;
+            } )(), "Add new tweet")
+        })
+
+            
+    </script>
+
+    <template id="template-new-tweet">
+        <form action="http_//localhost:3000" id="add-tweet-form">
+            <label>
+                Tweet ID: <input type="text" name="id" id="add-tweet-id">
+            </label>
+            <hr>
+            <input type="submit">
+        </form>
+    </template>
+
+</body>
+</html>
