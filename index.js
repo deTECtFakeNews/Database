@@ -10,7 +10,7 @@ const PORT = process.env.PORT || 8080;
 
 app.use('/tweet', TweetRouter);
 app.use('/user', UserRouter);
-app.use(express.static(__dirname+'/public'));
+app.use(express.static(__dirname+'/Public'));
 app.listen(PORT, ()=>{
     console.log("App listening on port" + PORT);
 })
