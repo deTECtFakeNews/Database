@@ -1,6 +1,6 @@
 class UserClient{
     static async getFromAPI(id){
-        let data = await (await fetch('http://localhost:3000/USER/fetch/'+id)).json();
+        let data = await (await fetch('/user/fetch/'+id)).json();
         return new UserClient(data); 
     }
     constructor(user){

@@ -1,6 +1,6 @@
 class TweetClient{
     static async getFromAPI(id){
-        let data = await (await fetch('https://localhost:3000/TWEET/fetch/'+id)).json();
+        let data = await (await fetch('/tweet/fetch/'+id)).json();
         return new TweetClient(data); 
     }
     constructor(tweet){
@@ -29,11 +29,11 @@ class TweetClient{
         return this._TweetStatsFreeze.getData();
     }
     async getEmbed(){
-        return await (await fetch(`http://localhost:3000/tweet/embed/${this.tweetID}`)).text();
+        return await (await fetch(`/tweet/embed/${this.tweetID}`)).text();
     }
     async getAuthor(){
         if(this.authorID != -1){
-            let user = await (await fetch(`http://localhost:3000/user/fetch/${this.authorID}`)).json();
+            let user = await (await fetch(`/user/fetch/${this.authorID}`)).json();
             return new UserClient(user);
         } else {
             return new UserClient({});
@@ -41,7 +41,7 @@ class TweetClient{
     }
     async getRepliedUser(){
         if(this.inReplyToUserID != -1){
-            let user = await (await fetch(`http://localhost:3000/user/fetch/${this.inReplyToUserID}`)).json();
+            let user = await (await fetch(`/user/fetch/${this.inReplyToUserID}`)).json();
             return new UserClient(user);
         } else {
             return new UserClient({});
@@ -49,7 +49,7 @@ class TweetClient{
     }
     async getRepliedTweet(){
         if(this.inReplyToTweetID != -1){
-            let tweet = await (await fetch(`http://localhost:3000/tweet/fetch/${this.inReplyToTweetID}`)).json();
+            let tweet = await (await fetch(`/tweet/fetch/${this.inReplyToTweetID}`)).json();
             return new TweetClient(tweet);
         } else{
             return new TweetClient({});

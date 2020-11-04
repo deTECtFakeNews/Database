@@ -27,7 +27,7 @@
     </section>
     <script>
         (async()=>{
-            let data_raw = await fetch('http://localhost:3000/tweet/read');
+            let data_raw = await fetch('/tweet/read');
             let data = await data_raw.json();
 
             document.querySelector("#table-cont").append( new Table(data).dom )
@@ -43,7 +43,7 @@
                 content.querySelector("#add-tweet-form").addEventListener('submit', async (e)=>{
                     e.preventDefault();
                     try{
-                        let data = await fetch(`http://localhost:3000/tweet/fetchupload/${ document.querySelector('#add-tweet-id').value }`, {method: 'POST'});
+                        let data = await fetch(`/tweet/fetchupload/${ document.querySelector('#add-tweet-id').value }`, {method: 'POST'});
                         console.log(await data.text())
                         dialog.close();
                     } catch(e){
