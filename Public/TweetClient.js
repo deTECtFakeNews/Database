@@ -29,7 +29,8 @@ class TweetClient{
         return this._TweetStatsFreeze.getData();
     }
     async getEmbed(){
-        return await (await fetch(`/tweet/embed/${this.tweetID}`)).text();
+        if(this.tweetID!=-1) return await (await fetch(`/tweet/embed/${this.tweetID}`)).text();
+        return "";
     }
     async getAuthor(){
         if(this.authorID != -1){
