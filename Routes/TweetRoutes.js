@@ -21,7 +21,8 @@ router.get('/read', async (req, res)=>{
     let tweets = await TweetModel.readFromDatabase(req.query);
     let data = tweets.map( t => ({
         ...t.getData(),
-        _TweetStatsFreeze: t.getStats()
+        _TweetStatsFreeze: t.getStats(),
+        _TweetAnalysis: t.getAnalysis()
     }) )
     res.json(data)
 })
@@ -30,7 +31,8 @@ router.get('/read/:id', async (req, res)=>{
     let tweet = await TweetModel.readFromDatabase({'Tweet.tweetID': req.params.id});
     let data = {
         ...tweet[0].getData(),
-        _TweetStatsFreeze: tweet[0].getStats()
+        _TweetStatsFreeze: tweet[0].getStats(),
+        _TweetAnalysis: tweet[0].getAnalysis()
     }
     res.json(data);
 })

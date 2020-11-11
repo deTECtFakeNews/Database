@@ -1,3 +1,4 @@
+const AnalysisService = require("../Services/AnalysisService");
 const TweetService = require("../Services/TweetService");
 const UserService = require("../Services/UserService");
 const UserModel = require("./UserModel");
@@ -15,8 +16,13 @@ class TweetModel {
         }
     }
     static async getFromAPI(id) {
-        let data = await TweetService.getFromAPI(id);
-        return new TweetModel(data);
+        try {
+            let data = await TweetService.getFromAPI(id);
+            return new TweetModel(data);
+        } catch (e) {
+            console.error("[TweetModel] getFromAPI error");
+            return;
+        }
     }
     constructor(tweet){
         this.tweetID = tweet.tweetID; 
@@ -27,7 +33,8 @@ class TweetModel {
         this.creationDate = new Date(tweet.creationDate); 
         this.fullText = tweet.fullText; 
         this.language = tweet.language; 
-        this._TweetStatsFreeze = new TweetModel.TweetStatsFreeze(tweet)
+        this._TweetStatsFreeze = new TweetModel.TweetStatsFreeze(tweet);
+        this._TweetAnalysis = new TweetModel.TweetAnalysis(tweet);
     }
     getData(){
         return {
@@ -43,8 +50,15 @@ class TweetModel {
     getStats(){
         return this._TweetStatsFreeze.getData();
     }
+    getAnalysis(){
+        return this._TweetAnalysis.getData();
+    }
     async getEmbed(){
-        return await TweetService.getCard(this.tweetID);
+        try{
+            return await TweetService.getCard(this.tweetID);
+        } catch (e) {
+            return "404"
+        }
     }
     async getAuthor(){
         // let user = await UserService.readFromDatabase({userID: this.authorID})
@@ -127,5 +141,20 @@ TweetModel.TweetStatsFreeze = class{
         return await TweetService.TweetStatsFreeze.updateToDatabase(this.tweetID, this.getData());
     }
 }
+
+TweetModel.TweetAnalysis = class{
+    constructor(tweet){
+        this.sentimentAnalysis;
+        AnalysisService.getSentiment(tweet.fullText).then(sentimentAnalysis=>{
+            this.sentimentAnalysis = sentimentAnalysis;
+        })
+    }
+    getData(){
+        return {
+            sentimentAnalysis: this.sentimentAnalysis
+        }
+    }
+}
+
 
 module.exports = TweetModel;

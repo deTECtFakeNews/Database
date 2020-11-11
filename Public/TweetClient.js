@@ -12,7 +12,8 @@ class TweetClient{
         this.creationDate = new Date(tweet.creationDate); 
         this.fullText = tweet.fullText; 
         this.language = tweet.language; 
-        this._TweetStatsFreeze = new TweetClient.TweetStatsFreeze(tweet)
+        this._TweetStatsFreeze = new TweetClient.TweetStatsFreeze(tweet);
+        this._TweetAnalysis = new TweetClient.TweetAnalysis(tweet);
     }
     getData(){
         return {
@@ -27,6 +28,9 @@ class TweetClient{
     }
     getStats(){
         return this._TweetStatsFreeze.getData();
+    }
+    getAnalysis(){
+
     }
     async getEmbed(){
         if(this.tweetID!=-1) return await (await fetch(`/tweet/embed/${this.tweetID}`)).text();
@@ -104,12 +108,16 @@ class TweetClient{
 
     }
 
+    getAnalysisTab(){
+        return this._TweetAnalysis.getDetails()
+    }
+
     openDialog(){
         new Dialog(
             new Tabs({
                 "Details": this.getDetailsTable().dom, 
                 "Related": this.getRelatedTables().dom,
-                "Analysis": "Analysis data will be here"
+                "Analysis": this.getAnalysisTab().dom
             }).dom
         )
     }
@@ -135,3 +143,54 @@ TweetClient.TweetStatsFreeze = class {
     }
 }
 
+TweetClient.TweetAnalysis = class {
+    constructor(tweet){
+        this._sentiment = new TweetClient.TweetAnalysis.Sentiment(tweet._TweetAnalysis.sentimentAnalysis);
+    }
+    getDetails(){
+        let container = document.createElement('div');
+        container.append(this._sentiment.getDetailsTable().dom);
+        return {dom: container}
+    }
+}
+
+TweetClient.TweetAnalysis.Sentiment = class {
+    constructor(sentiment){
+        this.negativity = sentiment.negativity;
+        this.neutrality = sentiment.neutrality;
+        this.positivity = sentiment.positivity;
+        this.compound = sentiment.compound;
+        this.polarity = sentiment.polarity;
+        this.subjectivity = sentiment.subjectivity;
+        this.anger = sentiment.anger;
+        this.anticipation = sentiment.anticipation;
+        this.disgust = sentiment.disgust;
+        this.fear = sentiment.fear;
+        this.joy = sentiment.joy;
+        this.negative = sentiment.negative;
+        this.positive = sentiment.positive;
+        this.sadness = sentiment.sadness;
+        this.surprise = sentiment.surprise;
+        this.trust = sentiment.trust;
+    }
+    getDetailsTable(){
+        return new DetailsTable({
+            negativity: this.negativity,
+            neutrality: this.neutrality,
+            positivity: this.positivity,
+            compound: this.compound,
+            polarity: this.polarity,
+            subjectivity: this.subjectivity,
+            anger: this.anger,
+            anticipation: this.anticipation,
+            disgust: this.disgust,
+            fear: this.fear,
+            joy: this.joy,
+            negative: this.negative,
+            positive: this.positive,
+            sadness: this.sadness,
+            surprise: this.surprise,
+            trust: this.trust
+        }, "Sentiment Analysis")
+    }
+}

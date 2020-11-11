@@ -1,4 +1,3 @@
-const { Twitter } = require("../Data");
 const Data = require("../Data");
 
 const TweetService = {
@@ -58,7 +57,7 @@ const TweetService = {
             let query = `
                 SELECT * FROM (( Tweet
                     INNER JOIN TweetStatsFreeze ON Tweet.tweetID = TweetStatsFreeze.tweetID)
-                    -- INNER JOIN Tweet Analysis ON Tweet.tweetID = TweetAnalysis.tweetrID
+                    -- INNER JOIN Tweet Analysis ON Tweet.tweetID = TweetAnalysis.tweetID
                 ) WHERE ${query_params != undefined && Object.keys(query_params).length!=0 ? '?' : '1=1'}`;
             let q = Data.Database.query(query, query_params, (error, results, fields)=>{
                 console.log(q.sql, query_params)
@@ -88,7 +87,9 @@ const TweetService = {
     getFromAPI: async (id)=>{
         return new Promise((resolve, reject)=>{ 
             Data.Twitter.get(`statuses/show/${id}`, (error, data, response)=>{
-                resolve({
+                console.log("erororororor", error)
+                if(error != undefined && error != null) reject (error);
+                else resolve({
                     tweetID: data.id_str, 
                     authorID: data.user.id_str, 
                     inReplyToUserID: data.in_reply_to_user_id_str || null,

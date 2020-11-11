@@ -7,7 +7,7 @@ class Table{
             this.dom.id = "table";
         let thead = document.createElement('thead');
         Object.keys(data[0]).forEach(k=>{
-            if( k != '_TweetStatsFreeze' ){
+            if( k[0] != '_' ){
                 let th = document.createElement('th');
                 th.innerHTML = k;
                 thead.append(th);
@@ -24,7 +24,7 @@ Table.Row = class{
     constructor(data){
         this.dom = document.createElement('tr');
         Object.keys(data).forEach(v=>{
-            if( v != '_TweetStatsFreeze' ){
+            if( v[0] != '_'){
                 let td = document.createElement('td');
                     td.innerHTML = JSON.stringify(data[v]);
                 this.dom.append(td)
