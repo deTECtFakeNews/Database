@@ -4,6 +4,7 @@ class TweetClient{
         return new TweetClient(data); 
     }
     constructor(tweet){
+        console.log(tweet)
         this.tweetID = tweet.tweetID || -1; 
         this.authorID = tweet.authorID || -1; 
         this.inReplyToUserID = tweet.inReplyToUserID || -1; 
@@ -12,8 +13,8 @@ class TweetClient{
         this.creationDate = new Date(tweet.creationDate); 
         this.fullText = tweet.fullText; 
         this.language = tweet.language; 
-        this._TweetStatsFreeze = new TweetClient.TweetStatsFreeze(tweet);
-        this._TweetAnalysis = new TweetClient.TweetAnalysis(tweet);
+        this._TweetStatsFreeze = new TweetClient.TweetStatsFreeze(tweet._TweetStatsFreeze);
+        this._TweetAnalysis = new TweetClient.TweetAnalysis(tweet._TweetAnalysis);
     }
     getData(){
         return {
@@ -144,12 +145,14 @@ TweetClient.TweetStatsFreeze = class {
 }
 
 TweetClient.TweetAnalysis = class {
-    constructor(tweet){
-        this._sentiment = new TweetClient.TweetAnalysis.Sentiment(tweet._TweetAnalysis.sentimentAnalysis);
+    constructor(analysis){
+        this.sentiment = new TweetClient.TweetAnalysis.Sentiment(analysis.sentiment);
     }
     getDetails(){
         let container = document.createElement('div');
-        container.append(this._sentiment.getDetailsTable().dom);
+        container.append(
+            this.sentiment.getDetailsTable().dom
+        );
         return {dom: container}
     }
 }

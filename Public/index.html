@@ -29,7 +29,7 @@
         (async()=>{
             let data_raw = await fetch('/tweet/read');
             let data = await data_raw.json();
-            console.log(data)
+            // console.log(data)
             document.querySelector("#table-cont").append( new Table(data).dom )
 
         })()
