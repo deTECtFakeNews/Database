@@ -34,6 +34,7 @@ class TweetModel {
         this.fullText = tweet.fullText; 
         this.language = tweet.language; 
         this._TweetStatsFreeze = new TweetModel.TweetStatsFreeze(tweet);
+        this._TweetAnalysis = new TweetModel.TweetAnalysis(tweet)
     }
     getData(){
         return {
@@ -49,19 +50,10 @@ class TweetModel {
     getStats(){
         return this._TweetStatsFreeze.getData();
     }
-    async analyze(){
-        let analysis = {}
-        try{
-            analysis = {
-                ...await AnalysisService.getSentiment(this.fullText)
-            }
-            // await TweetService.TweetAnalysis.updateToDatabase(this.getData(), analysis)
-        } catch {
-            analysis['error'] = "error"
-        }
-        // return new TweetModel.TweetAnalysis(this.getData(), analysis);
-        return analysis;
+    getAnalysis(){
+        return this._TweetAnalysis.getData();
     }
+
     async getEmbed(){
         try{
             return await TweetService.getCard(this.tweetID);
@@ -155,8 +147,38 @@ TweetModel.TweetAnalysis = class {
     constructor(tweet, analysis){
         this.tweetID = tweet.tweetID;
         this.fullText = tweet.fullText;
-        // this.sentiment = 
+        // Sentiment
+        this.sentiment = {}
+        this.sentiment.fullText = tweet.sentiment_fullText
+        this.sentiment.negativity = tweet.sentiment_negativity
+        this.sentiment.neutrality = tweet.sentiment_neutrality
+        this.sentiment.positivity = tweet.sentiment_positivity
+        this.sentiment.compound = tweet.sentiment_compound
+        this.sentiment.polarity = tweet.sentiment_polarity
+        this.sentiment.subjectivity = tweet.sentiment_subjectivity
+        this.sentiment.anger = tweet.sentiment_anger
+        this.sentiment.anticipation = tweet.sentiment_anticipation
+        this.sentiment.disgust = tweet.sentiment_disgust
+        this.sentiment.fear = tweet.sentiment_fear
+        this.sentiment.joy = tweet.sentiment_joy
+        this.sentiment.negative = tweet.sentiment_negative
+        this.sentiment.positive = tweet.sentiment_positive
+        this.sentiment.sadness = tweet.sentiment_sadness
+        this.sentiment.surprise = tweet.sentiment_surprise
+        this.sentiment.trust = tweet.sentiment_trust
+
+
     }
+    getData(){
+        return {
+            sentiment: this.sentiment
+        }
+    }
+
+    async execute(analysis_name){
+        // 
+    }
+
 }
 
 

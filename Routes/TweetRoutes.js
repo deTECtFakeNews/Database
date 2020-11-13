@@ -26,7 +26,7 @@ router.get('/read', async (req, res)=>{
         return {
             ...t.getData(),
             _TweetStatsFreeze: t.getStats(),
-            _TweetAnalysis: await t.analyze()
+            _TweetAnalysis: t.getAnalysis()
         }
     }))
     
@@ -43,7 +43,7 @@ router.get('/read/:id', async (req, res)=>{
     let data = {
         ...tweet[0].getData(),
         _TweetStatsFreeze: tweet[0].getStats(),
-        _TweetAnalysis: await tweet[0].analyze()
+        _TweetAnalysis: tweet[0].getAnalysis()
     }
     res.json(data);
 })
