@@ -34,7 +34,6 @@ class TweetModel {
         this.fullText = tweet.fullText; 
         this.language = tweet.language; 
         this._TweetStatsFreeze = new TweetModel.TweetStatsFreeze(tweet);
-        this._TweetAnalysis = new TweetModel.TweetAnalysis(tweet);
     }
     getData(){
         return {
@@ -50,8 +49,19 @@ class TweetModel {
     getStats(){
         return this._TweetStatsFreeze.getData();
     }
-    getAnalysis(){
-        return this._TweetAnalysis.getData();
+    async analyze(){
+        let analysis = {}
+        try{
+            analysis = {
+                // ...await AnalysisService.getSentiment(this.fullText)
+            }
+            throw ""
+            // await TweetService.TweetAnalysis.updateToDatabase(this.getData(), analysis)
+        } catch {
+            analysis['error'] = "error"
+        }
+        // return new TweetModel.TweetAnalysis(this.getData(), analysis);
+        return analysis;
     }
     async getEmbed(){
         try{
@@ -142,17 +152,11 @@ TweetModel.TweetStatsFreeze = class{
     }
 }
 
-TweetModel.TweetAnalysis = class{
-    constructor(tweet){
-        this.sentimentAnalysis;
-        AnalysisService.getSentiment(tweet.fullText).then(sentimentAnalysis=>{
-            this.sentimentAnalysis = sentimentAnalysis;
-        })
-    }
-    getData(){
-        return {
-            sentimentAnalysis: this.sentimentAnalysis
-        }
+TweetModel.TweetAnalysis = class {
+    constructor(tweet, analysis){
+        this.tweetID = tweet.tweetID;
+        this.fullText = tweet.fullText;
+        // this.sentiment = 
     }
 }
 

@@ -1,5 +1,6 @@
 const express = require('express');
 const TweetModel = require('../Models/TweetModel');
+const SentimentAnalysisService = require('../Services/SentimentAnalysisService');
 var router = express.Router();
 
 router.use(express.json())
@@ -19,11 +20,21 @@ router.get('/fetch/:id', async (req, res)=>{
 
 router.get('/read', async (req, res)=>{
     let tweets = await TweetModel.readFromDatabase(req.query);
-    let data = tweets.map( t => ({
-        ...t.getData(),
-        _TweetStatsFreeze: t.getStats(),
-        _TweetAnalysis: t.getAnalysis()
-    }) )
+    
+    let data = await Promise.all(tweets.map(async t=>{
+        // let analysis = await t.analyze();
+        return {
+            ...t.getData(),
+            _TweetStatsFreeze: t.getStats(),
+            // _TweetAnalysis: await t.analyze();
+        }
+    }))
+    
+    // let data = tweets.map( t => ({
+    //     ...t.getData(),
+    //     _TweetStatsFreeze: t.getStats(),
+    //     _TweetAnalysis: t.getAnalysis()
+    // }) )
     res.json(data)
 })
 
@@ -32,7 +43,7 @@ router.get('/read/:id', async (req, res)=>{
     let data = {
         ...tweet[0].getData(),
         _TweetStatsFreeze: tweet[0].getStats(),
-        _TweetAnalysis: tweet[0].getAnalysis()
+        _TweetAnalysis: await tweet[0].analyze()
     }
     res.json(data);
 })
@@ -68,6 +79,12 @@ router.get('/embed/:id', async (req, res)=>{
     let data = await tweet.getEmbed();
     console.log(data);
     res.end(data)
+})
+
+router.get('/test', async (req, res)=>{
+    let data = await SentimentAnalysisService.execute( "Hola mundo jajajaj" );
+    console.log("data is", data)
+    res.json(data)
 })
 
 module.exports = router;
