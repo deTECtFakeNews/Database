@@ -85,8 +85,7 @@ const TweetService = {
     }, 
     getFromAPI: async (id)=>{
         return new Promise((resolve, reject)=>{ 
-            Data.Twitter.get(`statuses/show/${id}`, (error, data, response)=>{
-                console.log("erororororor", error)
+            Data.Twitter.get(`statuses/show/${id}`, {tweet_mode: 'extended'}, (error, data, response)=>{
                 if(error != undefined && error != null) reject (error);
                 else resolve({
                     tweetID: data.id_str, 
