@@ -53,9 +53,8 @@ class TweetModel {
         let analysis = {}
         try{
             analysis = {
-                // ...await AnalysisService.getSentiment(this.fullText)
+                ...await AnalysisService.getSentiment(this.fullText)
             }
-            throw ""
             // await TweetService.TweetAnalysis.updateToDatabase(this.getData(), analysis)
         } catch {
             analysis['error'] = "error"
