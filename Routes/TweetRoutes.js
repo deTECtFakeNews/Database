@@ -26,7 +26,7 @@ router.get('/read', async (req, res)=>{
         return {
             ...t.getData(),
             _TweetStatsFreeze: t.getStats(),
-            // _TweetAnalysis: await t.analyze();
+            _TweetAnalysis: await t.analyze()
         }
     }))
     
