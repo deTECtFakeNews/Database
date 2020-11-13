@@ -57,10 +57,9 @@ const TweetService = {
             let query = `
                 SELECT * FROM (( Tweet
                     INNER JOIN TweetStatsFreeze ON Tweet.tweetID = TweetStatsFreeze.tweetID)
-                    -- INNER JOIN Tweet Analysis ON Tweet.tweetID = TweetAnalysis.tweetID
+                    INNER JOIN TweetAnalysis ON Tweet.tweetID = TweetAnalysis.tweetID
                 ) WHERE ${query_params != undefined && Object.keys(query_params).length!=0 ? '?' : '1=1'}`;
             let q = Data.Database.query(query, query_params, (error, results, fields)=>{
-                console.log(q.sql, query_params)
                 if(error) reject(error);
                 console.log(`[TweetService] readFromDatabase successful. results`);
                 resolve(results.map(r=>({...r})));
@@ -202,6 +201,44 @@ TweetService.TweetAnalysis = {
             resolve(results);
         })
     },
+    // DATABASE - Insert into row
+    insertToDatabase: async (tweet, analysis)=>{
+        return new Promise((resolve, reject)=>{
+            let data = {
+                tweetID: tweet.tweetID,
+                ...analysis
+            }
+            delete data['sentiment_fullText']
+
+            let q = Data.Database.query("INSERT INTO `TweetAnalysis` SET ?", data, (error, results, fields)=>{
+                console.log(q.sql)
+                if(error && error.code != 'ER_DUP_ENTRY') reject(error);
+                console.log(`[TweetService.TweetAnalysis] (${tweet.tweetID}) was uploaded`)
+                // console.log({results, fields})
+                // console.log(data)
+                resolve(results)
+            })
+        })
+    },
+    // DATABASE - Update
+    updateToDatabase: async (tweet, analysis)=>{
+        return new Promise((resolve, reject)=>{
+            let data = {
+                // tweetID: tweet.tweetID,
+                ...analysis
+            }
+            delete data['sentiment_fullText']
+
+            let q = Data.Database.query(`UPDATE TweetAnalysis SET ? WHERE TweetAnalysis.tweetID=${tweet.tweetID}`, data, (error, results, fields)=>{
+                console.log(q.sql)
+                if(error && error.code != 'ER_DUP_ENTRY') reject(error);
+                console.log(`[TweetService.TweetAnalysis] (${tweet.tweetID}) was updated`)
+                // console.log({results, fields})
+                // console.log(data)
+                resolve(results)
+            })
+        })
+    }
 }
 
 

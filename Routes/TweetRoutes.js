@@ -22,11 +22,11 @@ router.get('/read', async (req, res)=>{
     let tweets = await TweetModel.readFromDatabase(req.query);
     
     let data = await Promise.all(tweets.map(async t=>{
-        let analysis = await t.analyze();
+        // let analysis = await t.analyze();
         return {
             ...t.getData(),
             _TweetStatsFreeze: t.getStats(),
-            _TweetAnalysis: analysis
+            // _TweetAnalysis: await t.analyze();
         }
     }))
     

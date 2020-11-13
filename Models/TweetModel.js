@@ -52,11 +52,15 @@ class TweetModel {
     async analyze(){
         let analysis = {}
         try{
-            analysis['sentiment'] = await AnalysisService.getSentiment(this.fullText)
-            // analysis['sentiment'] = "Hi"
+            analysis = {
+                // ...await AnalysisService.getSentiment(this.fullText)
+            }
+            throw ""
+            // await TweetService.TweetAnalysis.updateToDatabase(this.getData(), analysis)
         } catch {
             analysis['error'] = "error"
         }
+        // return new TweetModel.TweetAnalysis(this.getData(), analysis);
         return analysis;
     }
     async getEmbed(){
@@ -149,9 +153,10 @@ TweetModel.TweetStatsFreeze = class{
 }
 
 TweetModel.TweetAnalysis = class {
-    constructor(tweet){
+    constructor(tweet, analysis){
         this.tweetID = tweet.tweetID;
         this.fullText = tweet.fullText;
+        // this.sentiment = 
     }
 }
 

@@ -18,7 +18,15 @@ const SentimentAnalysisService = {
             pythonProcess.stdout.on('data', (data)=>{
                 console.log("dadadadata")
                 let response = Buffer.from(data).toString()
-                resolve(JSON.parse(response.replace(/'/g, '"')))
+                let jsonResponse = JSON.parse(response.replace(/'/g,"\""))
+                delete jsonResponse['error']
+
+                let parsedJsonResponse = Object.keys(jsonResponse).reduce((prev, curr)=>{
+                    prev['sentiment_'+curr] = jsonResponse[curr];
+                    return prev;
+                }, {})
+                resolve(parsedJsonResponse)
+
                 // resolve(response)
                 // pythonProcess.kill()
             })

@@ -113,45 +113,46 @@ def main():
     # text = "Excelenten noticia!, Ahora también en EEUU, aplican el semáforo covid de México!! 👏🏻👏🏻👏🏻 Lágrim4s Fach4s en 3... 2... 1...!! Azi no ANLO!! Ansina no Andrés Mariel!!! 😂😂😂 #EsUnHonorEstarConObrador #GatellOrgulloMexicano"
     # Define data structure
     individualData = {
-        'fullText': text, 
-        'negativity':0.0,
-        'neutrality':0.0,
-        'positivity':0.0,
-        'compound':0.0, 
-        'polarity':0.0, 
-        'subjectivity':0.0, 
-        'anger':0.0, 
-        'anticipation':0.0,
-        'disgust':0.0,
-        'fear':0.0,
-        'joy':0.0,
-        'negative':0.0,
-        'positive':0.0,
-        'sadness':0.0,
-        'surprise':0.0,
-        'trust':0.0 
+        'fullText': "text", 
+        'negativity':1.0,
+        'neutrality':1.0,
+        'positivity':1.0,
+        'compound':1.0, 
+        'polarity':1.0, 
+        'subjectivity':1.0, 
+        'anger':1.0, 
+        'anticipation':1.0,
+        'disgust':1.0,
+        'fear':1.0,
+        'joy':1.0,
+        'negative':1.0,
+        'positive':1.0,
+        'sadness':1.0,
+        'surprise':1.0,
+        'trust':1.0 
     }
-    individualData['dir'] = cw_path
-    # Clean text
-    text = clean_text(text)
-    # Translate text
-    text = translate_text(text)
-    # Get sentiment
-    sentiment = get_sentiment(text)
-    # Get emotions
-    emotions = get_emotions(text)[1]
+    try:
+        # Clean text
+        text = clean_text(text)
+        # Translate text
+        text = translate_text(text)
+        # Get sentiment
+        sentiment = get_sentiment(text)
+        # Get emotions
+        emotions = get_emotions(text)[1]
 
-    individualData['negativity'] = sentiment[0]['neg']
-    individualData['neutrality'] = sentiment[0]['neu']
-    individualData['positivity'] = sentiment[0]['pos']
-    individualData['compound'] = sentiment[0]['compound']
-    individualData['polarity'] = sentiment[1]
-    individualData['subjectivity'] = sentiment[2]
+        individualData['negativity'] = sentiment[0]['neg']
+        individualData['neutrality'] = sentiment[0]['neu']
+        individualData['positivity'] = sentiment[0]['pos']
+        individualData['compound'] = sentiment[0]['compound']
+        individualData['polarity'] = sentiment[1]
+        individualData['subjectivity'] = sentiment[2]
 
-    for emotion in emotions:
-        # print(emotion)
-        individualData[emotion] = emotions[emotion]
-
+        for emotion in emotions:
+            # print(emotion)
+            individualData[emotion] = emotions[emotion]
+    except:
+        individualData['error'] = 1
     print(individualData)
     # print(individualData)
     return 0
