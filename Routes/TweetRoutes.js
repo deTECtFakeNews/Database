@@ -21,20 +21,14 @@ router.get('/fetch/:id', async (req, res)=>{
 router.get('/read', async (req, res)=>{
     let tweets = await TweetModel.readFromDatabase(req.query);
     
-    let data = await Promise.all(tweets.map(async t=>{
-        // let analysis = await t.analyze();
+    let data = await Promise.all(tweets.map(async (t,i)=>{
+        // await t.updateAnalysis("sentiment");
         return {
             ...t.getData(),
             _TweetStatsFreeze: t.getStats(),
             _TweetAnalysis: t.getAnalysis()
         }
     }))
-    
-    // let data = tweets.map( t => ({
-    //     ...t.getData(),
-    //     _TweetStatsFreeze: t.getStats(),
-    //     _TweetAnalysis: t.getAnalysis()
-    // }) )
     res.json(data)
 })
 

@@ -227,13 +227,10 @@ TweetService.TweetAnalysis = {
                 ...analysis
             }
             delete data['sentiment_fullText']
-
             let q = Data.Database.query(`UPDATE TweetAnalysis SET ? WHERE TweetAnalysis.tweetID=${tweet.tweetID}`, data, (error, results, fields)=>{
-                console.log(q.sql)
+                console.log(q.sql, data)
                 if(error && error.code != 'ER_DUP_ENTRY') reject(error);
                 console.log(`[TweetService.TweetAnalysis] (${tweet.tweetID}) was updated`)
-                // console.log({results, fields})
-                // console.log(data)
                 resolve(results)
             })
         })

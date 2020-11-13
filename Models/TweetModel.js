@@ -53,6 +53,17 @@ class TweetModel {
     getAnalysis(){
         return this._TweetAnalysis.getData();
     }
+    async updateAnalysis(analysis){
+        // try{
+        //     if(analysis == "sentiment"){
+        //         await this._TweetAnalysis.execute("sentiment");
+        //         await TweetService.TweetAnalysis.updateToDatabase(this.getData(), this._TweetAnalysis.getSQLData());
+        //         return
+        //     }
+        // } catch (e){
+        //     console.log("[TweetModel] updateAnalysis error")
+        // }
+    }
 
     async getEmbed(){
         try{
@@ -174,9 +185,32 @@ TweetModel.TweetAnalysis = class {
             sentiment: this.sentiment
         }
     }
-
+    getSQLData(){
+        return {
+            tweetID: this.tweetID,
+            sentiment_negativity: this.sentiment.negativity,
+            sentiment_neutrality: this.sentiment.neutrality,
+            sentiment_positivity: this.sentiment.positivity,
+            sentiment_compound: this.sentiment.compound,
+            sentiment_polarity: this.sentiment.polarity,
+            sentiment_subjectivity: this.sentiment.subjectivity,
+            sentiment_anger: this.sentiment.anger,
+            sentiment_anticipation: this.sentiment.anticipation,
+            sentiment_disgust: this.sentiment.disgust,
+            sentiment_fear: this.sentiment.fear,
+            sentiment_joy: this.sentiment.joy,
+            sentiment_negative: this.sentiment.negative,
+            sentiment_positive: this.sentiment.positive,
+            sentiment_sadness: this.sentiment.sadness,
+            sentiment_surprise: this.sentiment.surprise,
+            sentiment_trust: this.sentiment.trust,
+        }
+    }
     async execute(analysis_name){
-        // 
+        if(analysis_name == "sentiment"){
+            this.sentiment = await AnalysisService.getSentiment(this.fullText);
+            return;
+        }
     }
 
 }
