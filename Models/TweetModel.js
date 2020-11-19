@@ -53,7 +53,9 @@ class TweetModel {
     getAnalysis(){
         return this._TweetAnalysis.getData();
     }
-
+    async analyze(analysis){
+        return await this._TweetAnalysis.execute(analysis)
+    }
     async getEmbed(){
         try{
             return await TweetService.getCard(this.tweetID);
@@ -147,6 +149,8 @@ TweetModel.TweetAnalysis = class {
     constructor(tweet, analysis){
         this.tweetID = tweet.tweetID;
         this.fullText = tweet.fullText;
+        // Translation
+        this.translation = tweet.translation;
         // Sentiment
         this.sentiment = {}
         this.sentiment.fullText = tweet.sentiment_fullText
@@ -166,17 +170,26 @@ TweetModel.TweetAnalysis = class {
         this.sentiment.sadness = tweet.sentiment_sadness
         this.sentiment.surprise = tweet.sentiment_surprise
         this.sentiment.trust = tweet.sentiment_trust
-
-
     }
     getData(){
         return {
+            translation: this.translation,
             sentiment: this.sentiment
         }
     }
 
     async execute(analysis_name){
-        // 
+        if(analysis_name == "translation"){
+            let result = await AnalysisService.getTranslation(this.fullText);
+            this.translation = result;
+            return result;
+        }
+        if(analysis_name == "sentiment"){
+            let result = JSON.parse(AnalysisService.getSentiment(this.fullText));
+            Object.keys(result).forEach(k=>{
+                this.sentiment[k] = result[k]
+            })
+        }
     }
 
 }

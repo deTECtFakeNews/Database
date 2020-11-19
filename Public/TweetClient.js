@@ -145,7 +145,7 @@ TweetClient.TweetStatsFreeze = class {
 
 TweetClient.TweetAnalysis = class {
     constructor(tweet){
-        this._sentiment = new TweetClient.TweetAnalysis.Sentiment(tweet._TweetAnalysis.sentimentAnalysis);
+        this._sentiment = new TweetClient.TweetAnalysis.Sentiment(tweet._TweetAnalysis.sentiment);
     }
     getDetails(){
         let container = document.createElement('div');

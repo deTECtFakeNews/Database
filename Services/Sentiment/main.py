@@ -5,41 +5,25 @@ import re
 import string
 from collections import Counter
 import preprocessor.api as p
-from deep_translator import (GoogleTranslator,DeepL,MyMemoryTranslator)
 from textblob import TextBlob
 
 from nltk.tokenize import word_tokenize 
 from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer
-
-
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 
 import pandas as pd
+import json
 
-def remove_punct(text):
+def clean_text(text):
     # Iterate for all non punctuation chars
     text = "".join([ char for char in text if char not in string.punctuation ])
     # Remove all numbers
     text = re.sub('[0-9]+', '', text)
-    # Return text
-    return text
-
-def clean_text(text):
     # Clean links and hashtags
     p.clean(text)
-    text = remove_punct(text).lower()
+    text = text.lower()
     return text
-
-def translate_text(text):
-    try:
-        translated = GoogleTranslator(source='auto', target='en').translate(text)
-        translated = TextBlob(translated).correct()
-    except:
-        translated = MyMemoryTranslator(source='auto', target='en').translate(text)
-        translated = TextBlob(translated).correct()
-
-    return str(translated)
 
 def get_sentiment(text):
     analyzer = SentimentIntensityAnalyzer()
@@ -107,13 +91,12 @@ def get_emotions(text):
 
     return data
 
+
 def main():
     # Receive text from params
     text = " ".join(sys.argv[1:])
-    # text = "Excelenten noticia!, Ahora también en EEUU, aplican el semáforo covid de México!! 👏🏻👏🏻👏🏻 Lágrim4s Fach4s en 3... 2... 1...!! Azi no ANLO!! Ansina no Andrés Mariel!!! 😂😂😂 #EsUnHonorEstarConObrador #GatellOrgulloMexicano"
-    # Define data structure
     individualData = {
-        'fullText': "text", 
+        'fullText': text, 
         'negativity':1.0,
         'neutrality':1.0,
         'positivity':1.0,
@@ -131,31 +114,26 @@ def main():
         'surprise':1.0,
         'trust':1.0 
     }
-    try:
-        # Clean text
-        text = clean_text(text)
-        # Translate text
-        text = translate_text(text)
-        # Get sentiment
-        sentiment = get_sentiment(text)
-        # Get emotions
-        emotions = get_emotions(text)[1]
+    # Clean text
+    text = clean_text(text)
+    # Get sentiment
+    sentiment = get_sentiment(text)
+    individualData['negativity'] = sentiment[0]['neg']
+    individualData['neutrality'] = sentiment[0]['neu']
+    individualData['positivity'] = sentiment[0]['pos']
+    individualData['compound'] = sentiment[0]['compound']
+    individualData['polarity'] = sentiment[1]
+    individualData['subjectivity'] = sentiment[2]
 
-        individualData['negativity'] = sentiment[0]['neg']
-        individualData['neutrality'] = sentiment[0]['neu']
-        individualData['positivity'] = sentiment[0]['pos']
-        individualData['compound'] = sentiment[0]['compound']
-        individualData['polarity'] = sentiment[1]
-        individualData['subjectivity'] = sentiment[2]
+    # Get emotions
+    emotions = get_emotions(text)[1]
+    for emotion in emotions:
+        individualData[emotion] = emotions[emotion]
 
-        for emotion in emotions:
-            # print(emotion)
-            individualData[emotion] = emotions[emotion]
-    except:
-        individualData['error'] = 1
-    print(individualData)
-    # print(individualData)
+    jsonData = json.dumps(individualData)
+    print(jsonData)
     return 0
+    exit()
 
 if __name__ == "__main__":
     main()
