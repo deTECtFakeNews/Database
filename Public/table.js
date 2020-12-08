@@ -47,7 +47,7 @@ class DetailsTable{
             this.dom.append(thead);
         }
         Object.keys(data).forEach(key=>{
-            console.log(data);
+            // console.log(data);
             let tr = document.createElement('tr');
             let td_key = document.createElement('td');
                 td_key.innerHTML = key;

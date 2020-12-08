@@ -2,11 +2,11 @@ const mysql = require('mysql');
 const Twitter = require('twitter');
 
 const Data = {
-    Database: mysql.createPool({
-        host: "edvilme-mysql.mysql.database.azure.com", 
-        user: "edvilme@edvilme-mysql",
-        password: "DEV.Lalongo1606",
-        database: "tec_fake_news",
+    Database: mysql.createConnection({
+        host: "localhost", 
+        user: "A01023646",
+        password: process.env.MYSQLPASS,
+        database: "FakeNews",
         supportBigNumbers: true,
         ssl: {rejectUnauthorized: false}, 
     }),

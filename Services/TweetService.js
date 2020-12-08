@@ -85,8 +85,7 @@ const TweetService = {
     }, 
     getFromAPI: async (id)=>{
         return new Promise((resolve, reject)=>{ 
-            Data.Twitter.get(`statuses/show/${id}`, (error, data, response)=>{
-                console.log("erororororor", error)
+            Data.Twitter.get(`statuses/show/${id}`, {tweet_mode: 'extended'}, (error, data, response)=>{
                 if(error != undefined && error != null) reject (error);
                 else resolve({
                     tweetID: data.id_str, 
@@ -228,13 +227,10 @@ TweetService.TweetAnalysis = {
                 ...analysis
             }
             delete data['sentiment_fullText']
-
             let q = Data.Database.query(`UPDATE TweetAnalysis SET ? WHERE TweetAnalysis.tweetID=${tweet.tweetID}`, data, (error, results, fields)=>{
-                console.log(q.sql)
+                console.log(q.sql, data)
                 if(error && error.code != 'ER_DUP_ENTRY') reject(error);
                 console.log(`[TweetService.TweetAnalysis] (${tweet.tweetID}) was updated`)
-                // console.log({results, fields})
-                // console.log(data)
                 resolve(results)
             })
         })
