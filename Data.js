@@ -3,10 +3,10 @@ const Twitter = require('twitter');
 
 const Data = {
     Database: mysql.createConnection({
-        host: "edvilme-mysql.mysql.database.azure.com", 
-        user: "edvilme@edvilme-mysql",
-        password: "DEV.Lalongo1606",
-        database: "tec_fake_news",
+        host: "localhost", 
+        user: "A01023646",
+        password: process.env.MYSQLPASS,
+        database: "FakeNews",
         supportBigNumbers: true,
         ssl: {rejectUnauthorized: false}, 
     }),
