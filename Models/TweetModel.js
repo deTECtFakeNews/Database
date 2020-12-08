@@ -158,6 +158,8 @@ TweetModel.TweetAnalysis = class {
     constructor(tweet, analysis){
         this.tweetID = tweet.tweetID;
         this.fullText = tweet.fullText;
+        // Translation
+        this.translation = tweet.translation;
         // Sentiment
         this.sentiment = {}
         this.sentiment.fullText = tweet.sentiment_fullText
@@ -177,11 +179,10 @@ TweetModel.TweetAnalysis = class {
         this.sentiment.sadness = tweet.sentiment_sadness
         this.sentiment.surprise = tweet.sentiment_surprise
         this.sentiment.trust = tweet.sentiment_trust
-
-
     }
     getData(){
         return {
+            translation: this.translation,
             sentiment: this.sentiment
         }
     }
