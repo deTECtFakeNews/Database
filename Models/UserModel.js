@@ -68,7 +68,7 @@ UserModel.UserStatsFreeze = class{
     }
     constructor(user){
         this.userID = user.userID;
-        this.updateDate = new Date().toISOString();
+        this.updateDate = new Date().toISOString().slice(0, 19).replace('T', ' ');;
         this.followersCount = user.followersCount;
         this.followingsCount = user.followingsCount;
         this.listedCount = user.listedCount;

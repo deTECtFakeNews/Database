@@ -57,7 +57,7 @@ const TweetService = {
             let query = `
                 SELECT * FROM (( Tweet
                     INNER JOIN TweetStatsFreeze ON Tweet.tweetID = TweetStatsFreeze.tweetID)
-                    INNER JOIN TweetAnalysis ON Tweet.tweetID = TweetAnalysis.tweetID
+                    -- INNER JOIN TweetAnalysis ON Tweet.tweetID = TweetAnalysis.tweetID
                 ) WHERE ${query_params != undefined && Object.keys(query_params).length!=0 ? '?' : '1=1'}`;
             let q = Data.Database.query(query, query_params, (error, results, fields)=>{
                 if(error) reject(error);
@@ -94,7 +94,7 @@ const TweetService = {
                     inReplyToTweetID: data.in_reply_to_status_id_str || null, 
                     quotesTweetID: data.quoted_status_id_srt || null, 
                     creationDate: data.created_at,
-                    fullText: data.text, 
+                    fullText: data.full_text, 
                     language: data.lang || null, 
                     // placeLng = data.coordinates && data.coordinates.coordinates ? data.coordinates.coordinates[0] : null,
                     // placeLat = data.coordinates && data.coordinates.coordinates ? data.coordinates.coordinates[0] : null,

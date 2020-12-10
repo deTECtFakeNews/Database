@@ -12,7 +12,10 @@
   "dependencies": {
     "express": "^4.17.1",
     "expresss": "0.0.0",
+    "mariadb": "^2.5.2",
     "mysql": "^2.18.1",
+    "mysql2": "^2.2.5",
+    "ssh2": "^0.8.9",
     "twitter": "^1.7.1"
   }
 }
