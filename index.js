@@ -2,6 +2,7 @@ const TweetModel = require("./Models/TweetModel");
 const UserModel = require("./Models/UserModel");
 const TweetRouter = require('./Routes/TweetRoutes');
 const UserRouter = require('./Routes/UserRoutes');
+const QueryRoutes = require('./Routes/QueryRoutes');
 const express = require('express');
 const Data = require("./Data");
 var app = express(); 
@@ -18,6 +19,7 @@ Data.SSHDBconnect().then(()=>{
 
     app.use('/tweet', TweetRouter);
     app.use('/user', UserRouter);
+    app.use('/query', QueryRoutes)
     app.use(express.static(__dirname+'/Public'));
     app.listen(PORT, ()=>{
         console.log("App listening on port" + PORT);

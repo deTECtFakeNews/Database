@@ -3,6 +3,24 @@ const Data = require("../Data");
 const TweetService = {
     TweetStatsFreeze: {},
     TweetAnalysis: {},
+    // Create Obj
+    normalize: (data)=>({
+        tweetID: data.id_str, 
+        authorID: data.user.id_str, 
+        inReplyToUserID: data.in_reply_to_user_id_str || null,
+        inReplyToTweetID: data.in_reply_to_status_id_str || null, 
+        quotesTweetID: data.quoted_status_id_srt || null, 
+        creationDate: data.created_at,
+        fullText: data.full_text || data.text, 
+        language: data.lang || null, 
+        // placeLng = data.coordinates && data.coordinates.coordinates ? data.coordinates.coordinates[0] : null,
+        // placeLat = data.coordinates && data.coordinates.coordinates ? data.coordinates.coordinates[0] : null,
+        // placeDescription = data.place.full_name || null
+        updateDate: new Date().toISOString(),
+        retweetCount: data.retweet_count, 
+        favoriteCount: data.favorite_count, 
+        replyCount: data.reply_count || 0
+    }),
     // Database - Create table
     createTable: async ()=>{
         return new Promise((resolve, reject)=>{
@@ -87,23 +105,7 @@ const TweetService = {
         return new Promise((resolve, reject)=>{ 
             Data.Twitter.get(`statuses/show/${id}`, {tweet_mode: 'extended'}, (error, data, response)=>{
                 if(error != undefined && error != null) reject (error);
-                else resolve({
-                    tweetID: data.id_str, 
-                    authorID: data.user.id_str, 
-                    inReplyToUserID: data.in_reply_to_user_id_str || null,
-                    inReplyToTweetID: data.in_reply_to_status_id_str || null, 
-                    quotesTweetID: data.quoted_status_id_srt || null, 
-                    creationDate: data.created_at,
-                    fullText: data.full_text, 
-                    language: data.lang || null, 
-                    // placeLng = data.coordinates && data.coordinates.coordinates ? data.coordinates.coordinates[0] : null,
-                    // placeLat = data.coordinates && data.coordinates.coordinates ? data.coordinates.coordinates[0] : null,
-                    // placeDescription = data.place.full_name || null
-                    updateDate: new Date().toISOString(),
-                    retweetCount: data.retweet_count, 
-                    favoriteCount: data.favorite_count, 
-                    replyCount: data.reply_count || 0
-                });
+                else resolve(TweetService.normalize(data));
             })
         });
     },
