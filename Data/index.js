@@ -1,19 +1,18 @@
 const mysql = require('mysql2');
-// const Connection = require('mysql2/typings/mysql/lib/Connection');
 const {Client} = require('ssh2');
 const sshConnection = new Client();
 const Twitter = require('twitter');
 
-// GLOBAL VARIABLES
+
 const SSH_DATA = {
     host: '10.4.27.75',
     port: 22, 
     username: 'A01023646',
-    password: process.env.PASSWORD,
+    password: '',
     tryKeyboard: true
 }
 const MYSQL_DATA = {
-    host: '127.0.0.1', 
+    host: '10.4.27.75',
     user: 'DataUser',
     password: 'TEC.F4keNews',
     database: 'FakeNews',
@@ -25,6 +24,16 @@ const TWITTER_DATA = {
     access_token_key: '57733058-dMO5On1f6s1OfCPUSSSgSOScTlDmJbzGFaqgl6VbH',
     access_token_secret: '3PGA7ukcygjWy5s4aiilMVi0nhGuAJH1oQjgRTXIOeLXk'
 }
+
+
+
+
+
+
+
+
+
+
 
 /**
  * Data object for interfacing with sources
@@ -53,7 +62,7 @@ let SSHstream = () => new Promise((resolve, reject)=>{
     sshConnection.on('ready', ()=>{
         console.log("Server :: SSH Connection ready");
         // Forward
-        sshConnection.forwardOut(SSH_DATA.host, MYSQL_DATA.port, '127.0.0.1', MYSQL_DATA.port, (err, stream) => {
+        sshConnection.forwardOut(SSH_DATA.host, MYSQL_DATA.port, MYSQL_DATA.host, MYSQL_DATA.port, (err, stream) => {
             if (err) reject(err);
             resolve(stream);
         })
