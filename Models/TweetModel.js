@@ -74,15 +74,15 @@ class TweetModel {
     }
     async getAuthor(){
         // let user = await UserService.readFromDatabase({userID: this.authorID})
-        let user = await UserService.getFromAPI(this.authorID);
+        let user = await UserService.fetchAPI(this.authorID);
         return new UserModel(user);
     }
     async getRepliedUser(){
         let user;
         if(this.inReplyToUserID == -1){
-            user = await UserService.readFromDatabase({'User.userID': this.replyToUserID})
+            user = await UserService.read({'User.userID': this.replyToUserID})
         } else {
-            user = await UserService.getFromAPI(this.inReplyToUserID);
+            user = await UserService.fetchAPI(this.inReplyToUserID);
         }
         return new UserModel(user);
     }
