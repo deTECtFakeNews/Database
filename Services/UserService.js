@@ -1,10 +1,59 @@
 const { DATE } = require("mysql/lib/protocol/constants/types");
 const Data = require("../Data");
 
+/**
+ * UserServiceJSON Common structure for communication
+ * @typedef {Object} UserServiceJSON
+ * @property {String} userID 
+ * @property {Number} followersCount 
+ * @property {Number} followingsCount 
+ * @property {Number} listedCount 
+ * @property {Number} favoritesCount 
+ * @property {Number} statusesCount 
+ * @property {Date | String} creationDate 
+ * @property {String} fullName 
+ * @property {String} screenName 
+ * @property {String} biography 
+ * @property {Boolean} isProtected 
+ * @property {Boolean} isVerified 
+ * @property {String} language 
+ * @property {String} placeDescription 
+ */
+
+ /**
+  * UserService_StatsFreezeJSON Common structure for communication
+  * @typedef {Object} UserService_StatsFreezeJSON
+  */
+
 const UserService = {
     UserStatsFreeze: {},
     UserAnalysis: {}, 
-    // Database - Create table
+
+    /**
+     * Normalize into UserService_JSON
+     * @param {Object} data Data object received from Twitter API
+     * @returns {UserServiceJSON}
+     */
+    normalize: data=>({
+        userID: data.id_str, 
+        followersCount: data.followers_count,
+        followingsCount: data.friends_count,
+        listedCount: data.listed_count, 
+        favoritesCount: data.favourites_count, 
+        statusesCount: data.statuses_count, 
+        creationDate: data.created_at, 
+        fullName: data.name, 
+        screenName: data.screen_name, 
+        biography: data.description,
+        isProtected: data.protected,
+        isVerified: data.verified, 
+        language: data.lang || null, 
+        placeDescription: data.location || null 
+    }),
+    /**
+     * Database - Create new Table
+     * @returns {Promise}
+     */
     createTable: async ()=>{
         return new Promise((resolve, reject)=>{
             let query = 
@@ -29,7 +78,11 @@ const UserService = {
             });
         })
     },
-    // Database - Insert into row
+    /**
+     * Database - Insert into row
+     * @param {UserServiceJSON} user 
+     * @returns {Promise}
+     */
     insertToDatabase: async (user)=>{
         return new Promise((resolve, reject)=>{
             Data.Database.query("INSERT INTO `User` SET ?", user, (error, results, fields)=>{
@@ -39,7 +92,11 @@ const UserService = {
             })
         });
     },
-    // Database - Read from
+    /**
+     * Database - Read  
+     * @param {Object} query_params 
+     * @returns {Array<UserServiceJSON>}
+     */
     readFromDatabase: async (query_params)=>{
         return new Promise((resolve, reject)=>{
             let query = `
@@ -51,11 +108,16 @@ const UserService = {
                 if(error) reject(error);
                 if(results == undefined) reject();
                 console.log(`[UserService] readFromDatabase successful. results`);
-                resolve(results.map(r=>({...r})));
+                resolve( results.map(r=>this.normalize(r)) )
             })
         })
     },
-    // Database - Update
+    /**
+     * Database - Update
+     * @param {Number | String} id user identifier
+     * @param {UserServiceJSON} user user data
+     * @returns {Promise}
+     */
     updateToDatabase: async (id, user)=>{
         return new Promise((resolve, reject)=>{
             Data.Database.query(`UPDATE User SET ? WHERE User.userID=${id}`, user, (error, results, fields)=>{
@@ -72,34 +134,26 @@ const UserService = {
             resolve("To be implemented");
         })
     }, 
-    // TwitterAPI - get
+    /**
+     * Twitter API - Fetch 
+     * @param {Number || String} id 
+     * @returns {UserServiceJSON}
+     */
     getFromAPI: async(id)=>{
         return new Promise((resolve, reject)=>{
             Data.Twitter.get('users/show', {user_id: id}, (error, data, response)=>{
                 if(error) reject(error);
-                resolve({
-                    userID: data.id_str, 
-                    followersCount: data.followers_count,
-                    followingsCount: data.friends_count,
-                    listedCount: data.listed_count, 
-                    favoritesCount: data.favourites_count, 
-                    statusesCount: data.statuses_count, 
-                    creationDate: data.created_at, 
-                    fullName: data.name, 
-                    screenName: data.screen_name, 
-                    biography: data.description,
-                    isProtected: data.protected,
-                    isVerified: data.verified, 
-                    language: data.lang || null, 
-                    placeDescription: data.location || null 
-                })
+                resolve(this.normalize(data))
             })
         })
     }
 };
 
 UserService.UserStatsFreeze = {
-    // Database - Create table
+    /**
+     * Database - Create table
+     * @returns {Promise}
+     */
     createTable: async ()=>{
         return new Promise((resolve, reject)=>{
             let query = 
@@ -124,7 +178,11 @@ UserService.UserStatsFreeze = {
             })
         })
     },
-    // Database - Insert into row
+    /**
+     * Database - Insert into row
+     * @param {UserService_StatsFreezeJSON} userStats data to be inserted
+     * @returns {Promise}
+     */
     insertToDatabase: async(userStats)=>{
         return new Promise((resolve, reject)=>{
             Data.Database.query("INSERT INTO `UserStatsFreeze` SET ?", userStats, (error, results, fields)=>{
@@ -134,11 +192,20 @@ UserService.UserStatsFreeze = {
             })
         })
     },
-    // Database - Read from
+    /**
+     * Database - Read
+     * @param {Object} query_params Parameters for querying in db
+     * @returns {Promise}
+     */
     readFromDatabase: async(query_params)=>{
         return await UserService.readFromDatabase(query_params);
     },
-    // Database - Update
+    /**
+     * Database - Update
+     * @param {Number | String} id User identifier
+     * @param {UserService_StatsFreezeJSON} userStats data to be updated
+     * @returns {Promise}
+     */
     updateToDatabase: async(id, userStats)=>{
         return new Promise((resolve, reject)=>{
             Data.Database.query(`UPDATE UserStatsFreeze SET ? WHERE UserStatsFreeze.userID=${id}`, userStats, (error, results, fields)=>{
@@ -148,10 +215,6 @@ UserService.UserStatsFreeze = {
             })
         })
     },
-    // TwitterAPI - get
-    getFromAPI: async(id)=>{
-        return await UserService.getFromAPI(id);
-    }
 }
 
 UserService.UserAnalysis = {

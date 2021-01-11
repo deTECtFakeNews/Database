@@ -25,16 +25,6 @@ const TWITTER_DATA = {
     access_token_secret: '3PGA7ukcygjWy5s4aiilMVi0nhGuAJH1oQjgRTXIOeLXk'
 }
 
-
-
-
-
-
-
-
-
-
-
 /**
  * Data object for interfacing with sources
  * @typedef {Object} Data
