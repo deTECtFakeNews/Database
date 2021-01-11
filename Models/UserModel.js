@@ -7,14 +7,14 @@ class UserModel{
     }
     static async readFromDatabase(query_params){
         try{
-            let entries = await UserService.readFromDatabase(query_params);
+            let entries = await UserService.read(query_params);
             return entries.map( e=> new UserModel(e) );
         } catch(e){
             console.error("[UserModel] readFromDatabase error", e);
         }
     }
     static async getFromAPI(id){
-        let data = await UserService.getFromAPI(id);
+        let data = await UserService.fetchAPI(id);
         return new UserModel(data);
     }
     constructor(user){
@@ -47,7 +47,7 @@ class UserModel{
     }
     async insertToDatabase(){
         if(this.userID == -1 || this.userID == null) return;
-        await UserService.insertToDatabase(this.getData());
+        await UserService.create(this.getData());
         await UserService.UserStatsFreeze.insertToDatabase(this.getStats());
         return;
     }
@@ -57,7 +57,7 @@ class UserModel{
         return
     }
     async deleteFromDatabase(){
-        return await UserService.deleteFromDatabase();
+        return await UserService.delete();
     }
 
 }
