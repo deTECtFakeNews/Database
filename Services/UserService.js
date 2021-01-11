@@ -79,11 +79,10 @@ const UserService = {
         })
     },
     /**
-     * Database - Insert into row
-     * @param {UserServiceJSON} user 
-     * @returns {Promise}
+     * 
+     * @param {UserServiceJSON} user User data (in normalized form) to be inserted
      */
-    insertToDatabase: async (user)=>{
+    create: async (user)=>{
         return new Promise((resolve, reject)=>{
             Data.Database.query("INSERT INTO `User` SET ?", user, (error, results, fields)=>{
                 if(error && error.code != 'ER_DUP_ENTRY') reject (error);
@@ -97,7 +96,7 @@ const UserService = {
      * @param {Object} query_params 
      * @returns {Array<UserServiceJSON>}
      */
-    readFromDatabase: async (query_params)=>{
+    read: async (query_params)=>{
         return new Promise((resolve, reject)=>{
             let query = `
                 SELECT * FROM (( User
@@ -118,7 +117,7 @@ const UserService = {
      * @param {UserServiceJSON} user user data
      * @returns {Promise}
      */
-    updateToDatabase: async (id, user)=>{
+    update: async (id, user)=>{
         return new Promise((resolve, reject)=>{
             Data.Database.query(`UPDATE User SET ? WHERE User.userID=${id}`, user, (error, results, fields)=>{
                 if(error) reject(error);
@@ -128,7 +127,7 @@ const UserService = {
         })
     }, 
     // Dataabase - Delete
-    deleteFromDatabase: async(id, user)=>{
+    delete: async(id, user)=>{
         return new Promise((resolve, reject)=>{
             // TODO: implement
             resolve("To be implemented");
@@ -139,7 +138,7 @@ const UserService = {
      * @param {Number || String} id 
      * @returns {UserServiceJSON}
      */
-    getFromAPI: async(id)=>{
+    fetchAPI: async(id)=>{
         return new Promise((resolve, reject)=>{
             Data.Twitter.get('users/show', {user_id: id}, (error, data, response)=>{
                 if(error) reject(error);
