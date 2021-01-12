@@ -2,10 +2,18 @@ const Data = require("../Data");
 const UserService = require("../Services/UserService");
 
 class UserModel{
-    static async _createTable(){
+    /**
+     * Create table
+     */
+    static async createTable(){
         return await UserService.createTable();
     }
-    static async readFromDatabase(query_params){
+    /**
+     * Read Users from database
+     * @param {Object} query_params Parameters to read from database
+     * @returns {Array<UserModel>}
+     */
+    static async read(query_params){
         try{
             let entries = await UserService.read(query_params);
             return entries.map( e=> new UserModel(e) );
@@ -13,11 +21,24 @@ class UserModel{
             console.error("[UserModel] readFromDatabase error", e);
         }
     }
-    static async getFromAPI(id){
-        let data = await UserService.fetchAPI(id);
-        return new UserModel(data);
+    /**
+     * Fetch a User from Twitter API
+     * @param {Number|String} id Id of User to fetch from API
+     * @returns {UserModel}
+     */
+    static async fetchAPI(id){
+        try{
+            let data = await UserService.fetchAPI(id);
+            return new UserModel(data)
+        } catch(e){
+
+        }
     }
-    constructor(user){
+    /**
+     * @constructor
+     * @param {import("../Services/UserService").UserService_Data} data Data of the user
+     */
+    constructor(data){
         this.userID = user.userID || -1;
         this.creationDate = new Date(user.creationDate) || new Date();
         this.fullName = user.fullName;
@@ -27,8 +48,13 @@ class UserModel{
         this.isVerified = user.isVerified;
         this.language = user.language;
         this.placeDescription = user.placeDescription;
+
         this._UserStatsFreeze = new UserModel.UserStatsFreeze(user);
     }
+    /**
+     * Get Data in UserService_Data structure
+     * @returns {import("../Services/UserService").UserService_Data}
+     */
     getData(){
         return {
             userID: this.userID,
@@ -42,28 +68,48 @@ class UserModel{
             placeDescription: this.placeDescription
         }
     }
+    /**
+     * Get Stats in UserService_StatsFreeze_Data structure
+     * @returns {import("../Services/UserService").UserService_StatsFreeze_Data}
+     */
     getStats(){
-        return this._UserStatsFreeze.getData();
+        return this._UserStatsFreeze.getData()
     }
+    /**
+     * Insert to database
+     * @returns {Promise}
+     */
     async insertToDatabase(){
-        if(this.userID == -1 || this.userID == null) return;
-        await UserService.create(this.getData());
-        await UserService.UserStatsFreeze.create(this.getStats());
-        return;
+        try{
+            if(this.userID == -1 || this.userID == null) return;
+            await UserService.create(this.getData());
+            await UserService.UserStatsFreeze.create(this.getStats());
+            return;
+        } catch(e){
+
+        }
     }
+    /**
+     * Update current record in database
+     */
     async updateToDatabase(){
         // await UserService.updateToDatabase(this.userID, this.getData());
         // await UserService.UserStatsFreeze.updateToDatabase(this.userID, this.getStats());
         return
     }
+    /**
+     * Delete current record from database
+     */
     async deleteFromDatabase(){
         return await UserService.delete();
     }
-
 }
 
 UserModel.UserStatsFreeze = class{
-    static async _createTable(){
+    /**
+     * Create table
+     */
+    static async createTable(){
         return await UserService.UserStatsFreeze.createTable();
     }
     constructor(user){

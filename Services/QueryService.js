@@ -2,6 +2,13 @@ const Data = require("../Data");
 const TweetService = require("./TweetService");
 
 /**
+ * @typedef {Object} QueryService_Data
+ * @property {Array<import("./TweetService").TweetService_data>} statuses collection of tweets
+ * @property {Object} queryMeta metadata
+ */
+
+
+/**
  * @typedef {Object} QueryService_getFromAPI_response
  * @property {Object} queryMeta metadata of executed query
  * @property {Array.<Object>} statuses collection of tweets 
@@ -40,8 +47,11 @@ const TweetService = require("./TweetService");
 
 const QueryService = {
     QueryTweet: {},
-    // Database - Create Table
-    createTable: async ()=>{
+    /**
+     * Database - Create table
+     * @returns {Promise}
+     */
+    createTable: async()=>{
         return new Promise((resolve, reject)=>{
             let query = 
                 `CREATE TABLE \`Query\` (
@@ -60,34 +70,31 @@ const QueryService = {
                 })
         })
     },
-
     /**
-     * 
-     * @param {String} search terms to be searched
-     * @param {QueryService_getFromAPI_filters} filters filters to be applied
+     * Twitter API - Execute query
+     * @param {String} search Query to be searched
+     * @returns {Promise<QueryService_Data>}
      */
-    getFromAPI: async(search, filters="")=>{
+    fetchAPI: async(search)=>{
         return new Promise((resolve, reject)=>{
-            let filters_string = "";
-            if(typeof filters === "object"){
-                filters_string = Object.keys(filters).filter(l=>filters[l]).map(l=>l+":"+filters[l]).join(" ");
-            } else {
-                filters_string = filters;
-            }
-            let query = {q: search + filters_string};
-            Data.Twitter.get('search/tweets', {q: search + "" + filters_string}, (error, data, response)=>{
+            Data.Twitter.get('search/tweets', {q: search}, (error, data, response)=>{
                 if(error) reject(error);
-                data.statuses = data.statuses.map(l=>TweetService.normalize(l));
+                data.statuses = data.statuses.map( l=> TweetService.normalize(l) );
                 data.queryMeta = data.search_metadata;
                 delete data.search_metadata;
-                resolve(data);
+                resolve.data
             })
         })
-    }, 
+    }
+
 }
 
+
 QueryService.QueryTweet = {
-    // Database - Create table
+    /**
+     * Database - Create table
+     * @returns {Promise}
+     */
     createTable: async ()=>{
         return new Promise((resolve, reject)=>{
             let query = 
@@ -113,21 +120,21 @@ QueryService.QueryTweet = {
             });
         })
     },
-    // Database - Insert
-    insertToDatabase: (query, tweet)=>{
+    /**
+     * Database - Creates (inserts new row)
+     * @param {Number|String} queryID Id of query to be associated with tweet
+     * @param {Number|String} tweetID Id of tweet to be associated with query
+     * @param {String} resultType Result type (default=mixed)
+     */
+    create: async (queryID, tweetID, resultType="mixed")=>{
         return new Promise((resolve, reject)=>{
-            let data = {
-                queryID: query.queryID,
-                tweet: tweet.tweetID,
-                resultType: query.resultType
-            };
-            Data.Database.query("INSERT INTO `QueryTweet` SET ?", data, (error, results, fields)=>{
+            Data.Database.query("INSERT INTO `QueryTweet` SET ?", {queryID, tweetID, resultType}, (error, results, fields)=>{
                 if(error) reject(error);
                 console.log("[QueryService.QueryTweet] insertToDatabase sucessful.");
                 resolve(results);
             })
         })
-    }
+    },
 }
 
 module.exports = QueryService;

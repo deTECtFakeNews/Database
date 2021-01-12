@@ -8,7 +8,7 @@ const SSH_DATA = {
     host: '10.4.27.75',
     port: 22, 
     username: 'A01023646',
-    password: '',
+    password: 'TEC.Lalongo1606',
     tryKeyboard: true
 }
 const MYSQL_DATA = {

@@ -9,7 +9,7 @@ class TweetModel {
     }
     static async readFromDatabase(query_params){
         try {
-            let entries = await TweetService.readFromDatabase(query_params);
+            let entries = await TweetService.read(query_params);
             return entries.map( e=> new TweetModel(e) );
         } catch (e) {
             console.error("[TweetModel] readFromDatabase error", e);
@@ -17,7 +17,7 @@ class TweetModel {
     }
     static async getFromAPI(id) {
         try {
-            let data = await TweetService.getFromAPI(id);
+            let data = await TweetService.fetchAPI(id);
             return new TweetModel(data);
         } catch (e) {
             console.error("[TweetModel] getFromAPI error");
@@ -67,7 +67,7 @@ class TweetModel {
 
     async getEmbed(){
         try{
-            return await TweetService.getCard(this.tweetID);
+            return await TweetService.getCardAPI(this.tweetID);
         } catch (e) {
             return "404"
         }
@@ -89,18 +89,18 @@ class TweetModel {
     async getRepliedTweet(){
         let tweet;
         if(this.inReplyToTweetID == -1){
-            tweet = await TweetService.readFromDatabase({'Tweet.tweetID': this.tweetID});
+            tweet = await TweetService.read({'Tweet.tweetID': this.tweetID});
         } else {
-            tweet = await TweetService.getFromAPI(this.inReplyToTweetID);
+            tweet = await TweetService.fetchAPI(this.inReplyToTweetID);
         }
         return new TweetModel(tweet)
     }
     async getQuotedTweet(){
         let tweet;
         if(this.quotesTweetID == -1){
-            tweet = await TweetService.readFromDatabase({'Tweet.tweetID': this.tweetID});
+            tweet = await TweetService.read({'Tweet.tweetID': this.tweetID});
         } else {
-            tweet = await TweetService.getFromAPI(this.inReplyToTweetID);
+            tweet = await TweetService.fetchAPI(this.inReplyToTweetID);
         }
         return new TweetModel(tweet);
     }
@@ -111,17 +111,17 @@ class TweetModel {
         // if(this.inReplyToTweetID != 1) await (await this.getRepliedTweet()).insertToDatabase();
         // if(this.quotesTweetID != 1) await (await this.getQuotedTweet()).insertToDatabase();
 
-        await TweetService.insertToDatabase(this.getData());
-        await TweetService.TweetStatsFreeze.insertToDatabase(this.getStats());
+        await TweetService.create(this.getData());
+        await TweetService.TweetStatsFreeze.create(this.getStats());
 
     }
 
     async updateToDatabase(){
-        return await TweetService.TweetStatsFreeze.updateToDatabase(this.tweetID, this.getStats())
+        return await TweetService.TweetStatsFreeze.update(this.tweetID, this.getStats())
     }
 
     async deleteFromDatabase(){
-        return await TweetService.deleteFromDatabase();
+        return await TweetService.delete();
     }
 
 }
@@ -147,10 +147,10 @@ TweetModel.TweetStatsFreeze = class{
         }
     }
     async insertToDatabase(){
-        return await TweetService.TweetStatsFreeze.insertToDatabase(this.getData());
+        return await TweetService.TweetStatsFreeze.insert(this.getData());
     }
     async updateToDatabase(){
-        return await TweetService.TweetStatsFreeze.updateToDatabase(this.tweetID, this.getData());
+        return await TweetService.TweetStatsFreeze.update(this.tweetID, this.getData());
     }
 }
 

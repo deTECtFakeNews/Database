@@ -1,9 +1,45 @@
 const Data = require("../Data");
 
+/**
+ * TweetServiceJSON Common structure for communication
+ * @typedef {Object} TweetService_data
+ * @property {String | Number} tweetID
+ * @property {String | Number} authorID (references userID)
+ * @property {String | Number} inReplyToUserID (references userID)
+ * @property {String | Number} inReplyToTweetID (references tweetID) 
+ * @property {String | Number} quotesTweetID (references tweetID)
+ * @property {Date | String} creationDate
+ * @property {String} fullText
+ * @property {String} language 3 letter code
+ * @property {Float} placeLng longitude
+ * @property {Float} placeLat latitude
+ * @property {String} placeDescription
+ */
+
+ /**
+  * TweetService_StatsFreeze_Data Common structure for communication
+  * @typedef {Object} TweetService_StatsFreeze_Data 
+  * @property {String | Number} tweetID
+  * @property {Date | String} updateDate
+  * @property {Number} retweetCount
+  * @property {Number} favoriteCount
+  * @property {Number} replyCount
+  */
+
+/**
+ * TweetService_TweetAnalysis Common structure for communication
+ * @typedef {Object} TweetService_TweetAnalysis
+ */
+
+
 const TweetService = {
     TweetStatsFreeze: {},
     TweetAnalysis: {},
-    // Create Obj
+    /**
+     * Internal - Receives data from Twitter object and returns in normalized form with the same nomenclature as database.
+     * @param {Object} data Data object as receoved from Twitter API
+     * @returns {TweetService_data}
+     */
     normalize: (data)=>({
         tweetID: data.id_str, 
         authorID: data.user.id_str, 
@@ -21,7 +57,10 @@ const TweetService = {
         favoriteCount: data.favorite_count, 
         replyCount: data.reply_count || 0
     }),
-    // Database - Create table
+    /**
+     * Database - Creates Table Tweet in Database. (For backup and maintenance)
+     * @returns {Promise}
+     */
     createTable: async ()=>{
         return new Promise((resolve, reject)=>{
             let query =
@@ -59,8 +98,12 @@ const TweetService = {
             })
         })
     }, 
-    // Database - Insert into row
-    insertToDatabase: async (tweet)=>{
+    /**
+     * Database - Creates (inserts into new row) new Tweet in table
+     * @param {TweetService_data} tweet Tweet data in normalized form to be added into new row
+     * @returns {Promise<JSON>}
+     */
+    create: async (tweet)=>{
         return new Promise((resolve, reject)=>{
             Data.Database.query("INSERT INTO `Tweet` SET ?", tweet, (error, results, fields)=>{
                 if(error && error.code != 'ER_DUP_ENTRY') reject (error);
@@ -69,9 +112,16 @@ const TweetService = {
             })
         });
     },
-    // Database - Read from
-    readFromDatabase: async (query_params)=>{
+    /**
+     * Database - Read Tweet row(s) from table
+     * @param {Object | Number | String} query_params Parameters to execute query | Id of row to read
+     * @returns {Promise<Array<TweetService_data>>}
+     */
+    read: async (query_params)=>{
         return new Promise((resolve, reject)=>{
+            if(typeof query_params == 'string' || typeof query_params == 'number'){
+                query_params = {tweetID: query_params};
+            }
             let query = `
                 SELECT * FROM (( Tweet
                     INNER JOIN TweetStatsFreeze ON Tweet.tweetID = TweetStatsFreeze.tweetID)
@@ -80,12 +130,17 @@ const TweetService = {
             let q = Data.Database.query(query, query_params, (error, results, fields)=>{
                 if(error) reject(error);
                 console.log(`[TweetService] readFromDatabase successful. results`);
-                resolve(results.map(r=>({...r})));
+                resolve(results.map(r=>this.normalize(r)));
             })
         })
     },
-    // Database - Update
-    updateToDatabase: async (id, tweet)=>{
+    /**
+     * 
+     * @param {Number | String} id Id of row to be updated with data 
+     * @param {TweetService_data} tweet Data of tweet to be updated 
+     * @returns {Promise}
+     */
+    update: async (id, tweet)=>{
         return new Promise((resolve, reject)=>{
             Data.Database.query(`UPDATE Tweet SET ? WHERE Tweet.tweetID=${id}`, tweet, (error, results, fields)=>{
                 if(error) reject(error);
@@ -94,14 +149,23 @@ const TweetService = {
             })
         })
     }, 
-    // Dataabase - Delete
-    deleteFromDatabase: async(id, user)=>{
+    /**
+     * Database - Delete Tweet row
+     * @param {Number | String} id Id of the tweet to be deleted
+     * @returns {Promise}
+     */
+    delete: async(id, user)=>{
         return new Promise((resolve, reject)=>{
             // TODO: implement
             resolve("To be implemented");
         })
     }, 
-    getFromAPI: async (id)=>{
+    /**
+     * Twitter API - Fetch
+     * @param {Number | String} id 
+     * @returns {TweetService_data}
+     */
+    fetchAPI: async (id)=>{
         return new Promise((resolve, reject)=>{ 
             Data.Twitter.get(`statuses/show/${id}`, {tweet_mode: 'extended'}, (error, data, response)=>{
                 if(error != undefined && error != null) reject (error);
@@ -109,7 +173,12 @@ const TweetService = {
             })
         });
     },
-    getCard: async (id)=>{
+    /**
+     * Twitter API - Get HTML of embeddable tweet
+     * @param {Number | String} id 
+     * @returns {Promise<Text>}
+     */
+    getCardAPI: async (id)=>{
         return new Promise((resolve, reject)=>{
             Data.Twitter.get('/statuses/oembed.json', {id: id, align: 'center', dnt: true}, (error, data, response)=>{
                 if(error) reject(error);
@@ -120,7 +189,10 @@ const TweetService = {
 }
 
 TweetService.TweetStatsFreeze = {
-    // Database - create table
+   /**
+    * Database - Create table
+    * @returns {Promise}
+    */
     createTable: async()=>{
         let query = 
             `CREATE TABLE IF NOT EXISTS \`TweetStatsFreeze\` (
@@ -141,8 +213,12 @@ TweetService.TweetStatsFreeze = {
             resolve(results);
         })
     },
-    // Database - insert table
-    insertToDatabase: (tweet)=>{
+    /**
+     * Database - Creates (inserts into new row) new TweetStatsFreeze to table
+     * @param {TweetService_StatsFreeze_Data} tweetStats Tweet statistics to be inserted
+     * @returns {Promise}
+     */
+    create: (tweetStats)=>{
         return new Promise((resolve, reject)=>{
             Data.Database.query("INSERT INTO `TweetStatsFreeze` SET ?", tweet, (error, results, fields)=>{
                 if(error && error.code != 'ER_DUP_ENTRY') reject(error);
@@ -151,8 +227,19 @@ TweetService.TweetStatsFreeze = {
             })
         })
     },
-    // Database - Update
-    updateToDatabase: async (id, tweet)=>{
+    /**
+     * Database - Read TweetStatsFreeze row(s) from table
+     * @param {Object | Number | String} query_params Parameters to execute query | Id of Tweet
+     * @returns {void}
+     */
+    read: async(query_params)=>{},
+    /**
+     * Database - Update TweetStatsFreeze with new data
+     * @param {Number | String} id Id of row to be updated with data
+     * @param {TweetService_StatsFreeze_Data} tweet Data to be updated
+     * @returns {Promise}
+     */
+    update: async (id, tweet)=>{
         return new Promise((resolve, reject)=>{
             Data.Database.query(`UPDATE TweetStatsFreeze SET ? WHERE TweetStatsFreeze.tweetID=${id}`, tweet, (error, results, fields)=>{
                 if(error) reject(error);
@@ -164,7 +251,10 @@ TweetService.TweetStatsFreeze = {
 }
 
 TweetService.TweetAnalysis = {
-    // Database - create table
+    /**
+     * Database - Create table
+     * @returns {Promise}
+     */
     createTable: async()=>{
         let query = 
             `CREATE TABLE IF NOT EXISTS \`TweetAnalysis\` (
@@ -202,8 +292,13 @@ TweetService.TweetAnalysis = {
             resolve(results);
         })
     },
-    // DATABASE - Insert into row
-    insertToDatabase: async (tweet, analysis)=>{
+    /**
+     * Database - Creates (inserts into new row) new TweetAnalysis in table
+     * @param {Number | String} tweet Tweet id
+     * @param {*} analysis TweetAnalysis data in normalized form to be added into a new row
+     * @returns {Promise}
+     */
+    create: async (tweet, analysis)=>{
         return new Promise((resolve, reject)=>{
             let data = {
                 tweetID: tweet.tweetID,
@@ -215,21 +310,28 @@ TweetService.TweetAnalysis = {
                 console.log(q.sql)
                 if(error && error.code != 'ER_DUP_ENTRY') reject(error);
                 console.log(`[TweetService.TweetAnalysis] (${tweet.tweetID}) was uploaded`)
-                // console.log({results, fields})
-                // console.log(data)
                 resolve(results)
             })
         })
     },
-    // DATABASE - Update
-    updateToDatabase: async (tweet, analysis)=>{
+    /**
+     * Database - Read TweetAnalysis row(s) from table
+     * @param {Object | Number | String} query_params Parameters to execute query | Id of row to read
+     * @returns {void}
+     */
+    read: async (query_params)=>{
+
+    },
+    /**
+     * Database - Update TweetAnalysis row with new data
+     * @param {Number | String} id Id of row to be updated with data
+     * @param {TweetService_TweetAnalysis} analysis Data to be updated
+     * @returns {Promise}
+     */
+    update: async (id, analysis)=>{
         return new Promise((resolve, reject)=>{
-            let data = {
-                // tweetID: tweet.tweetID,
-                ...analysis
-            }
             delete data['sentiment_fullText']
-            let q = Data.Database.query(`UPDATE TweetAnalysis SET ? WHERE TweetAnalysis.tweetID=${tweet.tweetID}`, data, (error, results, fields)=>{
+            let q = Data.Database.query(`UPDATE TweetAnalysis SET ? WHERE TweetAnalysis.tweetID=${id}`, analysis, (error, results, fields)=>{
                 console.log(q.sql, data)
                 if(error && error.code != 'ER_DUP_ENTRY') reject(error);
                 console.log(`[TweetService.TweetAnalysis] (${tweet.tweetID}) was updated`)

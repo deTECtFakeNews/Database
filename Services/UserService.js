@@ -3,7 +3,7 @@ const Data = require("../Data");
 
 /**
  * UserServiceJSON Common structure for communication
- * @typedef {Object} UserServiceJSON
+ * @typedef {Object} UserService_Data
  * @property {String} userID 
  * @property {Number} followersCount 
  * @property {Number} followingsCount 
@@ -22,17 +22,19 @@ const Data = require("../Data");
 
  /**
   * UserService_StatsFreezeJSON Common structure for communication
-  * @typedef {Object} UserService_StatsFreezeJSON
+  * @typedef {Object} UserService_StatsFreeze_Data
   */
 
+  /**
+   * @namespace UserService
+   */
 const UserService = {
     UserStatsFreeze: {},
     UserAnalysis: {}, 
-
     /**
-     * Normalize into UserService_JSON
-     * @param {Object} data Data object received from Twitter API
-     * @returns {UserServiceJSON}
+     * Internal - Receives data from  Twitter object and returns in normalized form with the same nomenclature as database.
+     * @param {Object} data Data object as received by Twitter API
+     * @returns {UserService_Data}
      */
     normalize: data=>({
         userID: data.id_str, 
@@ -51,7 +53,7 @@ const UserService = {
         placeDescription: data.location || null 
     }),
     /**
-     * Database - Create new Table
+     * Database - Creates Table User in Database. (For backup and maintenance)
      * @returns {Promise}
      */
     createTable: async ()=>{
@@ -79,8 +81,9 @@ const UserService = {
         })
     },
     /**
-     * 
-     * @param {UserServiceJSON} user User data (in normalized form) to be inserted
+     * Database - Creates (inserts into new row) new User in table
+     * @param {UserService_Data} user User data in normalized form to be added into new row
+     * @returns {Promise<JSON>}
      */
     create: async (user)=>{
         return new Promise((resolve, reject)=>{
@@ -92,12 +95,15 @@ const UserService = {
         });
     },
     /**
-     * Database - Read  
-     * @param {Object} query_params 
-     * @returns {Array<UserServiceJSON>}
+     * Database - Read User row(s) from table
+     * @param {Object | Number | String} query_params Parameters to execute query | Id of row to read
+     * @returns {Promise<Array<UserService_Data>>}
      */
     read: async (query_params)=>{
         return new Promise((resolve, reject)=>{
+            if(typeof query_params == 'string' || typeof query_params == 'number') {
+                query_params = {userID: query_params};
+            }
             let query = `
                 SELECT * FROM (( User
                     INNER JOIN UserStatsFreeze ON User.userID = UserStatsFreeze.userID)
@@ -112,9 +118,9 @@ const UserService = {
         })
     },
     /**
-     * Database - Update
-     * @param {Number | String} id user identifier
-     * @param {UserServiceJSON} user user data
+     * Database - Update User row with new data 
+     * @param {Number | String} id Id of row to be updated with data
+     * @param {UserService_Data} user Data of the user to be updated
      * @returns {Promise}
      */
     update: async (id, user)=>{
@@ -126,7 +132,11 @@ const UserService = {
             })
         })
     }, 
-    // Dataabase - Delete
+    /**
+     * Database - Delete User row
+     * @param {Number | String} id Id of the user to be deleted
+     * @returns {Promise}
+     */
     delete: async(id, user)=>{
         return new Promise((resolve, reject)=>{
             // TODO: implement
@@ -135,8 +145,8 @@ const UserService = {
     }, 
     /**
      * Twitter API - Fetch 
-     * @param {Number || String} id 
-     * @returns {UserServiceJSON}
+     * @param {Number | String} id 
+     * @returns {Promise<UserService_Data>}
      */
     fetchAPI: async(id)=>{
         return new Promise((resolve, reject)=>{
@@ -178,8 +188,8 @@ UserService.UserStatsFreeze = {
         })
     },
     /**
-     * Database - Insert into row
-     * @param {UserService_StatsFreezeJSON} userStats data to be inserted
+     * Database - Creates (inserts into new row) new UserStatsFreeze to table
+     * @param {UserService_StatsFreeze_Data} userStats User statistics to be inserted
      * @returns {Promise}
      */
     create: async(userStats)=>{
@@ -192,17 +202,18 @@ UserService.UserStatsFreeze = {
         })
     },
     /**
-     * Database - Read
-     * @param {Object} query_params Parameters for querying in db
+     * Database - Read UserStatsFreeze row(s) from table
+     * @name read_userstats
+     * @param {Object | Number | String} query_params Parameters to execute query | Id of User
      * @returns {Promise}
      */
     read: async(query_params)=>{
         return await UserService.readFromDatabase(query_params);
     },
     /**
-     * Database - Update
-     * @param {Number | String} id User identifier
-     * @param {UserService_StatsFreezeJSON} userStats data to be updated
+     * Database - Update UserStatsFreeze row with new data 
+     * @param {Number | String} id Id of row to be updated with data
+     * @param {UserService_StatsFreeze_Data} user Data to be updated
      * @returns {Promise}
      */
     update: async(id, userStats)=>{

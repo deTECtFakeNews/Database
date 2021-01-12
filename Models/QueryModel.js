@@ -8,6 +8,14 @@ const TweetModel = require("./TweetModel");
  * @public
  */
 class QueryModel{
+
+    static async getFromAPI(search){
+        try{
+            let data = await QueryService.fetchAPI(search);
+            return new QueryModel(data);
+        }
+    }
+
     /**
      * Call api to execute query
      * @param {String} search Term to search

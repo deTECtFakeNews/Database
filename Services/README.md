@@ -12,24 +12,129 @@ Each category is exported in its own file as an object with the service suffix.
 # User Services
 Contains methods to fetch from API, data normalization and CRUD operations for Users and related entities. 
 
-## `UserService.normalize()`
-**Returns: `UserServiceObject`**. Receives data from Twitter API and returns a normalized object with the same nomenclature as the database and the rest of the system. 
+## `UserService.normalize(data)`
+- Returns: `UserServiceObject` 
+- Parameters:
+    - UserService_Data **data** Data object as received by Twitter API
 
-## `UserService._createTable()`
-**Returns: `Promise`**. For backup, contains SQL script to create the table User in the db.
+Internal - Receives data from  Twitter object and returns in normalized form with the same nomenclature as database.
 
-## `UserService.insertToDatabase(UserServiceObject user)`
-**Returns: `Promise`**. Inserts data from `user` into the User table. 
+## `UserService.createTable()`
+- Returns: `Promise`
 
-## `UserService.readFromDatabase(Object query_params)`
-**Returns: `Promise<Array<UserServiceObject>>`**. Selects records from User table given the parameters.
+Database - Creates Table User in Database. (For backup and maintenance)
 
-## `UserService.updateToDatabase(Number id, UserServiceObject user)`
-**Returns: `Promise`**. Updates User with given id with the data from `user`.
+## `UserService.create(user)`
+- Returns `Promise`
+- Parameters:
+    - UserService_Data **user** User data in normalized form to be added into new row
 
-## `UserService.deleteFromDatabase(Number id, UserServiceObject)`
-**Returns: `Promise`**. Deletes the user. 
-> TODO: needs implementation
+Database - Creates (inserts into new row) new User in table
 
-## `UserService.getFromAPI(Number id)`
-**Returns `Promise<UserServiceObject>`**. Uses Twitter API to fetch a specific user. 
+## `UserService.read(query_params)`
+- Returns: `Promise<Array<UserService_Data>>`
+- Parameters:
+    - Object|Number|String **query_params** Parameters to execute query | Id of row to read
+
+Database - Read User row(s) from table
+
+## `UserService.update(id, user)`
+- Returns: `Promise`
+- Parameters:
+    - Number|String **id** Id of row to be updated with data
+    - UserService_Data **user** Data of the user to be updated
+
+Database - Update User row with new data 
+
+## `UserService.delete(id)`
+- Returns: `Promise`
+- Parameters:
+    - Number|String **id** Id of the user to be deleted
+
+Database - Delete User row
+
+## `UserService.fetchAPI(id)`
+- Returns: `Promise<UserService_Data>`
+- Parameters:
+    - Number|String **id** Id of user to be fetched
+
+Twitter API - Fetch 
+
+## `UserService.UserStatsFreeze`
+Interface with services for UserStatsFreeze table in database. 
+
+### `UserService.UserStatsFreeze.createTable()`
+- Returns: `Promise`
+
+Database - Create table
+
+### `UserService.UserStatsFreeze.create(userStats)`
+- Returns: `Promise`
+- Parameters:
+    - UserService_StatsFreeze_Data **userStats** User statistics to be inserted
+
+Database - Creates (inserts into new row) new UserStatsFreeze to table
+
+### `UserService.UserStatsFreeze.read(query_params)`
+- Returns: `Promise`
+- Parameters:
+    - Object|Number|String **query_params** Parameters to execute query | Id of User
+
+Database - Read UserStatsFreeze row(s) from table
+
+### `UserService.UserStatsFreeze.update(id, userStats)`
+- Returns: `Promise`
+- Parameters: 
+    - Number|String **id** Id of row to be updated with data
+    - UserService_StatsFreeze_Data **user** Data to be updated
+
+Database - Update UserStatsFreeze row with new data 
+
+## `UserService.UserAnalysis`
+Interface with services for UserAnalysis table in database. 
+
+> Needs implementation
+
+# Tweet Services
+Contains methods to fetch from API, data normalization and CRUD operations for Tweets and related entities. 
+
+## `TweetService.normalize(data)`
+- Returns: `TweetService_Data` 
+- Parameters:
+    - UserService_Data **data** Data object as received by Twitter API
+
+Internal - Receives data from  Twitter object and returns in normalized form with the same nomenclature as database.
+
+## `TweetService.createTable()`
+- Returns: `Promise`
+
+Database - Creates Table Tweet in Database. (For backup and maintenance)
+
+## `TweetService.create(tweet)`
+- Returns `Promise`
+- Parameters:
+    - TweetService_Data **tweet** Tweet data in normalized form to be added into new row
+
+Database - Creates (inserts into new row) new Tweet in table
+
+## `TweetService.read(query_params)`
+- Returns: `Promise<Array<TweetService_Data>>`
+- Parameters:
+    - Object|Number|String **query_params** Parameters to execute query | Id of row to read
+
+Database - Read Tweet row(s) from table
+
+## `TweetService.update(id, tweet)`
+- Returns: `Promise`
+- Parameters:
+    - Number|String **id** Id of row to be updated with data
+    - TweetService_Data **tweet** Data of the tweet to be updated
+
+Database - Update Tweet row with new data 
+
+## `UserService.delete(id)`
+- Returns: `Promise`
+- Parameters:
+    - Number|String **id** Id of the user to be deleted
+
+Database - Delete User row
