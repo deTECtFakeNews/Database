@@ -48,7 +48,7 @@ class UserModel{
     async insertToDatabase(){
         if(this.userID == -1 || this.userID == null) return;
         await UserService.create(this.getData());
-        await UserService.UserStatsFreeze.insertToDatabase(this.getStats());
+        await UserService.UserStatsFreeze.create(this.getStats());
         return;
     }
     async updateToDatabase(){
@@ -87,7 +87,7 @@ UserModel.UserStatsFreeze = class{
         } 
     }
     async updateToDatabase(){
-        return await UserService.UserStatsFreeze.updateToDatabase(this.userID, this.getData());
+        return await UserService.UserStatsFreeze.update(this.userID, this.getData());
     }
 }
 

@@ -182,7 +182,7 @@ UserService.UserStatsFreeze = {
      * @param {UserService_StatsFreezeJSON} userStats data to be inserted
      * @returns {Promise}
      */
-    insertToDatabase: async(userStats)=>{
+    create: async(userStats)=>{
         return new Promise((resolve, reject)=>{
             Data.Database.query("INSERT INTO `UserStatsFreeze` SET ?", userStats, (error, results, fields)=>{
                 if(error && error.code != 'ER_DUP_ENTRY') reject(error);
@@ -196,7 +196,7 @@ UserService.UserStatsFreeze = {
      * @param {Object} query_params Parameters for querying in db
      * @returns {Promise}
      */
-    readFromDatabase: async(query_params)=>{
+    read: async(query_params)=>{
         return await UserService.readFromDatabase(query_params);
     },
     /**
@@ -205,7 +205,7 @@ UserService.UserStatsFreeze = {
      * @param {UserService_StatsFreezeJSON} userStats data to be updated
      * @returns {Promise}
      */
-    updateToDatabase: async(id, userStats)=>{
+    update: async(id, userStats)=>{
         return new Promise((resolve, reject)=>{
             Data.Database.query(`UPDATE UserStatsFreeze SET ? WHERE UserStatsFreeze.userID=${id}`, userStats, (error, results, fields)=>{
                 if(error) reject(error);
