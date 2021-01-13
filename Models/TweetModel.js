@@ -4,17 +4,31 @@ const UserService = require("../Services/UserService");
 const UserModel = require("./UserModel");
 
 class TweetModel {
-    static async _createTable(){
+    /**
+     * Create Tweet table in database
+     */
+    static async createTable(){
         return await TweetService.createTable();
     }
-    static async readFromDatabase(query_params){
+    /**
+     * Search for Tweets in database
+     * @param {Object|Number|String} query_params Parameters to exectute search in database
+     * @returns {Promise<Array<TweetModel>>}
+     */
+    static async read(query_params){
         try {
             let entries = await TweetService.read(query_params);
             return entries.map( e=> new TweetModel(e) );
         } catch (e) {
-            console.error("[TweetModel] readFromDatabase error", e);
+            console.error("[TweetModel] readFromDatabase error");
+            return;
         }
     }
+    /**
+     * Search for Tweets in API
+     * @param {Number|String} id Id of tweet
+     * @returns {Promise<TweetModel>}
+     */
     static async getFromAPI(id) {
         try {
             let data = await TweetService.fetchAPI(id);
@@ -24,6 +38,11 @@ class TweetModel {
             return;
         }
     }
+    /**
+     * Creates a new TweetModel object with methods for executing several services
+     * @constructor
+     * @param {import("../Services/TweetService").TweetService_data} tweet Data of tweet in TweetService_Data format
+     */
     constructor(tweet){
         this.tweetID = tweet.tweetID; 
         this.authorID = tweet.authorID; 
@@ -33,9 +52,14 @@ class TweetModel {
         this.creationDate = new Date(tweet.creationDate); 
         this.fullText = tweet.fullText; 
         this.language = tweet.language; 
+
         this._TweetStatsFreeze = new TweetModel.TweetStatsFreeze(tweet);
         this._TweetAnalysis = new TweetModel.TweetAnalysis(tweet)
     }
+    /**
+     * Returns tweet data in TweetService_Data format
+     * @returns {import("../Services/TweetService").TweetService_data}
+     */
     getData(){
         return {
             tweetID: this.tweetID, 
@@ -47,24 +71,9 @@ class TweetModel {
             fullText: this.fullText, 
         }
     }
-    getStats(){
-        return this._TweetStatsFreeze.getData();
-    }
-    getAnalysis(){
-        return this._TweetAnalysis.getData();
-    }
-    async updateAnalysis(analysis){
-        // try{
-        //     if(analysis == "sentiment"){
-        //         await this._TweetAnalysis.execute("sentiment");
-        //         await TweetService.TweetAnalysis.updateToDatabase(this.getData(), this._TweetAnalysis.getSQLData());
-        //         return
-        //     }
-        // } catch (e){
-        //     console.log("[TweetModel] updateAnalysis error")
-        // }
-    }
-
+    /**
+     * Returns HTML of Tweet
+     */
     async getEmbed(){
         try{
             return await TweetService.getCardAPI(this.tweetID);
@@ -72,54 +81,103 @@ class TweetModel {
             return "404"
         }
     }
+
+    /**
+     * Return UserModel of tweet author
+     * @returns {Promise<UserModel>}
+     */
     async getAuthor(){
-        // let user = await UserService.readFromDatabase({userID: this.authorID})
-        let user = await UserService.fetchAPI(this.authorID);
-        return new UserModel(user);
+        try{
+            let user = await UserService.fetchAPI(this.authorID);
+            return new UserModel(user);
+        } catch(e){
+
+        }
     }
+    /**
+     * Return UserModel of user tweet is replying to
+     * @returns {Promise<UserModel>}
+     */
     async getRepliedUser(){
-        let user;
-        if(this.inReplyToUserID == -1){
-            user = await UserService.read({'User.userID': this.replyToUserID})
-        } else {
-            user = await UserService.fetchAPI(this.inReplyToUserID);
-        }
-        return new UserModel(user);
+        try{
+            let user;
+            // If empty
+            if(this.inReplyToUserID == -1){
+                user = await UserService.read(this.inReplyToUserID)
+            // Else, search in API
+            } else {
+                user = await UserService.fetchAPI(this.inReplyToUserID);
+            }
+            return new UserModel(user);
+        } catch(e){}
     }
+    /**
+     * Return TweetModel of tweet tweet is refering to
+     * @returns {Promise<TweetModel>}
+     */
     async getRepliedTweet(){
-        let tweet;
-        if(this.inReplyToTweetID == -1){
-            tweet = await TweetService.read({'Tweet.tweetID': this.tweetID});
-        } else {
-            tweet = await TweetService.fetchAPI(this.inReplyToTweetID);
-        }
-        return new TweetModel(tweet)
+        try{
+            let tweet;
+            // If 
+            if(this.inReplyToTweetID == -1){
+                tweet = await TweetService.read(this.inReplyToTweetID);
+            // Else, search in API
+            } else {
+                tweet = await TweetService.fetchAPI(this.inReplyToTweetID);
+            }
+            return new TweetModel(tweet)
+        } catch(e){}
     }
+    /**
+     * Return TweetModel of tweet tweet is quoting
+     * @returns {Promise<TweetModel>}
+     */
     async getQuotedTweet(){
-        let tweet;
-        if(this.quotesTweetID == -1){
-            tweet = await TweetService.read({'Tweet.tweetID': this.tweetID});
-        } else {
-            tweet = await TweetService.fetchAPI(this.inReplyToTweetID);
-        }
-        return new TweetModel(tweet);
+        try{
+            let tweet;
+            // If empty
+            if(this.quotesTweetID == -1){
+                tweet = await TweetService.read(this.quotesTweetID);
+            // Else, search in API
+            } else {
+                tweet = await TweetService.fetchAPI(this.quotesTweetID);
+            }
+            return new TweetModel(tweet);
+        } catch(e) {}
     }
-
+    /**
+     * Insert this to database (and all dependencies)
+     * @returns {Promise}
+     */
     async insertToDatabase(){
-        await (await this.getAuthor()).insertToDatabase();
-        // if(this.inReplyToUserID != 1) await (await this.getRepliedUser()).insertToDatabase();
-        // if(this.inReplyToTweetID != 1) await (await this.getRepliedTweet()).insertToDatabase();
-        // if(this.quotesTweetID != 1) await (await this.getQuotedTweet()).insertToDatabase();
-
-        await TweetService.create(this.getData());
-        await TweetService.TweetStatsFreeze.create(this.getStats());
+        try{
+            // First, add author to database
+            await (await this.getAuthor()).insertToDatabase();
+            // Then, add connections
+            if(this.inReplyToUserID != -1) await (await this.getRepliedUser()).insertToDatabase();
+            if(this.inReplyToTweetID != -1) await (await this.getRepliedTweet()).insertToDatabase();
+            if(this.quotesTweetID != -1) await (await this.getQuotedTweet()).insertToDatabase();
+            // Then, add this tweet
+            await TweetService.create(this.getData());
+            // Then, add TweetStatsFreeze
+            await TweetService.TweetStatsFreeze.create(this._TweetStatsFreeze.getData());
+        } catch (e) {
+            console.error('[TweetModel] insertToDatabase failed')
+        }
 
     }
-
+    /**
+     * REVIEW
+     * Updates this in database with data ???
+     */
     async updateToDatabase(){
         return await TweetService.TweetStatsFreeze.update(this.tweetID, this.getStats())
     }
-
+    /**
+     * REVIEW
+     * TODO
+     * Deletes this
+     */
     async deleteFromDatabase(){
         return await TweetService.delete();
     }

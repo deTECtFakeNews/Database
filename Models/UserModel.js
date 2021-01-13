@@ -1,17 +1,20 @@
 const Data = require("../Data");
+const TweetService = require("../Services/TweetService");
 const UserService = require("../Services/UserService");
+const TweetModel = require("./TweetModel");
 
 class UserModel{
     /**
-     * Create table
+     * Creates User table in database
+     * @returns {Promise}
      */
     static async createTable(){
         return await UserService.createTable();
     }
     /**
-     * Read Users from database
-     * @param {Object} query_params Parameters to read from database
-     * @returns {Array<UserModel>}
+     * Search for Users in database
+     * @param {Object|Number|String} query_params Parameters to execute search in database
+     * @returns {Promise<Array<UserModel>>}
      */
     static async read(query_params){
         try{
@@ -19,14 +22,15 @@ class UserModel{
             return entries.map( e=> new UserModel(e) );
         } catch(e){
             console.error("[UserModel] readFromDatabase error", e);
+            return;
         }
     }
     /**
-     * Fetch a User from Twitter API
-     * @param {Number|String} id Id of User to fetch from API
-     * @returns {UserModel}
+     * Search for Users in API
+     * @param {Number|String} id Id of User
+     * @returns {Promise<UserModel>}
      */
-    static async fetchAPI(id){
+    static async getFromAPI(id){
         try{
             let data = await UserService.fetchAPI(id);
             return new UserModel(data)
@@ -35,6 +39,7 @@ class UserModel{
         }
     }
     /**
+     * Creates a new UserModel object with methods for executing several services
      * @constructor
      * @param {import("../Services/UserService").UserService_Data} data Data of the user
      */
@@ -52,7 +57,7 @@ class UserModel{
         this._UserStatsFreeze = new UserModel.UserStatsFreeze(data);
     }
     /**
-     * Get Data in UserService_Data structure
+     * Returns user data in UserService_Data format
      * @returns {import("../Services/UserService").UserService_Data}
      */
     getData(){
@@ -69,24 +74,31 @@ class UserModel{
         }
     }
     /**
-     * Get Stats in UserService_StatsFreeze_Data structure
-     * @returns {import("../Services/UserService").UserService_StatsFreeze_Data}
+     * Returns all tweets in database of author
+     * @returns {Promise<Array<TweetModel>>}
      */
-    getStats(){
-        return this._UserStatsFreeze.getData()
+    async getAllTweets(){
+        return await TweetModel.read({authorID: this.userID})
     }
     /**
-     * Insert to database
+     * Returns all tweets in reply to user
+     * @returns {Promise<Array<TweetModel>>}
+     */
+    async getAllReplies(){
+        return await TweetModel.read({inReplyToUserID: this.userID})
+    }
+    /**
+     * Insert this to database (and all dependencies)
      * @returns {Promise}
      */
     async insertToDatabase(){
         try{
             if(this.userID == -1 || this.userID == null) return;
             await UserService.create(this.getData());
-            await UserService.UserStatsFreeze.create(this.getStats());
+            await UserService.UserStatsFreeze.create(this._UserStatsFreeze.getData());
             return;
         } catch(e){
-
+            console.error('[UserModel] insertToDatabase failed')
         }
     }
     /**

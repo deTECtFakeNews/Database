@@ -1,3 +1,4 @@
+const { json } = require('express');
 const express = require('express');
 const QueryModel = require('../Models/QueryModel');
 var router = express.Router();
@@ -8,10 +9,10 @@ router.get('/', (req, res)=>{
     res.end("Query")
 });
 
-router.get('/fetch', async (req, res)=>{
+router.get('/new', async (req, res)=>{
     if(req.query.q.length <= 0) res.end();
-    let query = await QueryModel.getFromAPI(req.query.q);
-    res.json(query.getData());
+    let data = await QueryModel.createNew(req.query.q);
+    res.json(data.getResultsData())
 })
 
 module.exports = router; 

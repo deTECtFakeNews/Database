@@ -163,7 +163,7 @@ const TweetService = {
     /**
      * Twitter API - Fetch
      * @param {Number | String} id 
-     * @returns {TweetService_data}
+     * @returns {Promise<TweetService_data>}
      */
     fetchAPI: async (id)=>{
         return new Promise((resolve, reject)=>{ 
