@@ -39,17 +39,17 @@ class UserModel{
      * @param {import("../Services/UserService").UserService_Data} data Data of the user
      */
     constructor(data){
-        this.userID = user.userID || -1;
-        this.creationDate = new Date(user.creationDate) || new Date();
-        this.fullName = user.fullName;
-        this.screenName = user.screenName;
-        this.biography = user.biography;
-        this.isProtected = user.isProtected;
-        this.isVerified = user.isVerified;
-        this.language = user.language;
-        this.placeDescription = user.placeDescription;
+        this.userID = data.userID || -1;
+        this.creationDate = new Date(data.creationDate) || new Date();
+        this.fullName = data.fullName;
+        this.screenName = data.screenName;
+        this.biography = data.biography;
+        this.isProtected = data.isProtected;
+        this.isVerified = data.isVerified;
+        this.language = data.language;
+        this.placeDescription = data.placeDescription;
 
-        this._UserStatsFreeze = new UserModel.UserStatsFreeze(user);
+        this._UserStatsFreeze = new UserModel.UserStatsFreeze(data);
     }
     /**
      * Get Data in UserService_Data structure

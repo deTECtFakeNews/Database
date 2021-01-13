@@ -5,12 +5,13 @@ const UserRouter = require('./Routes/UserRoutes');
 const QueryRoutes = require('./Routes/QueryRoutes');
 const express = require('express');
 const Data = require("./Data");
+const QueryModel = require("./Models/QueryModel");
 var app = express(); 
 
 const PORT = process.env.PORT || 8080;
 
 
-Data.SSHDBconnect().then(()=>{
+Data.SSHDBconnect().then(async ()=>{
     Data.Database.connect((err)=>{
         console.log(err)
     });
@@ -135,6 +136,16 @@ Data.SSHDBconnect().then(()=>{
     //         console.error(e)
     //     }
     // })
-    
+
+    let firstQuery = new QueryModel({
+      query: 'Hello World!'  
+    });
+    await firstQuery.insertToDatabase();
+    // console.log("xdxd")
+
+    firstQuery.execute().then(query=>{
+        console.log(query.map(l=>l.getData()))
+    });
+
 })
 

@@ -1,69 +1,99 @@
 const QueryService = require("../Services/QueryService");
 const TweetModel = require("./TweetModel");
 
-/**
- * QueryModcel groups data and common operations needed when dealing with queries
- * @class
- * @constructor
- * @public
- */
 class QueryModel{
-
-    static async getFromAPI(search){
-        try{
-            let data = await QueryService.fetchAPI(search);
-            return new QueryModel(data);
-        }
+    static async createTable(){
+        return await QueryService.createTable();
     }
 
     /**
-     * Call api to execute query
-     * @param {String} search Term to search
-     * @param {import('../Services/QueryService').QueryService_getFromAPI_filters} filters filters to be applied
-     */
-    static async getFromAPI(search, filters) {
-        try {
-            let data = await QueryService.getFromAPI(search, filters);
-            return new QueryModel(data)
-        } catch (e) {
-            console.error("[QUeryService] getFromAPI error");
-            return;
-        }
-    }
-    /**
-     * Create a new Query Object
-     * @param {import('../Services/QueryService').QueryService_getFromAPI_response} data 
+     * @constructor
+     * @param {import("../Services/QueryService").QueryService_Row} data Data of Query to be executed
      */
     constructor(data){
-        this.query = data.queryMeta.query;
-        this.count = data.queryMeta.count;
+        this.query = data.query;
+        
+        this.queryID = data.queryID;
+        this.executeEveryNHours = data.executeEveryNHours || -1;
+        this.firstExecuteDate = data.firstExecuteDate || new Date();
+        this.executeDate = data.executeDate || new Date();
+        this.resultType = data.resultType || 'mixed';
+        this.language = data.language || 'und';
+        this.resultsCount = data.resultsCount || 300;
         /**
-         * @type {Array<import('../Models/TweetModel')>}
+         * @type {Array<TweetModel>}
          */
-        this.statuses = data.statuses.map(tweet=>new TweetModel(tweet));
+        this.statuses = []
     }
     /**
-     * Returns json of available data
-     * @returns {Object}
+     * Get data in QueryService_Row format
      */
     getData(){
         return {
-            query: this.query, 
-            count: this.count,
-            statuses: this.statuses.map(l=>l.getData())
+            // queryID: this.queryID,
+            executeEveryNHours: this.executeEveryNHours,
+            firstExecuteDate: this.firstExecuteDate,
+            executeDate: this.executeDate,
+            resultType: this.resultType,
+            language: this.language,
+            query: this.query,
+            resultsCount: this.resultsCount
         }
     }
-
-    printResults(){
-        this.tweetCollection.forEach(tweet => {
-            console.log(tweet.getData())
-        });
-    }
-
+    /**
+     * Insert new Query into Database
+     */
     async insertToDatabase(){
-
+        try{
+            let result = await QueryService.create(this.getData());
+            this.queryID = result.insertId;
+        } catch (e){
+            console.log('[QueryModel] insertToDatabase failed', e)
+        }
     }
-
+    /**
+     * Executes the query and saves the results to database
+     */
+    async execute(){
+        try{
+            let data = await QueryService.fetchAPI(this.query);
+            let results = data.statuses.map(tweet=>new TweetModel(tweet));
+            results.forEach(async tweet=>{
+                await tweet.insertToDatabase();
+                await QueryService.QueryTweet.create( this.queryID, tweet.tweetID );
+                console.log('[QueryModel] Tweet added to database')
+                this.statuses.push(tweet);
+            });
+            await QueryService.update(this.queryID, {executeDate: new Date()});
+            return results;
+        } catch (e) {
+            console.log('[QueryModel] execution failed', e)
+        }
+        // return this;
+    }
+    /**
+     * Gets the associated tweets
+     */
+    async getTweets(){
+        try{
+            let data = await QueryService.QueryTweet.read(this.queryID);
+            let tweetIDs = data.map(row=>row.tweetID);
+            this.statuses = [];
+            tweetIDs.map(async id=>{
+                let tweet = await TweetModel.readFromDatabase(id);
+                this.statuses.push(tweet);
+            });
+            return this.statuses;
+        } catch (e) {
+            console.log('[QueryModel] fetch failed')
+        }
+    }
+    /**
+     * Print results
+     */
+    printResults(){
+        console.log(this.statuses.map(l=>l.getData()))
+    }
 }
 
 module.exports = QueryModel;

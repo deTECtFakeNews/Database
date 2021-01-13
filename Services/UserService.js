@@ -113,7 +113,7 @@ const UserService = {
                 if(error) reject(error);
                 if(results == undefined) reject();
                 console.log(`[UserService] readFromDatabase successful. results`);
-                resolve( results.map(r=>this.normalize(r)) )
+                resolve( results.map(r=>({...r}) ))
             })
         })
     },
@@ -152,7 +152,7 @@ const UserService = {
         return new Promise((resolve, reject)=>{
             Data.Twitter.get('users/show', {user_id: id}, (error, data, response)=>{
                 if(error) reject(error);
-                resolve(this.normalize(data))
+                resolve(UserService.normalize(data))
             })
         })
     }

@@ -130,7 +130,7 @@ const TweetService = {
             let q = Data.Database.query(query, query_params, (error, results, fields)=>{
                 if(error) reject(error);
                 console.log(`[TweetService] readFromDatabase successful. results`);
-                resolve(results.map(r=>this.normalize(r)));
+                resolve(results.map(r=>({...r}) ));
             })
         })
     },
@@ -220,9 +220,9 @@ TweetService.TweetStatsFreeze = {
      */
     create: (tweetStats)=>{
         return new Promise((resolve, reject)=>{
-            Data.Database.query("INSERT INTO `TweetStatsFreeze` SET ?", tweet, (error, results, fields)=>{
+            Data.Database.query("INSERT INTO `TweetStatsFreeze` SET ?", tweetStats, (error, results, fields)=>{
                 if(error && error.code != 'ER_DUP_ENTRY') reject(error);
-                console.log(`[TweetService.TweetStatsFreeze] (${tweet.tweetID}) was uploaded`)
+                console.log(`[TweetService.TweetStatsFreeze] (${tweetStats.tweetID}) was uploaded`)
                 resolve(results)
             })
         })

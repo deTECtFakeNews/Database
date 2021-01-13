@@ -7,48 +7,35 @@ const TweetService = require("./TweetService");
  * @property {Object} queryMeta metadata
  */
 
-
 /**
- * @typedef {Object} QueryService_getFromAPI_response
- * @property {Object} queryMeta metadata of executed query
- * @property {Array.<Object>} statuses collection of tweets 
- */
-
-/**
- * @typedef {Object} QueryService_getFromAPI_filters_is
- * @property {Boolean} retweet matches all retweets
- * @property {Boolean} quote matches all quotes
- * @property {Boolean} verified delivers only tweets from verified authors
- */
-
-/**
- * @typedef {Object} QueryService_getFromAPI_filters_has
- * @property {Boolean} hashtag matches all tweets with at least one hashtag
- * @property {Boolean} links matches all tweets with links in its body
- * @property {Boolean} mentions matches all tweets that mentions another user
- * @property {Boolean} media matches all tweets that contain a recognized media url
- * @property {Boolean} images matches all tweets that contain a recognized url to an image
- * @property {Boolean} videos matches all tweets that contain a recognized url to a video
- */
-
-/**
- * @typedef {Object} QueryService_getFromAPI_filters
- * @property {Number|String} from matches a tweet of a specific username/userID
- * @property {Number|String} to matches a tweet in reply to a specific username/userID
- * @property {String} url performs tokenized match of any validly formatted URL of a Tweet
- * @property {Number|String} retweets_of matches tweets that are Retweets of a specified user
- * @property {String} context
- * @property {String} entity
- * @property {String} lang
- * @property {QueryService_getFromAPI_filters_is} is 
- * @property {QueryService_getFromAPI_filters_has} has
+ * @typedef {Object} QueryService_Row
+ * @property {String|Number} queryID Id of query
+ * @property {Number} executeEveryNHours How often the query is performed by system automation
+ * @property {Date|String} firstExecuteDate Date and time of creation (and first execution)
+ * @property {Date|String} executeDate Date and time of last execution
+ * @property {(recent|popular|mixed)} resultType Ordering used
+ * @property {String} language 3 letter code of the language used to execute the query
+ * @property {String} query Actual query to be performed
+ * @property {Number} resultsCount Number of results to be fetched 
  * 
  */
 
 const QueryService = {
     QueryTweet: {},
     /**
-     * Database - Create table
+     * Internal - Receives data from Twitter object and returns in normalized form with the same nomenclature as database.
+     * @param {Object} data Data objext as received from Twitter API
+     * @returns {QueryService_Data}
+     */
+    normalize: data=>{
+        data.statuses = data.statuses.map( l=>TweetService.normalize(l) );
+        data.queryMeta = data.search_metadata;
+        delete data.search_metadata;
+        return data;
+    },
+
+    /**
+     * Database - Creates Table User in Database. (For backup and maintenance)
      * @returns {Promise}
      */
     createTable: async()=>{
@@ -63,12 +50,64 @@ const QueryService = {
                     \`queryJSON\` TEXT NOT NULL,
                     PRIMARY KEY (\`queryID\`));
                 `;
-                Data.Database.query(query, (error, results, fields)=>{
-                    if(error) reject(error);
-                    console.log("[QueryService] createTable successful");
-                    resolve(results);
-                })
+            Data.Database.query(query, (error, results, fields)=>{
+                if(error) reject(error);
+                console.log(`[QueryService] createTable successfully`);
+                resolve(results);
+            });
         })
+    },
+    /**
+     * Database - Creates (inserts into new row) new Query in table
+     * @param {QueryService_Row} query Query data to be inserted
+     */
+    create: async(query)=>{
+        return new Promise((resolve, reject)=>{
+            Data.Database.query("INSERT INTO `Query` SEt ?", query, (error, results, fields)=>{
+                if(error && error.code != 'ER_DUP_ENTRY') reject (error);
+                console.log('[QueryService] insertToDatabase sucesssful.');
+                resolve(results);
+            })
+        })
+    },
+    /**
+     * Database - Read Query row(s) from table
+     * @param {Object} query_params Parameters to execute query
+     * @returns {Promise<Array<QueryService_Row>>}
+     */
+    read: async (query_params)=>{
+        return new Promise((resolve, reject)=>{
+            let query = `SELECT * FROM Query WHERE ${Object.keys(query_params).length!=1 ? '?' : '1=1'}`;
+            Data.Database.query(query, query_params, (error, results, fields)=>{
+                if(error) reject(error);
+                if(results == undefined) reject();
+                console.log(`[QueryService] readFromDatabase successful. results`);
+                resolve( results.map(r=>({...r})));
+            })
+        })
+    },
+    /**
+     * Database - Update Query row(s) with new data 
+     * @param {Number | String} id Id of row to be updated with data
+     * @param {QueryService_Row} query Data of the Query to be updated
+     * @returns {Promise}
+     */
+    update: async (id, query)=>{
+        return new Promise((resolve, reject)=>{
+            Data.Database.query(`Update Query SET ? WHERE Query.queryID=${id}`, query, (error, results, fields)=>{
+                if(error) reject (error);
+                console.log(`[QueryService] updateToDatabase successful.`);
+                resolve(results);
+            })
+        })
+    },
+    /**
+     * Datavase - Delete User row   
+     * @param {Number | String} id Id of the Query to be deleted
+     * @returns {Promise}
+     */
+    delete: async(id, user)=>{
+        resolve("to be implemenbted.")
     },
     /**
      * Twitter API - Execute query
@@ -82,7 +121,7 @@ const QueryService = {
                 data.statuses = data.statuses.map( l=> TweetService.normalize(l) );
                 data.queryMeta = data.search_metadata;
                 delete data.search_metadata;
-                resolve.data
+                resolve(data)
             })
         })
     }
@@ -124,17 +163,32 @@ QueryService.QueryTweet = {
      * Database - Creates (inserts new row)
      * @param {Number|String} queryID Id of query to be associated with tweet
      * @param {Number|String} tweetID Id of tweet to be associated with query
-     * @param {String} resultType Result type (default=mixed)
      */
-    create: async (queryID, tweetID, resultType="mixed")=>{
+    create: async (queryID, tweetID)=>{
         return new Promise((resolve, reject)=>{
-            Data.Database.query("INSERT INTO `QueryTweet` SET ?", {queryID, tweetID, resultType}, (error, results, fields)=>{
+            Data.Database.query("INSERT INTO `QueryTweet` SET ?", {queryID, tweetID}, (error, results, fields)=>{
                 if(error) reject(error);
                 console.log("[QueryService.QueryTweet] insertToDatabase sucessful.");
                 resolve(results);
             })
         })
     },
+    /**
+     * Database - Read QueryTweet row(s) from table
+     * @param {Object | Number | String} query_params Parameters to execute query | Id of query to read
+     * @returns {Promise<Array<QueryService_Row>>}
+     */
+    read: async(query_params)=>{
+        if(typeof query_params == 'number' || typeof query_params == 'string') {
+            query_params = {queryID: query_params};
+        }
+        let query = `SELECT * FROM QueryTweet WHERE ${Object.keys(query_params).length!=0 ? '?': '1=1'}`;
+        Data.Database.query(query, query_params, (error, results, fields)=>{
+            if(error) reject (error);
+            console.log('[QueryService.QueryTweet] readFromDatabase successful.');
+            resolve(results.map(r=>({...r})));
+        })
+    }
 }
 
 module.exports = QueryService;
