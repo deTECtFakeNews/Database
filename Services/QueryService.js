@@ -116,7 +116,7 @@ const QueryService = {
      */
     fetchAPI: async(search, options={
         result_type: 'mixed',
-        count: 100,
+        count: 1500,
         tweet_mode: 'extended'
     })=>{
         return new Promise((resolve, reject)=>{
@@ -170,7 +170,14 @@ QueryService.QueryTweet = {
      */
     create: async (queryID, tweetID)=>{
         return new Promise((resolve, reject)=>{
-            Data.Database.query("INSERT INTO `QueryTweet` SET ?", {queryID, tweetID}, (error, results, fields)=>{
+            let mysql_query = `
+            INSERT INTO QueryTweet (queryID, tweetID)
+                SELECT ${queryID}, ${tweetID} from DUAL
+            WHERE NOT EXISTS
+                (SELECT queryID, tweetID FROM QueryTweet WHERE queryID=${queryID} AND tweetID=${tweetID});
+            `
+
+            Data.Database.query(mysql_query, (error, results, fields)=>{
                 if(error) reject(error);
                 console.log("[QueryService.QueryTweet] insertToDatabase sucessful.");
                 resolve(results);
@@ -192,6 +199,22 @@ QueryService.QueryTweet = {
             console.log('[QueryService.QueryTweet] readFromDatabase successful.');
             resolve(results.map(r=>({...r})));
         })
+    },
+    /**
+     * 
+     */
+    readDuplicates: async()=>{
+        let query = 
+        `SELECT 
+            queryID, COUNT(queryID),
+            tweetID, COUNT(tweetID)
+        FROM QueryTweet
+        GROUP BY
+            queryID,
+            tweetID
+        HAVING
+            COUNT(queryID) > 1
+            AND COUNT(tweetID) > 1;`;
     }
 }
 

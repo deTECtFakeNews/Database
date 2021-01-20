@@ -129,7 +129,7 @@ Data.SSHDBconnect().then(async ()=>{
         '1348268869543198721',
         '1348370061984223237',
     ]
-  /*   all.forEach(async (l)=>{
+    /* all.forEach(async (l)=>{
         try{
             let data = await TweetModel.getFromAPI(l);
             await data.insertToDatabase();
@@ -145,7 +145,6 @@ Data.SSHDBconnect().then(async ()=>{
     QueryModel.read({queryID: 29}).then(async query=>{
         console.log(query[0].query)
         while(true){
-
             await query[0].execute();
             await delay(5*60*1000);
         }
