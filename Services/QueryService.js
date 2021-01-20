@@ -116,7 +116,8 @@ const QueryService = {
      */
     fetchAPI: async(search, options={
         result_type: 'mixed',
-        count: 100
+        count: 100,
+        tweet_mode: 'extended'
     })=>{
         return new Promise((resolve, reject)=>{
             Data.Twitter.get('search/tweets', {q: search, ...options}, (error, data, response)=>{
