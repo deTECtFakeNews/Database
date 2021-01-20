@@ -14,6 +14,11 @@ const Data = require("../Data");
  * @property {Float} placeLng longitude
  * @property {Float} placeLat latitude
  * @property {String} placeDescription
+ * @property {Date | String} updateDate
+ * @property {Date | String} updateDate
+ * @property {Number} retweetCount
+ * @property {Number} favoriteCount
+ * @property {Number} replyCount
  */
 
  /**

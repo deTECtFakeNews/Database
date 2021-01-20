@@ -54,7 +54,7 @@ class TweetModel {
         this.language = tweet.language; 
 
         this._TweetStatsFreeze = new TweetModel.TweetStatsFreeze(tweet);
-        this._TweetAnalysis = new TweetModel.TweetAnalysis(tweet)
+        // this._TweetAnalysis = new TweetModel.TweetAnalysis(tweet)
     }
     /**
      * Returns tweet data in TweetService_Data format
@@ -160,9 +160,11 @@ class TweetModel {
             // Then, add this tweet
             await TweetService.create(this.getData());
             // Then, add TweetStatsFreeze
-            await TweetService.TweetStatsFreeze.create(this._TweetStatsFreeze.getData());
+            await this._TweetStatsFreeze.insertToDatabase();
+            // If it exists, update TweetStatsFreeze
+            await this._TweetStatsFreeze.updateToDatabase();
         } catch (e) {
-            console.error('[TweetModel] insertToDatabase failed')
+            console.error('[TweetModel] insertToDatabase failed', e)
         }
 
     }
@@ -201,11 +203,11 @@ TweetModel.TweetStatsFreeze = class{
             updateDate: this.updateDate,
             retweetCount: this.retweetCount,
             favoriteCount: this.favoriteCount,
-            replyCount: this.replyCount,
+            replyCount: this.replyCount
         }
     }
     async insertToDatabase(){
-        return await TweetService.TweetStatsFreeze.insert(this.getData());
+        return await TweetService.TweetStatsFreeze.create(this.getData());
     }
     async updateToDatabase(){
         return await TweetService.TweetStatsFreeze.update(this.tweetID, this.getData());
