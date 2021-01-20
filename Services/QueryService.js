@@ -77,7 +77,7 @@ const QueryService = {
      */
     read: async (query_params)=>{
         return new Promise((resolve, reject)=>{
-            let query = `SELECT * FROM Query WHERE ${Object.keys(query_params).length!=1 ? '?' : '1=1'}`;
+            let query = `SELECT * FROM Query WHERE ${Object.keys(query_params).length!=-1 ? '?' : '1=1'}`;
             Data.Database.query(query, query_params, (error, results, fields)=>{
                 if(error) reject(error);
                 if(results == undefined) reject();
@@ -102,7 +102,7 @@ const QueryService = {
         })
     },
     /**
-     * Datavase - Delete User row   
+     * Database - Delete User row   
      * @param {Number | String} id Id of the Query to be deleted
      * @returns {Promise}
      */
@@ -114,9 +114,12 @@ const QueryService = {
      * @param {String} search Query to be searched
      * @returns {Promise<QueryService_Data>}
      */
-    fetchAPI: async(search)=>{
+    fetchAPI: async(search, options={
+        result_type: 'mixed',
+        count: 100
+    })=>{
         return new Promise((resolve, reject)=>{
-            Data.Twitter.get('search/tweets', {q: search}, (error, data, response)=>{
+            Data.Twitter.get('search/tweets', {q: search, ...options}, (error, data, response)=>{
                 if(error) reject(error);
                 data.statuses = data.statuses.map( l=> TweetService.normalize(l) );
                 data.queryMeta = data.search_metadata;

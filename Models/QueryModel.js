@@ -22,6 +22,20 @@ class QueryModel{
         return query;
     }
     /**
+     * Read Query from database 
+     * @param {Map<String, Object>} query_params Parameters
+     * @returns {Promise<Array<QueryModel>>}
+     */
+    static async read(query_params){
+        try{
+            let entries = await QueryService.read(query_params);
+            return entries.map(e=>new QueryModel(e));
+        } catch(e) {
+            console.error('[QueryModel] readFromDatabase error');
+            return;
+        }
+    }
+    /**
      * Creates a new QueryModel object with methods for executing several services
      * @constructor
      * @param {import("../Services/QueryService").QueryService_Row} data Data of Query to be executed
