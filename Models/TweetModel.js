@@ -91,11 +91,10 @@ class TweetModel {
      */
     async getAuthor(){
         try{
-            let user = await UserService.fetchAPI(this.authorID);
+            let user = await UserService.read(this.authorID)[0] || await UserService.fetchAPI(this.authorID);
             return new UserModel(user);
         } catch(e){
             console.log('[TweetModel] error fetching user', this.authorID)
-            throw(e);
         }
     }
     /**
@@ -104,14 +103,7 @@ class TweetModel {
      */
     async getRepliedUser(){
         try{
-            let user;
-            // If empty
-            if(this.inReplyToUserID == -1){
-                user = await UserService.read(this.inReplyToUserID)
-            // Else, search in API
-            } else {
-                user = await UserService.fetchAPI(this.inReplyToUserID);
-            }
+            let user = await UserService.read(this.inReplyToUserID)[0] || await UserService.fetchAPI(this.inReplyToUserID);
             return new UserModel(user);
         } catch(e){}
     }
@@ -121,14 +113,7 @@ class TweetModel {
      */
     async getRepliedTweet(){
         try{
-            let tweet;
-            // If 
-            if(this.inReplyToTweetID == -1){
-                tweet = await TweetService.read(this.inReplyToTweetID);
-            // Else, search in API
-            } else {
-                tweet = await TweetService.fetchAPI(this.inReplyToTweetID);
-            }
+            let tweet = await TweetService.read(this.inReplyToTweetID) || await TweetService.fetchAPI(this.inReplyToTweetID);
             return new TweetModel(tweet)
         } catch(e){}
     }
@@ -138,14 +123,7 @@ class TweetModel {
      */
     async getQuotedTweet(){
         try{
-            let tweet;
-            // If empty
-            if(this.quotesTweetID == -1){
-                tweet = await TweetService.read(this.quotesTweetID);
-            // Else, search in API
-            } else {
-                tweet = await TweetService.fetchAPI(this.quotesTweetID);
-            }
+            let tweet = await TweetService.read(this.quotesTweetID) || await TweetService.fetchAPI(this.quotesTweetID);
             return new TweetModel(tweet);
         } catch(e) {}
     }
@@ -209,7 +187,8 @@ TweetModel.TweetStatsFreeze = class {
         this.stats = []
     }
     async read(){
-        this.stats = Object.values(await TweetService.TweetStatsFreeze.read(this.tweetID))
+        this.stats = Object.values(await TweetService.TweetStatsFreeze.read(this.tweetID));
+        return this.stats;
     }
     /**
      * 

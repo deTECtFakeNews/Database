@@ -34,11 +34,13 @@ router.get('/read/:id', async (req, res)=>{
         res.status(404);
         return;
     }
-    // let sent = await AnalysisService.getSentiment(tweet.fullText);
-    await tweet[0]._TweetStatsFreeze.read();
+    // Read stats
+    let stats = await tweet[0]._TweetStatsFreeze.read();
+    let user = await (await tweet[0].getAuthor()).getData()
     let data = {
-        ...tweet[0].getData(),
-        _TweetStatsFreeze: tweet[0]._TweetStatsFreeze.stats
+        ...tweet[0].getData(), 
+        _TweetStatsFreeze: stats,
+        _User: user
     }
     res.json(data);
 })
