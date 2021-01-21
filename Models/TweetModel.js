@@ -53,9 +53,12 @@ class TweetModel {
         this.fullText = tweet.fullText; 
         this.language = tweet.language; 
 
-        this._TweetStatsFreeze = new TweetModel.TweetStatsFreeze(tweet);
-        // this._TweetAnalysis = new TweetModel.TweetAnalysis(tweet)
+        let {retweetCount, favoriteCount, replyCount} = tweet;
+        this._latestStats = {retweetCount, favoriteCount, replyCount}
+
+        this._TweetStatsFreeze = new TweetModel.TweetStatsFreeze(tweet)
     }
+
     /**
      * Returns tweet data in TweetService_Data format
      * @returns {import("../Services/TweetService").TweetService_data}
@@ -91,7 +94,8 @@ class TweetModel {
             let user = await UserService.fetchAPI(this.authorID);
             return new UserModel(user);
         } catch(e){
-
+            console.log('[TweetModel] error fetching user', this.authorID)
+            throw(e);
         }
     }
     /**
@@ -145,6 +149,8 @@ class TweetModel {
             return new TweetModel(tweet);
         } catch(e) {}
     }
+
+
     /**
      * Insert this to database (and all dependencies)
      * @returns {Promise}
@@ -152,7 +158,7 @@ class TweetModel {
     async insertToDatabase(){
         try{
             // First, add author to database
-            await (await this.getAuthor()).insertToDatabase();
+            await (await this.getAuthor()).insertToDatabase()
             // Then, add connections
             if(this.inReplyToUserID != -1) await (await this.getRepliedUser()).insertToDatabase();
             if(this.inReplyToTweetID != -1) await (await this.getRepliedTweet()).insertToDatabase();
@@ -160,9 +166,14 @@ class TweetModel {
             // Then, add this tweet
             await TweetService.create(this.getData());
             // Then, add TweetStatsFreeze
-            await this._TweetStatsFreeze.insertToDatabase();
+            await this._TweetStatsFreeze.pushStats(this._latestStats);
+
+            // await this._TweetStatsFreeze.insertToDatabase();
             // If it exists, update TweetStatsFreeze
-            await this._TweetStatsFreeze.updateToDatabase();
+            // await this._TweetStatsFreeze.updateToDatabase();
+
+            console.log('[TweetModel] insert successful')
+
         } catch (e) {
             console.error('[TweetModel] insertToDatabase failed', e)
         }
@@ -186,33 +197,79 @@ class TweetModel {
 
 }
 
-TweetModel.TweetStatsFreeze = class{
+TweetModel.TweetStatsFreeze = class {
     static async _createTable(){
         return await TweetService.TweetStatsFreeze.createTable();
-    } 
+    }
     constructor(tweet){
         this.tweetID = tweet.tweetID;
-        this.updateDate = new Date(); 
-        this.retweetCount = tweet.retweetCount; 
-        this.favoriteCount = tweet.favoriteCount; 
-        this.replyCount = tweet.replyCount;
+        /**
+         * @type {Array<import("../Services/TweetService").TweetService_StatsFreeze_Data>} 
+         */
+        this.stats = []
     }
-    getData(){
-        return {
-            tweetID: this.tweetID,
-            updateDate: this.updateDate,
-            retweetCount: this.retweetCount,
-            favoriteCount: this.favoriteCount,
-            replyCount: this.replyCount
+    async read(){
+        this.stats = Object.values(await TweetService.TweetStatsFreeze.read(this.tweetID))
+    }
+    /**
+     * 
+     * @param {import("../Services/TweetService").TweetService_StatsFreeze_Data} stats 
+     */
+    async pushStats(stats){
+        try{
+            // Check if data is valid
+            if(stats.favoriteCount == null && stats.replyCount == null && stats.retweetCount == null) {
+                console.log("AAAAAAAAAAAAAAAAAAAA");
+                return;
+            }
+            // Read
+            await this.read();
+
+            let last = this.stats[this.stats.length -1] || {replyCount: -1, retweetCount: -1, favoriteCount: -1}
+
+            if( last.favoriteCount != stats.favoriteCount || last.replyCount != stats.replyCount || last.retweetCount != stats.retweetCount){
+                await TweetService.TweetStatsFreeze.create({
+                    ...stats,
+                    tweetID: this.tweetID,
+                    updateDate: new Date(),
+                })
+            }
+
+        } catch(e){
+            console.error('[TweetModel.TweetStatsFreeze] error')
         }
     }
-    async insertToDatabase(){
-        return await TweetService.TweetStatsFreeze.create(this.getData());
-    }
-    async updateToDatabase(){
-        return await TweetService.TweetStatsFreeze.update(this.tweetID, this.getData());
-    }
 }
+
+
+
+// TweetModel.TweetStatsFreeze_ = class{
+//     static async _createTable(){
+//         return await TweetService.TweetStatsFreeze.createTable();
+//     } 
+//     constructor(tweet){
+//         this.tweetID = tweet.tweetID;
+//         this.updateDate = new Date(); 
+//         this.retweetCount = tweet.retweetCount; 
+//         this.favoriteCount = tweet.favoriteCount; 
+//         this.replyCount = tweet.replyCount;
+//     }
+//     getData(){
+//         return {
+//             tweetID: this.tweetID,
+//             updateDate: this.updateDate,
+//             retweetCount: this.retweetCount,
+//             favoriteCount: this.favoriteCount,
+//             replyCount: this.replyCount
+//         }
+//     }
+//     async insertToDatabase(){
+//         return await TweetService.TweetStatsFreeze.create(this.getData());
+//     }
+//     async updateToDatabase(){
+//         return await TweetService.TweetStatsFreeze.update(this.tweetID, this.getData());
+//     }
+// }
 
 TweetModel.TweetAnalysis = class {
     constructor(tweet, analysis){

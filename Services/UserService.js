@@ -105,10 +105,7 @@ const UserService = {
                 query_params = {userID: query_params};
             }
             let query = `
-                SELECT * FROM (( User
-                    INNER JOIN UserStatsFreeze ON User.userID = UserStatsFreeze.userID)
-                    -- INNER JOIN UserAnalysis ON User.userID = UserAnalysis.userID
-                ) WHERE ${query_params != undefined && Object.keys(query_params).length!=0 ? '?' : '1=1'}`;
+                SELECT * FROM User WHERE ${Object.keys(query_params).length!=0 ? '?' : '1=1'}`;
             Data.Database.query(query, query_params, (error, results, fields)=>{
                 if(error) reject(error);
                 if(results == undefined) reject();

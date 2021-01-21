@@ -17,6 +17,8 @@ const MYSQL_DATA = {
     password: 'TEC.F4keNews',
     database: 'FakeNews',
     port: 3306,
+    supportBigNumbers: true,
+    bigNumberStrings: true
 }
 const TWITTER_DATA = {
     consumer_key: 'yV0a5aPMXLcW3aKMSvxE9jjzu',

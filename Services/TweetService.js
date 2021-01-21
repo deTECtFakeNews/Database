@@ -128,12 +128,10 @@ const TweetService = {
                 query_params = {tweetID: query_params};
             }
             let query = `
-                SELECT * FROM (( Tweet
-                    INNER JOIN TweetStatsFreeze ON Tweet.tweetID = TweetStatsFreeze.tweetID)
-                    -- INNER JOIN TweetAnalysis ON Tweet.tweetID = TweetAnalysis.tweetID
-                ) WHERE ${query_params != undefined && Object.keys(query_params).length!=0 ? '?' : '1=1'}`;
+                SELECT * FROM Tweet WHERE ${query_params != undefined && Object.keys(query_params).length!=0 ? '?' : '1=1'}`;
             let q = Data.Database.query(query, query_params, (error, results, fields)=>{
                 if(error) reject(error);
+                if(results.length<1) reject();
                 console.log(`[TweetService] readFromDatabase successful. results`);
                 resolve(results.map(r=>({...r}) ));
             })
@@ -225,7 +223,8 @@ TweetService.TweetStatsFreeze = {
      */
     create: (tweetStats)=>{
         return new Promise((resolve, reject)=>{
-            Data.Database.query("INSERT INTO `TweetStatsFreeze` SET ?", tweetStats, (error, results, fields)=>{
+            let {tweetID, updateDate, retweetCount, favoriteCount, replyCount} = tweetStats;
+            Data.Database.query('INSERT INTO TweetStatsFreeze SET ?', tweetStats, (error, results, fields)=>{
                 if(error && error.code != 'ER_DUP_ENTRY') reject(error);
                 console.log(`[TweetService.TweetStatsFreeze] (${tweetStats.tweetID}) was uploaded`)
                 resolve(results)
@@ -234,10 +233,21 @@ TweetService.TweetStatsFreeze = {
     },
     /**
      * Database - Read TweetStatsFreeze row(s) from table
-     * @param {Object | Number | String} query_params Parameters to execute query | Id of Tweet
-     * @returns {void}
+     * @param {Map | Number | String} query_params Parameters to execute query | Id of Tweet
+     * @returns {Promise<Array<TweetService_StatsFreeze_Data>>}
      */
-    read: async(query_params)=>{},
+    read: async(query_params)=>{
+        return new Promise((resolve, reject)=>{
+            if(typeof query_params == 'string' || typeof query_params == 'number'){
+                query_params = {tweetID: query_params};
+            }
+            let query = `SELECT * FROM TweetStatsFreeze WHERE ${query_params != undefined && Object.keys(query_params).length!=0 ? '?' : '1=1'}`
+            Data.Database.query(query, query_params, (error, results, fields)=>{
+                if(error) reject(error);
+                resolve({...results});
+            })
+        })
+    },
     /**
      * Database - Update TweetStatsFreeze with new data
      * @param {Number | String} id Id of row to be updated with data

@@ -1,6 +1,7 @@
 const express = require('express');
 const TweetModel = require('../Models/TweetModel');
 const AnalysisService = require('../Services/AnalysisService');
+const os = require('os')
 var router = express.Router();
 
 router.use(express.json())
@@ -13,33 +14,31 @@ router.get('/fetch/:id', async (req, res)=>{
     let tweet = await TweetModel.getFromAPI(req.params.id)
     let data = {
         ...tweet.getData(),
-        _TweetStatsFreeze: tweet.getStats()
+        _TweetStatsFreeze: tweet.getStats(),
     }
     res.json(data);
 })
 
 router.get('/read', async (req, res)=>{
     let tweets = await TweetModel.read(req.query);
-    
-    let data = await Promise.all(tweets.map(async (t,i)=>{
-        // await t.updateAnalysis("sentiment");
-        return {
-            ...t.getData(),
-            _TweetStatsFreeze: t._TweetStatsFreeze.getData(),
-            _TweetAnalysis: t._TweetAnalysis.getData()
-        }
-    }))
+    let data = await Promise.all(tweets.map(async (t,i)=>({
+        ...t.getData(),
+        urlToDetails: req.protocol + '://' + req.get('host') + '/Tweet/read/' + t.tweetID 
+    })))
     res.json(data)
 })
 
 router.get('/read/:id', async (req, res)=>{
-    let tweet = await TweetModel.readFromDatabase({'Tweet.tweetID': req.params.id});
+    let tweet = await TweetModel.read(req.params.id);
+    if(tweet == undefined) {
+        res.status(404);
+        return;
+    }
     // let sent = await AnalysisService.getSentiment(tweet.fullText);
-    console.log(sent)
+    await tweet[0]._TweetStatsFreeze.read();
     let data = {
         ...tweet[0].getData(),
-        _TweetStatsFreeze: tweet[0].getStats(),
-        _TweetAnalysis: tweet[0].getAnalysis()
+        _TweetStatsFreeze: tweet[0]._TweetStatsFreeze.stats
     }
     res.json(data);
 })

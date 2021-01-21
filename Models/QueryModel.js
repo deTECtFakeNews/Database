@@ -91,15 +91,19 @@ class QueryModel{
         try{
             // Execute service
             let data = await QueryService.fetchAPI(this.query);
-            // Get model of each result
-            let results = data.statuses.map(tweet=>new TweetModel(tweet));
-            // Upload each result and push to statuses
-            results.forEach(async tweet=>{
+            // Store results here
+            let results = [];
+            data.statuses.forEach(async result=>{
+                // Get model of each result
+                let tweet = new TweetModel(result);
+                // Insert each result to database
                 await tweet.insertToDatabase();
-                await QueryService.QueryTweet.create( this.queryID, tweet.tweetID );
+                await QueryService.QueryTweet.create(this.queryID, tweet.tweetID);
+                // Update stats
+                // End
                 console.log('[QueryModel] Tweet added to database')
                 this.statuses.push(tweet);
-            });
+            })
             // Update last exec date
             await QueryService.update(this.queryID, {executeDate: new Date()});
             return results;

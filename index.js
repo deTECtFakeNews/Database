@@ -146,7 +146,7 @@ Data.SSHDBconnect().then(async ()=>{
         console.log(query[0].query)
         while(true){
             await query[0].execute();
-            await delay(1*60*1000);
+            await delay(5*60*1000);
         }
     })
 
