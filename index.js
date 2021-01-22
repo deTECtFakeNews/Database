@@ -169,27 +169,13 @@ Data.SSHDBconnect().then(async ()=>{
 
     QueryModel.read().then(async queries=>{
         while(true){
-            // Create arr of promises
-            queries.map(async (query, i)=>{
-                if(i==0) return;
+            for(let query of queries){
                 console.log(query.query);
                 await query.execute();
-                return delay(10*60*1000)
-            })
-            Promise.all(queries).then(async r=>{
-                await delay(1*60*1000);
-            })
+                await delay(5*60*1000);
+            }
         }
     })
-
-    // QueryModel.createNew(`(vacuna OR vaccine) AND (covid OR SARS-CoV-2 OR coronavirus)  AND México`);
-    /* QueryModel.read({queryID: 29}).then(async query=>{
-        console.log(query[0].query)
-        while(true){
-            await query[0].execute();
-            await delay(5*60*1000);
-        }
-    }) */
 
 })
 
