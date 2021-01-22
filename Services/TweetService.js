@@ -243,6 +243,8 @@ TweetService.TweetStatsFreeze = {
             }
             let query = `SELECT * FROM TweetStatsFreeze WHERE ${query_params != undefined && Object.keys(query_params).length!=0 ? '?' : '1=1'}`
             Data.Database.query(query, query_params, (error, results, fields)=>{
+                if(results.length < 0) resolve(undefined)
+
                 if(error) reject(error);
                 resolve({...results});
             })

@@ -45,7 +45,7 @@ class TweetModel {
      */
     constructor(tweet){
         this.tweetID = tweet.tweetID; 
-        this.authorID = tweet.authorID; 
+        this.authorID = tweet.authorID || -1; 
         this.inReplyToUserID = tweet.inReplyToUserID || -1; 
         this.inReplyToTweetID = tweet.inReplyToTweetID || -1; 
         this.quotesTweetID = tweet.quotesTweetID || -1; 
@@ -91,10 +91,12 @@ class TweetModel {
      */
     async getAuthor(){
         try{
-            let user = await UserService.read(this.authorID)[0] || await UserService.fetchAPI(this.authorID);
+            let user = await UserService.read(this.authorID)[0] || await UserService.fetchAPI(this.authorID)
             return new UserModel(user);
         } catch(e){
-            console.log('[TweetModel] error fetching user', this.authorID)
+            if( e[0].code == '88') console.log('API limit exceeded');
+            console.log('[TweetModel] error fetching user', this.authorID);
+            return new UserModel({userID: -1})
         }
     }
     /**
@@ -105,7 +107,9 @@ class TweetModel {
         try{
             let user = await UserService.read(this.inReplyToUserID)[0] || await UserService.fetchAPI(this.inReplyToUserID);
             return new UserModel(user);
-        } catch(e){}
+        } catch(e){
+            if( e[0].code == '88') console.log('API limit exceeded');
+        }
     }
     /**
      * Return TweetModel of tweet tweet is refering to
@@ -115,7 +119,9 @@ class TweetModel {
         try{
             let tweet = await TweetService.read(this.inReplyToTweetID) || await TweetService.fetchAPI(this.inReplyToTweetID);
             return new TweetModel(tweet)
-        } catch(e){}
+        } catch(e){
+            if( e[0].code == '88') console.log('API limit exceeded');
+        }
     }
     /**
      * Return TweetModel of tweet tweet is quoting
@@ -125,7 +131,9 @@ class TweetModel {
         try{
             let tweet = await TweetService.read(this.quotesTweetID) || await TweetService.fetchAPI(this.quotesTweetID);
             return new TweetModel(tweet);
-        } catch(e) {}
+        } catch(e) {
+            if( e[0].code == '88') console.log('API limit exceeded');
+        }
     }
 
 
@@ -135,6 +143,7 @@ class TweetModel {
      */
     async insertToDatabase(){
         try{
+            if(this.tweetID == -1 || this.tweetID == null) return;
             // First, add author to database
             await (await this.getAuthor()).insertToDatabase()
             // Then, add connections

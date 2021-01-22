@@ -141,14 +141,53 @@ Data.SSHDBconnect().then(async ()=>{
 
     const delay = ms => new Promise(res => setTimeout(res, ms));
 
+    /* let queries = [
+        'Vacuna covid México',
+        'Coronavirus vacuna',
+        'Coronavirus corrupción',
+        'Corona vaccine',
+        'Covid vaccine',
+        'Covid cura',
+        'Covid 5G',
+        'Pruebas covid',
+        'Covid muertes',
+        'Covid pruebas',
+        'Covid viajeros',
+        'Covid fake news',
+        'Covid México',
+        'covid semaforo',
+        'covid lopez gatell',
+        'covid vacuna',
+        'covid mañanera',
+        'covid pfizer mexico'
+    ] */
+
+    /* queries.forEach(async query=>{
+        await QueryModel.createNew(query);
+    }) */
+
+    QueryModel.read().then(async queries=>{
+        await delay(5*60*1000);
+        while(true){
+            queries.forEach(async (query, i)=>{
+                if(i!=0){ 
+                    console.log(query.query)
+                    await query.execute();
+                    await delay(5*60*1000);
+                }
+            })
+            await delay(1*60*1000);
+        }
+    })
+
     // QueryModel.createNew(`(vacuna OR vaccine) AND (covid OR SARS-CoV-2 OR coronavirus)  AND México`);
-    QueryModel.read({queryID: 29}).then(async query=>{
+    /* QueryModel.read({queryID: 29}).then(async query=>{
         console.log(query[0].query)
         while(true){
             await query[0].execute();
             await delay(5*60*1000);
         }
-    })
+    }) */
 
 })
 

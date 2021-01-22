@@ -104,9 +104,15 @@ const UserService = {
             if(typeof query_params == 'string' || typeof query_params == 'number') {
                 query_params = {userID: query_params};
             }
-            let query = `
-                SELECT * FROM User WHERE ${Object.keys(query_params).length!=0 ? '?' : '1=1'}`;
+            let query = '';
+            if(Object.keys(query_params).length>0){
+                query = 'SELECT * FROM User WHERE ?';
+            } else {
+                query = 'SELECT * FROM User';
+            }
+
             Data.Database.query(query, query_params, (error, results, fields)=>{
+                if(results.length < 0) resolve(undefined)
                 if(error) reject(error);
                 if(results == undefined) reject();
                 console.log(`[UserService] readFromDatabase successful. results`);

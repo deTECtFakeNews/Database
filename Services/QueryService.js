@@ -75,9 +75,14 @@ const QueryService = {
      * @param {Object} query_params Parameters to execute query
      * @returns {Promise<Array<QueryService_Row>>}
      */
-    read: async (query_params)=>{
+    read: async (query_params={})=>{
         return new Promise((resolve, reject)=>{
-            let query = `SELECT * FROM Query WHERE ${Object.keys(query_params).length!=-1 ? '?' : '1=1'}`;
+            let query = '';
+            if(Object.keys(query_params).length>0){
+                query = 'SELECT * FROM Query WHERE ?';
+            } else {
+                query = 'SELECT * FROM Query';
+            }
             Data.Database.query(query, query_params, (error, results, fields)=>{
                 if(error) reject(error);
                 if(results == undefined) reject();
