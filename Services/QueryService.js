@@ -121,7 +121,7 @@ const QueryService = {
      */
     fetchAPI: async(search, options={
         result_type: 'mixed',
-        count: 1500,
+        count: 100,
         tweet_mode: 'extended'
     })=>{
         return new Promise((resolve, reject)=>{

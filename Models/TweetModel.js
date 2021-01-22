@@ -95,7 +95,7 @@ class TweetModel {
             return new UserModel(user);
         } catch(e){
             if( e[0].code == '88') console.log('API limit exceeded');
-            console.log('[TweetModel] error fetching user', this.authorID);
+            else console.log('[TweetModel] error fetching user', this.authorID);
             return new UserModel({userID: -1})
         }
     }

@@ -6,6 +6,7 @@ const QueryRoutes = require('./Routes/QueryRoutes');
 const express = require('express');
 const Data = require("./Data");
 const QueryModel = require("./Models/QueryModel");
+const { response } = require("express");
 var app = express(); 
 
 const PORT = process.env.PORT || 8080;
@@ -165,9 +166,11 @@ Data.SSHDBconnect().then(async ()=>{
     /* queries.forEach(async query=>{
         await QueryModel.createNew(query);
     }) */
-
+    Data.Twitter.get('users/show', {screen_name: 'edvilme'}, (error, data, response)=>{
+        console.log(data)
+    })
     QueryModel.read().then(async queries=>{
-        await delay(5*60*1000);
+        // await delay(5*60*1000);
         while(true){
             queries.forEach(async (query, i)=>{
                 if(i!=0){ 
