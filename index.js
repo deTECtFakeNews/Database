@@ -168,16 +168,17 @@ Data.SSHDBconnect().then(async ()=>{
     }) */
 
     QueryModel.read().then(async queries=>{
-        // await delay(5*60*1000);
         while(true){
-            queries.forEach(async (query, i)=>{
-                if(i!=0){ 
-                    console.log(query.query)
-                    await delay(10*60*1000);
-                    await query.execute();
-                }
+            // Create arr of promises
+            queries.map(async (query, i)=>{
+                if(i==0) return;
+                console.log(query.query);
+                await query.execute();
+                return delay(10*60*1000)
             })
-            await delay(1*60*1000);
+            Promise.all(queries).then(async r=>{
+                await delay(1*60*1000);
+            })
         }
     })
 
