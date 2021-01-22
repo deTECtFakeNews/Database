@@ -166,9 +166,7 @@ Data.SSHDBconnect().then(async ()=>{
     /* queries.forEach(async query=>{
         await QueryModel.createNew(query);
     }) */
-    Data.Twitter.get('users/show', {screen_name: 'edvilme'}, (error, data, response)=>{
-        console.log(data)
-    })
+
     QueryModel.read().then(async queries=>{
         // await delay(5*60*1000);
         while(true){
