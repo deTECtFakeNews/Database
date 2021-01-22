@@ -127,6 +127,7 @@ const QueryService = {
         return new Promise((resolve, reject)=>{
             Data.Twitter.get('search/tweets', {q: search, ...options}, (error, data, response)=>{
                 if(error) reject(error);
+                if(data.statuses == undefined) data.statuses = [] 
                 data.statuses = data.statuses.map( l=> TweetService.normalize(l) );
                 data.queryMeta = data.search_metadata;
                 delete data.search_metadata;
