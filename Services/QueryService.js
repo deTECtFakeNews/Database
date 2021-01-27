@@ -119,13 +119,15 @@ const QueryService = {
      * @param {String} search Query to be searched
      * @returns {Promise<QueryService_Data>}
      */
-    fetchAPI: async(search, options={
-        result_type: 'mixed',
-        count: 100,
-        tweet_mode: 'extended'
-    })=>{
+    fetchAPI: async(search, options)=>{
         return new Promise((resolve, reject)=>{
-            Data.Twitter.get('search/tweets', {q: search+'-filter:retweets -RT', ...options}, (error, data, response)=>{
+            Data.Twitter.get('search/tweets', {
+                q: search+'-filter:retweets -RT', 
+                result_type: 'mixed',
+                count: 600,
+                tweet_mode: 'extended',
+                ...options
+            }, (error, data, response)=>{
                 if(error) reject(error);
                 if(data.statuses == undefined) data.statuses = [] 
                 data.statuses = data.statuses.map( l=> TweetService.normalize(l) );
