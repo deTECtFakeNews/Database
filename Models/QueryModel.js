@@ -90,7 +90,7 @@ class QueryModel{
     async execute(){
         try{
             // Execute service
-            let data = await QueryService.fetchAPI(this.query, {});
+            let data = await QueryService.fetchAPI(this.query, {language: 'es'});
             // Store results here
             let results = [];
             data.statuses.forEach(async result=>{

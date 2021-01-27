@@ -124,7 +124,7 @@ const QueryService = {
             Data.Twitter.get('search/tweets', {
                 q: search+'-filter:retweets -RT', 
                 result_type: 'mixed',
-                count: 600,
+                count: 1500,
                 tweet_mode: 'extended',
                 ...options
             }, (error, data, response)=>{
