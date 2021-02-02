@@ -32,9 +32,14 @@ Data.SSHDBconnect().then(async ()=>{
         console.log("Hi")
         for(let tweet of tweets){
             // console.log(tweet.fullText)
-            await tweet._TweetAnalysis.execute('translation');
-            await tweet._TweetAnalysis.insertToDatabase();
-            console.log("\t INSERTED ANALYSIS \t"+tweet.tweetID)
+            try{
+                await tweet._TweetAnalysis.execute('translation');
+                await tweet._TweetAnalysis.insertToDatabase();
+                console.log("\t INSERTED ANALYSIS \t"+tweet.tweetID)
+            } catch (e) {
+                console.log(e)
+            }
+
         }
 
     })
