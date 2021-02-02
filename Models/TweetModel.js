@@ -53,6 +53,10 @@ class TweetModel {
         this.fullText = tweet.fullText; 
         this.language = tweet.language; 
 
+        this.placeLng = tweet.placeLng;
+        this.placeLat = tweet.placeLat;
+        this.placeDescription = tweet.placeDescription;
+
         let {retweetCount, favoriteCount, replyCount} = tweet;
         this._latestStats = {retweetCount, favoriteCount, replyCount}
 
@@ -73,6 +77,9 @@ class TweetModel {
             quotesTweetID: this.quotesTweetID, 
             creationDate: this.creationDate, 
             fullText: this.fullText, 
+            placeLat: this.placeLat,
+            placeLng: this.placeLng,
+            placeDescription: this.placeDescription
         }
     }
     /**
@@ -138,18 +145,6 @@ class TweetModel {
     }
 
     /**
-     * Returns translated text
-     * @returns {Promise<String>}
-     */
-    async getTranslation(){
-        try{
-            return await AnalysisService.Translation.get(this.fullText);
-        } catch (e){
-            return this.fullText;
-        }
-    }
-
-    /**
      * Insert this to database (and all dependencies)
      * @returns {Promise}
      */
@@ -183,7 +178,9 @@ class TweetModel {
      * Updates this in database with data ???
      */
     async updateToDatabase(){
-        return await TweetService.TweetStatsFreeze.update(this.tweetID, this.getStats())
+        await TweetService.update(this.tweetID, this.getData())
+        await this._TweetStatsFreeze.pushStats(this._latestStats);
+        // return await TweetService.TweetStatsFreeze.update(this.tweetID, this.getStats())
     }
     /**
      * REVIEW
@@ -285,7 +282,7 @@ TweetModel.TweetAnalysis = class {
                 this.translation = await AnalysisService.Translation.get(this.fullText);
                 return this.translation;
             } catch(e){
-                
+
             }
         }
     }

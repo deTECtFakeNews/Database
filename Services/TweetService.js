@@ -56,9 +56,9 @@ const TweetService = {
         creationDate: data.created_at,
         fullText: data.full_text || data.text, 
         language: data.lang || null, 
-        // placeLng = data.coordinates && data.coordinates.coordinates ? data.coordinates.coordinates[0] : null,
-        // placeLat = data.coordinates && data.coordinates.coordinates ? data.coordinates.coordinates[0] : null,
-        // placeDescription = data.place.full_name || null
+        placeLng: data.coordinates && data.coordinates.coordinates ? data.coordinates.coordinates[0] : null,
+        placeLat: data.coordinates && data.coordinates.coordinates ? data.coordinates.coordinates[1] : null,
+        placeDescription: data.place && data.place.full_name ? data.place.full_name : null,
         updateDate: new Date().toISOString(),
         retweetCount: data.retweet_count, 
         favoriteCount: data.favorite_count, 
