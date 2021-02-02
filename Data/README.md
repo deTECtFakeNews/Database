@@ -57,6 +57,23 @@ In another table, the data resulting from various analysis will be stored. The s
 | **tweetID**   | int(11)   | [Foreign key] Unique identifier. |
 | translation   | text      | Translation of Tweet's content, for easier analysis. |
 
+### ~TweetClassification
+The scope of this study requires the manual input for the classification of Tweets in order to aid with the ML analysis. Such input, as well as the generated output will be stored here. 
+
+| Field         | Data type | Description   |
+| ---           | ---       | ---           |
+| **tweetID**   | int(11)   | [Foreign key] Unique identifier. |
+| manualClassification | enum | Tags containing the manual classification |
+| autoClassification | enum | Same tags as `manualClassification`, that result from automation |
+
+### ~TweetRetweets
+
+| Field         | Data type | Description   |
+| ---           | ---       | ---           |
+| **tweetID**   | int(11)   | [Foreign key] Unique identifier. |
+| **userID**    | int(11)   | [Foreign key] Unique identifier of the User |
+| creationDate  | timestamp | Date and time of retweet.
+
 ## (User)
 Each tweet on the system is associated to at least one user (i.e., it's author). Therefore, the information about each of the associated users should also be stored in the database. This allows to analyze their posts, interactions with other accounts and to identify bias and anomalies. As with the tweet category, the information stored is in regards to *User metadata*, *User statistics* and the results of *User Analysis*.
 
