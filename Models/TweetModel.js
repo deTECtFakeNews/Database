@@ -56,7 +56,8 @@ class TweetModel {
         let {retweetCount, favoriteCount, replyCount} = tweet;
         this._latestStats = {retweetCount, favoriteCount, replyCount}
 
-        this._TweetStatsFreeze = new TweetModel.TweetStatsFreeze(tweet)
+        this._TweetStatsFreeze = new TweetModel.TweetStatsFreeze(tweet);
+        this._TweetAnalysis = new TweetModel.TweetAnalysis(tweet);
     }
 
     /**
@@ -240,36 +241,53 @@ TweetModel.TweetStatsFreeze = class {
     }
 }
 
+TweetModel.TweetAnalysis = class {
+    constructor(tweet, analysis){
+        this.tweetID = tweet.tweetID;
+        this.fullText = tweet.fullText;
 
+        this.translation = tweet.fullText;
+    }
 
-// TweetModel.TweetStatsFreeze_ = class{
-//     static async _createTable(){
-//         return await TweetService.TweetStatsFreeze.createTable();
-//     } 
-//     constructor(tweet){
-//         this.tweetID = tweet.tweetID;
-//         this.updateDate = new Date(); 
-//         this.retweetCount = tweet.retweetCount; 
-//         this.favoriteCount = tweet.favoriteCount; 
-//         this.replyCount = tweet.replyCount;
-//     }
-//     getData(){
-//         return {
-//             tweetID: this.tweetID,
-//             updateDate: this.updateDate,
-//             retweetCount: this.retweetCount,
-//             favoriteCount: this.favoriteCount,
-//             replyCount: this.replyCount
-//         }
-//     }
-//     async insertToDatabase(){
-//         return await TweetService.TweetStatsFreeze.create(this.getData());
-//     }
-//     async updateToDatabase(){
-//         return await TweetService.TweetStatsFreeze.update(this.tweetID, this.getData());
-//     }
-// }
+    async read(){
+        let results = await TweetService.TweetAnalysis.read(this.tweetID)[0];
+    }
 
+    /**
+     * @returns {import("../Services/TweetService").TweetService_TweetAnalysis}
+     */
+    getData(){
+        return {
+            tweetID: this.tweetID, 
+            translation: this.translation
+        }
+    }
+    /**
+     * Insert this to database
+     * @returns {Promise}
+     */
+    async insertToDatabase(){
+        try{
+            if(this.tweetID == -1 || this.tweetID == undefined) return;
+            await TweetService.TweetAnalysis.update(this.getData())
+        } catch (e){
+            console.log('[TweetModel.TweetAnalysis] error uploading')
+        }
+    }
+    /**
+     * Executes an analysis and updates values
+     * @param {String} analysis Name of analysis to execute. Leave blank to exec all
+     * @returns {Promise<Object>}
+     */
+    async execute(analysis){
+        if(analysis == 'translation'){
+            this.translation = await AnalysisService.Translation.get(this.fullText);
+            return this.translation;
+        }
+    }
+}
+
+/* 
 TweetModel.TweetAnalysis = class {
     constructor(tweet, analysis){
         this.tweetID = tweet.tweetID;
@@ -331,6 +349,6 @@ TweetModel.TweetAnalysis = class {
     }
 
 }
-
+ */
 
 module.exports = TweetModel;

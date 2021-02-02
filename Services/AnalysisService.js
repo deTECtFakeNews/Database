@@ -9,8 +9,17 @@ const AnalysisService = {
          * @returns {Promise<String>}
          */
         get: async (text, target='en')=>{
-            let res = await axios.post('https://libretranslate.com/translate', {q: text, target, source: 'auto'});
-            return await res.data.translatedText;
+            try{
+                let res = await axios.post('https://libretranslate.com/translate', {q: text, target, source: 'auto'});
+                return await res.data.translatedText;
+            } catch (e) {
+                return text;
+            }
+        }
+    },
+    Sentiment: {
+        get: async (text)=>{
+            
         }
     }
 }

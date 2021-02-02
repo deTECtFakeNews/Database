@@ -28,6 +28,16 @@ Data.SSHDBconnect().then(async ()=>{
     })
     const delay = ms => new Promise(res => setTimeout(res, ms));
 
+    TweetModel.read().then(async tweets=>{
+        console.log("Hi")
+        for(let tweet of tweets){
+            // console.log(tweet.fullText)
+            await tweet._TweetAnalysis.execute('translation');
+            await tweet._TweetAnalysis.insertToDatabase();
+            console.log("\t INSERTED ANALYSIS \t"+tweet.tweetID)
+        }
+    })
+
     /* QueryModel.read().then(async queries=>{
         while(true){
             for(let query of queries){

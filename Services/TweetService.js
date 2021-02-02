@@ -34,6 +34,8 @@ const Data = require("../Data");
 /**
  * TweetService_TweetAnalysis Common structure for communication
  * @typedef {Object} TweetService_TweetAnalysis
+ * @property {String|Number} tweetID
+ * @property {String} translation
  */
 
 
@@ -274,61 +276,19 @@ TweetService.TweetAnalysis = {
      */
     createTable: async()=>{
         let query = 
-            `CREATE TABLE IF NOT EXISTS \`TweetAnalysis\` (
-                id int NOT NULL AUTO_INCREMENT, 
-                tweetID BIGINT(8) NOT NULL UNIQUE,
-                sentimentIndex float NOT NULL default -1,
-                keywords text NOT NULL default '',
-                analysisIndex float NOT NULL default -1,
-                sentiment_negativity float,
-                sentiment_neutrality float, 
-                sentiment_positivity float,
-                sentiment_compund float, 
-                sentiment_polarity float, 
-                sentiment_subjectivity float, 
-                sentiment_anger float, 
-                sentiment_anticipation float, 
-                sentiment_disgust float, 
-                sentiment_fear float, 
-                sentiment_joy float, 
-                sentiment_negative float,
-                sentiment_postivie float, 
-                sentiment_sadness float, 
-                sentiment_surprise float, 
-                sentiment_trust float,
-                PRIMARY KEY (\`id\`), 
-                -- KEY \`tweetID\` (\`tweetID\`),
+            `CREATE TABLE \`TweetAnalysis\` (
+                \`id\` int(11) NOT NULL AUTO_INCREMENT,
+                \`tweetID\` bigint(8) NOT NULL,
+                \`translation\` text DEFAULT NULL,
+                PRIMARY KEY (\`id\`),
+                UNIQUE KEY \`tweetID\` (\`tweetID\`),
                 KEY \`id\` (\`id\`),
-                KEY \`analysisIndex\` (\`analysisIndex\`),
-                CONSTRAINT \`tweetAnalysis_tweetID\` FOREIGN KEY (\`tweetID\`)
-                    REFERENCES \`Tweet\` (\`TweetID\`) ON DELETE CASCADE
-            );`
+                CONSTRAINT \`tweetAnalysis_tweetID\` FOREIGN KEY (\`tweetID\`) REFERENCES \`Tweet\` (\`tweetID\`) ON DELETE CASCADE
+            )`
             Data.Database.query(query, (error, results, fields)=>{
             if(error) reject(error);
             console.log("[TweetService.TweetAnalysis} createTable successful");
             resolve(results);
-        })
-    },
-    /**
-     * Database - Creates (inserts into new row) new TweetAnalysis in table
-     * @param {Number | String} tweet Tweet id
-     * @param {*} analysis TweetAnalysis data in normalized form to be added into a new row
-     * @returns {Promise}
-     */
-    create: async (tweet, analysis)=>{
-        return new Promise((resolve, reject)=>{
-            let data = {
-                tweetID: tweet.tweetID,
-                ...analysis
-            }
-            delete data['sentiment_fullText']
-
-            let q = Data.Database.query("INSERT INTO `TweetAnalysis` SET ?", data, (error, results, fields)=>{
-                console.log(q.sql)
-                if(error && error.code != 'ER_DUP_ENTRY') reject(error);
-                console.log(`[TweetService.TweetAnalysis] (${tweet.tweetID}) was uploaded`)
-                resolve(results)
-            })
         })
     },
     /**
@@ -337,21 +297,31 @@ TweetService.TweetAnalysis = {
      * @returns {void}
      */
     read: async (query_params)=>{
-
+        return new Promise((resolve, reject)=>{
+            if(typeof query_params == 'string' || typeof query_params == 'number'){
+                query_params = {tweetID: query_params};
+            }
+            let query = `
+                SELECT * FROM TweetAnalysis WHERE ${query_params != undefined && Object.keys(query_params).length!=0 ? '?' : '1=1'}`;
+            let q = Data.Database.query(query, query_params, (error, results, fields)=>{
+                if(error) reject(error);
+                if(results.length<1) reject();
+                console.log(`[TweetService] readFromDatabase successful. results`);
+                resolve(results.map(r=>({...r}) ));
+            })
+        })
     },
     /**
      * Database - Update TweetAnalysis row with new data
-     * @param {Number | String} id Id of row to be updated with data
-     * @param {TweetService_TweetAnalysis} analysis Data to be updated
+     * @param {TweetService_TweetAnalysis} data Data to be updated
      * @returns {Promise}
      */
-    update: async (id, analysis)=>{
+    update: async (data)=>{
         return new Promise((resolve, reject)=>{
-            delete data['sentiment_fullText']
-            let q = Data.Database.query(`UPDATE TweetAnalysis SET ? WHERE TweetAnalysis.tweetID=${id}`, analysis, (error, results, fields)=>{
-                console.log(q.sql, data)
+            let q = Data.Database.query(`REPLACE INTO TweetAnalysis SET ?`, data, (error, results, fields)=>{
+                // console.log(q.sql, data)
                 if(error && error.code != 'ER_DUP_ENTRY') reject(error);
-                console.log(`[TweetService.TweetAnalysis] (${tweet.tweetID}) was updated`)
+                console.log(`[TweetService.TweetAnalysis] (${data.tweetID}) was updated`)
                 resolve(results)
             })
         })

@@ -52,6 +52,11 @@ The statistics of a tweet are helpful to analyze its spread and reach in the net
 ### TweetAnalysis
 In another table, the data resulting from various analysis will be stored. The structure of such table is dependant on the analysis performed and can then change drastically over time. 
 
+| Field         | Data type | Description   |
+| ---           | ---       | ---           |
+| **tweetID**   | int(11)   | [Foreign key] Unique identifier. |
+| translation   | text      | Translation of Tweet's content, for easier analysis. |
+
 ## (User)
 Each tweet on the system is associated to at least one user (i.e., it's author). Therefore, the information about each of the associated users should also be stored in the database. This allows to analyze their posts, interactions with other accounts and to identify bias and anomalies. As with the tweet category, the information stored is in regards to *User metadata*, *User statistics* and the results of *User Analysis*.
 
