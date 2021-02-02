@@ -281,8 +281,12 @@ TweetModel.TweetAnalysis = class {
      */
     async execute(analysis){
         if(analysis == 'translation'){
-            this.translation = await AnalysisService.Translation.get(this.fullText);
-            return this.translation;
+            try{
+                this.translation = await AnalysisService.Translation.get(this.fullText);
+                return this.translation;
+            } catch(e){
+                
+            }
         }
     }
 }

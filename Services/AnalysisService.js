@@ -13,7 +13,7 @@ const AnalysisService = {
                 let res = await axios.post('https://libretranslate.com/translate', {q: text, target, source: 'auto'});
                 return await res.data.translatedText;
             } catch (e) {
-                return text;
+                return await AnalysisService.Translation.get(text, target);
             }
         }
     },

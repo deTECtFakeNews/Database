@@ -99,7 +99,9 @@ class QueryModel{
                 // Insert each result to database
                 await tweet.insertToDatabase();
                 await QueryService.QueryTweet.create(this.queryID, tweet.tweetID);
-                // Update stats
+                // Update analysis
+                await tweet._TweetAnalysis.execute('translation');
+                await tweet._TweetAnalysis.insertToDatabase();
                 // End
                 console.log('[QueryModel] Tweet added to database')
                 this.statuses.push(tweet);
