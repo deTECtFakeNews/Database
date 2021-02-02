@@ -1,25 +1,17 @@
-const {execFile, exec, spawn} = require('child_process');
-const path = require('path')
+const { default: axios } = require("axios")
 
 const AnalysisService = {
-    getSentiment: async (text, isTranslated = true)=>{
-        if(!isTranslated){
-            text = await AnalysisService.getTranslation(text);
+    Translation: {
+        /**
+         * Get translation of text into target language
+         * @param {String} text Text to be translated
+         * @param {String} target Code of language to translate
+         * @returns {Promise<String>}
+         */
+        get: async (text, target='en')=>{
+            let res = await axios.post('https://libretranslate.com/translate', {q: text, target, source: 'auto'});
+            return await res.data.translatedText;
         }
-        const pathToScript = path.join(__dirname, '/Sentiment/Main.py');
-        return new Promise((resolve, reject)=>{
-            let analysis = spawn("python3", [pathToScript, text]);
-            analysis.stdout.on('data', resolve);
-            analysis.stderr.on('data', reject);
-        })
-    },
-    getTranslation: async (text)=>{
-        const pathToScript = path.join(__dirname, '/Translation/Main.py');
-        return new Promise((resolve, reject)=>{
-            let analysis = spawn("python3", [pathToScript, text]);
-            analysis.stdout.on('data', resolve);
-            analysis.stderr.on('data', reject);
-        })
     }
 }
 

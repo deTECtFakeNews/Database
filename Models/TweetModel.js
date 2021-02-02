@@ -136,6 +136,17 @@ class TweetModel {
         }
     }
 
+    /**
+     * Returns translated text
+     * @returns {Promise<String>}
+     */
+    async getTranslation(){
+        try{
+            return await AnalysisService.Translation.get(this.fullText);
+        } catch (e){
+            return this.fullText;
+        }
+    }
 
     /**
      * Insert this to database (and all dependencies)
@@ -314,7 +325,7 @@ TweetModel.TweetAnalysis = class {
     }
     async execute(analysis_name){
         if(analysis_name == "sentiment"){
-            this.sentiment = await AnalysisService.getSentiment(this.fullText);
+            // this.sentiment = await AnalysisService.getSentiment(this.fullText);
             return;
         }
     }

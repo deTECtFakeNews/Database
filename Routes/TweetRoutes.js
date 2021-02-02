@@ -1,6 +1,5 @@
 const express = require('express');
 const TweetModel = require('../Models/TweetModel');
-const AnalysisService = require('../Services/AnalysisService');
 const os = require('os')
 var router = express.Router();
 
@@ -36,9 +35,11 @@ router.get('/read/:id', async (req, res)=>{
     }
     // Read stats
     let stats = await tweet[0]._TweetStatsFreeze.read();
-    let user = await (await tweet[0].getAuthor()).getData()
+    let user = await (await tweet[0].getAuthor()).getData();
+    let translation = await tweet[0].getTranslation();
     let data = {
         ...tweet[0].getData(), 
+        translation: translation, 
         _TweetStatsFreeze: stats,
         _User: user
     }
@@ -78,14 +79,5 @@ router.get('/embed/:id', async (req, res)=>{
     res.end(data)
 })
 
-router.get('/test', async (req, res)=>{
-    try{
-        let data = await AnalysisService.getSentiment("Hola, estoy muy contento de estar aqui");
-        res.end(data)
-    } catch(e){
-        let data = Buffer.from(e).toString()
-        console.log(data)
-    }
-})
 
 module.exports = router;
