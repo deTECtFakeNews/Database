@@ -33,11 +33,13 @@ Data.SSHDBconnect().then(async ()=>{
         for(let tweet of tweets){
             try{
                 let tweetFromAPI = await TweetModel.getFromAPI(tweet.tweetID);
-                await tweetFromAPI.updateToDatabase();
+                if(tweetFromAPI.placeLat != null || tweetFromAPI.placeLng != null || tweetFromAPI.placeDescription != null){
+                    await tweetFromAPI.updateToDatabase();
+                    console.log("Added coords")
+                }
                 await tweet._TweetAnalysis.execute('translation');
                 await tweet._TweetAnalysis.insertToDatabase();
-                console.log("\t Updated \t"+tweet.tweetID)
-
+                console.log(`Updated ${tweet.tweetID}`)
             } catch (e) {
                 console.log(e)
             }
