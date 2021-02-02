@@ -30,12 +30,12 @@ Data.SSHDBconnect().then(async ()=>{
 
     TweetModel.read().then(async tweets=>{
         console.log("Hi")
-        for(let tweet of tweets){
-            // console.log(tweet.fullText)
+        tweets.forEach(async tweet=>{
             await tweet._TweetAnalysis.execute('translation');
             await tweet._TweetAnalysis.insertToDatabase();
             console.log("\t INSERTED ANALYSIS \t"+tweet.tweetID)
-        }
+        })
+
     })
 
     /* QueryModel.read().then(async queries=>{
