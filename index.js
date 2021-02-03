@@ -30,16 +30,20 @@ Data.SSHDBconnect().then(async ()=>{
 
     TweetModel.read().then(async tweets=>{
         console.log("Hi")
+        let i = 0;
         for(let tweet of tweets){
             try{
-                let tweetFromAPI = await TweetModel.getFromAPI(tweet.tweetID);
-                if(tweetFromAPI.placeLat != null || tweetFromAPI.placeLng != null || tweetFromAPI.placeDescription != null){
-                    await tweetFromAPI.updateToDatabase();
-                    console.log("Added coords")
+                if(i>8000){
+                    let tweetFromAPI = await TweetModel.getFromAPI(tweet.tweetID);
+                    if(tweetFromAPI.placeLat != null || tweetFromAPI.placeLng != null || tweetFromAPI.placeDescription != null){
+                        await tweetFromAPI.updateToDatabase();
+                        console.log("Added coords")
+                    }
+                    await tweet._TweetAnalysis.execute('translation');
+                    await tweet._TweetAnalysis.insertToDatabase();
+                    console.log(`Updated ${tweet.tweetID}`)
                 }
-                await tweet._TweetAnalysis.execute('translation');
-                await tweet._TweetAnalysis.insertToDatabase();
-                console.log(`Updated ${tweet.tweetID}`)
+                i++;
             } catch (e) {
                 console.log(e)
             }

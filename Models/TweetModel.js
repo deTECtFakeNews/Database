@@ -1,6 +1,7 @@
 const AnalysisService = require("../Services/AnalysisService");
 const TweetService = require("../Services/TweetService");
 const UserService = require("../Services/UserService");
+const QueryModel = require("./QueryModel");
 const UserModel = require("./UserModel");
 
 class TweetModel {
@@ -141,6 +142,17 @@ class TweetModel {
             return new TweetModel(tweet);
         } catch(e) {
             if( e[0].code == '88') console.log('API limit exceeded');
+        }
+    }
+
+    /**
+     * Returns list of retweets (date and user)
+     */
+    async getRetweets(){
+        try{
+            return await TweetService.fetchRetweetAPI(this.tweetID)
+        } catch (e) {
+            console.log("[TweetModel] could not get retweets")
         }
     }
 

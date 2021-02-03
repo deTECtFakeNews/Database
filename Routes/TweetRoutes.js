@@ -36,10 +36,13 @@ router.get('/read/:id', async (req, res)=>{
     // Read stats
     let stats = await tweet[0]._TweetStatsFreeze.read();
     let user = await (await tweet[0].getAuthor()).getData();
-    let translation = await tweet[0].getTranslation();
+    let translation = await tweet[0]._TweetAnalysis.execute('translation');
+    let retweets = await tweet[0].getRetweets()
+
     let data = {
         ...tweet[0].getData(), 
         translation: translation, 
+        retweets: retweets,
         _TweetStatsFreeze: stats,
         _User: user
     }

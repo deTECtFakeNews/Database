@@ -1,3 +1,4 @@
+const { response } = require("express");
 const Data = require("../Data");
 
 /**
@@ -188,6 +189,23 @@ const TweetService = {
             Data.Twitter.get('/statuses/oembed.json', {id: id, align: 'center', dnt: true}, (error, data, response)=>{
                 if(error) reject(error);
                 else resolve(data['html'])
+            })
+        })
+    },
+    /**
+     * Twitter API - Get Retweets
+     * @param {Number|String} id 
+     * @returns {Promise<Map<String, Object>>}
+     */
+    fetchRetweetAPI: async (id)=>{
+        return new Promise((resolve, reject)=>{
+            Data.Twitter.get('/statuses/retweets', {id, count: 100}, (error, data, response)=>{
+                if(error) reject(error);
+                let parsedData = data.map(d=>TweetService.normalize(d));
+                resolve( parsedData.map(d=>({
+                    creationDate: d.creationDate,
+                    authorID: d.authorID
+                })) )
             })
         })
     }
