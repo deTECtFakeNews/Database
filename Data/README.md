@@ -56,6 +56,29 @@ In another table, the data resulting from various analysis will be stored. The s
 | ---           | ---       | ---           |
 | **tweetID**   | int(11)   | [Foreign key] Unique identifier. |
 | translation   | text      | Translation of Tweet's content, for easier analysis. |
+| <td colspan="3"> Sentiment analysis </td> |
+| sentiment_negativity | float | 
+| sentiment_neutrality | float |
+| sentiment_positivity | float |
+| sentiment_compound   | float |
+| sentiment_polarity   | float |
+| sentiment_subjectivity | float |
+| sentiment_anger       | float |
+| sentiment_anticipation | float |
+| sentiment_disgust     | float |
+| sentiment_fear        | float |
+| sentiment_joy         | float |
+| sentiment_negative    | float |
+| sentiment_positive    | float |
+| sentiment_sandess     | float |
+| sentiment_surprise    | float |
+| sentiment_trust       | float |
+| <td colspan="3"> BERT <td> |
+| bert_toxicity         | varchar(256) |
+| bert_irony            | varchar(256) |
+| bert_stance           | varchar(256) |
+| bert_hateSpeech       | varchar(256) |
+
 
 ### ~TweetClassification
 The scope of this study requires the manual input for the classification of Tweets in order to aid with the ML analysis. Such input, as well as the generated output will be stored here. 
