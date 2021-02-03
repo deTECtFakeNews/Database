@@ -56,7 +56,7 @@ In another table, the data resulting from various analysis will be stored. The s
 | ---           | ---       | ---           |
 | **tweetID**   | int(11)   | [Foreign key] Unique identifier. |
 | translation   | text      | Translation of Tweet's content, for easier analysis. |
-| <td colspan="3"> Sentiment analysis </td> |
+| **SENTIMENT ANALYSIS** |
 | sentiment_negativity | float | 
 | sentiment_neutrality | float |
 | sentiment_positivity | float |
@@ -73,7 +73,7 @@ In another table, the data resulting from various analysis will be stored. The s
 | sentiment_sandess     | float |
 | sentiment_surprise    | float |
 | sentiment_trust       | float |
-| <td colspan="3"> BERT <td> |
+| **BERT** |
 | bert_toxicity         | varchar(256) |
 | bert_irony            | varchar(256) |
 | bert_stance           | varchar(256) |
