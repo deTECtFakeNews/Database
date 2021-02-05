@@ -28,31 +28,9 @@ Data.SSHDBconnect().then(async ()=>{
     })
     const delay = ms => new Promise(res => setTimeout(res, ms));
 
-    TweetModel.read().then(async tweets=>{
-        console.log("Hi")
-        let i = 0;
-        for(let tweet of tweets){
-            try{
-                if(i>8000){
-                    let tweetFromAPI = await TweetModel.getFromAPI(tweet.tweetID);
-                    if(tweetFromAPI.placeLat != null || tweetFromAPI.placeLng != null || tweetFromAPI.placeDescription != null){
-                        await tweetFromAPI.updateToDatabase();
-                        console.log("Added coords")
-                    }
-                    await tweet._TweetAnalysis.execute('translation');
-                    await tweet._TweetAnalysis.insertToDatabase();
-                    console.log(`Updated ${tweet.tweetID}`)
-                }
-                i++;
-            } catch (e) {
-                console.log(e)
-            }
+    
 
-        }
-
-    })
-
-    /* QueryModel.read().then(async queries=>{
+    QueryModel.read().then(async queries=>{
         while(true){
             for(let query of queries){
                 console.log(query.query);
@@ -60,7 +38,7 @@ Data.SSHDBconnect().then(async ()=>{
                 await delay(5*60*1000);
             }
         }
-    }) */
+    })
 
 })
 

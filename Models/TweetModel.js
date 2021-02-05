@@ -1,7 +1,6 @@
 const AnalysisService = require("../Services/AnalysisService");
 const TweetService = require("../Services/TweetService");
 const UserService = require("../Services/UserService");
-const QueryModel = require("./QueryModel");
 const UserModel = require("./UserModel");
 
 class TweetModel {
