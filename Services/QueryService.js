@@ -77,6 +77,9 @@ const QueryService = {
      */
     read: async (query_params={})=>{
         return new Promise((resolve, reject)=>{
+            if(typeof query_params == 'number' || typeof query_params == 'string') {
+                query_params = {queryID: query_params};
+            }
             let query = '';
             if(Object.keys(query_params).length>0){
                 query = 'SELECT * FROM Query WHERE ?';
@@ -198,14 +201,22 @@ QueryService.QueryTweet = {
      * @returns {Promise<Array<QueryService_Row>>}
      */
     read: async(query_params)=>{
-        if(typeof query_params == 'number' || typeof query_params == 'string') {
-            query_params = {queryID: query_params};
-        }
-        let query = `SELECT * FROM QueryTweet WHERE ${Object.keys(query_params).length!=0 ? '?': '1=1'}`;
-        Data.Database.query(query, query_params, (error, results, fields)=>{
-            if(error) reject (error);
-            console.log('[QueryService.QueryTweet] readFromDatabase successful.');
-            resolve(results.map(r=>({...r})));
+        return new Promise((resolve, reject)=>{
+            if(typeof query_params == 'number' || typeof query_params == 'string') {
+                query_params = {queryID: query_params};
+            }
+            let query = '';
+            if(Object.keys(query_params).length>0){
+                query = 'SELECT * FROM QueryTweet WHERE ?';
+            } else {
+                query = 'SELECT * FROM QueryTweet';
+            }
+            console.log(query, query_params)
+            Data.Database.query(query, query_params, (error, results, fields)=>{
+                if(error) reject (error);
+                console.log('[QueryService.QueryTweet] readFromDatabase successful.');
+                resolve(results.map(r=>({...r})));
+            })
         })
     },
     /**

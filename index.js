@@ -3,6 +3,7 @@ const UserModel = require("./Models/UserModel");
 const TweetRouter = require('./Routes/TweetRoutes');
 const UserRouter = require('./Routes/UserRoutes');
 const QueryRoutes = require('./Routes/QueryRoutes');
+const ApiRouter = require('./Routes/ApiRoute')
 const express = require('express');
 const Data = require("./Data");
 const QueryModel = require("./Models/QueryModel");
@@ -21,7 +22,11 @@ Data.SSHDBconnect().then(async ()=>{
 
     app.use('/tweet', TweetRouter);
     app.use('/user', UserRouter);
-    app.use('/query', QueryRoutes)
+    app.use('/query', QueryRoutes);
+
+
+    app.use('/api', ApiRouter)
+
     app.use(express.static(__dirname+'/Public'));
     app.listen(PORT, ()=>{
         console.log("App listening on port" + PORT);
@@ -30,7 +35,7 @@ Data.SSHDBconnect().then(async ()=>{
 
     
 
-    QueryModel.read().then(async queries=>{
+    /* QueryModel.read().then(async queries=>{
         while(true){
             for(let query of queries){
                 console.log(query.query);
@@ -38,7 +43,7 @@ Data.SSHDBconnect().then(async ()=>{
                 await delay(5*60*1000);
             }
         }
-    })
+    }) */
 
 })
 

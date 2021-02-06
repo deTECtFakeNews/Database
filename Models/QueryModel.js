@@ -120,18 +120,15 @@ class QueryModel{
      */
     async getTweets(){
         try{
-            // Read from QueryTweet
-            let data = await QueryService.QueryTweet.read(this.queryID);
-            // Get array of Ids
-            let tweetIDs = data.map(row=>row.tweetID);
+            // Read array of ids from QueryTweet
+            let tweetIDs = (await QueryService.QueryTweet.read(this.queryID)).map(row=>row.tweetID);
             // Empty statuses
-            this.statuses = [];
             // Read each from database
-            tweetIDs.map(async id=>{
-                let tweet = await TweetModel.readFromDatabase(id);
-                this.statuses.push(tweet);
-            });
+            this.statuses = await Promise.all(
+                tweetIDs.map(async id => (await TweetModel.read(id))[0] )
+            )
             // Return statuses
+            console.log('[QueryModel] read', this.queryID)
             return this.statuses;
         } catch (e) {
             console.log('[QueryModel] fetch failed')

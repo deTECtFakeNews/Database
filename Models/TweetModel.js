@@ -49,7 +49,7 @@ class TweetModel {
         this.inReplyToUserID = tweet.inReplyToUserID || -1; 
         this.inReplyToTweetID = tweet.inReplyToTweetID || -1; 
         this.quotesTweetID = tweet.quotesTweetID || -1; 
-        this.creationDate = new Date(tweet.creationDate); 
+        this.creationDate = new Date(tweet.creationDate).toISOString(); 
         this.fullText = tweet.fullText; 
         this.language = tweet.language; 
 
@@ -99,7 +99,11 @@ class TweetModel {
      */
     async getAuthor(){
         try{
-            let user = await UserService.read(this.authorID)[0] || await UserService.fetchAPI(this.authorID)
+            let user = (await UserService.read(this.authorID))[0];
+            if(user == undefined){
+                user = await UserService.fetchAPI(this.authorID)
+                console.log("fetching user from api")
+            }
             return new UserModel(user);
         } catch(e){
             if( e[0].code == '88') console.log('API limit exceeded');
@@ -247,6 +251,12 @@ TweetModel.TweetStatsFreeze = class {
             console.error('[TweetModel.TweetStatsFreeze] error')
         }
     }
+
+    getMax(stat){
+        if(this.stats.length==0) return -1;
+        return Math.max( ...this.stats.map(l=>l[stat]) )
+    }
+
 }
 
 TweetModel.TweetAnalysis = class {

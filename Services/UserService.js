@@ -110,12 +110,11 @@ const UserService = {
             } else {
                 query = 'SELECT * FROM User';
             }
-
             Data.Database.query(query, query_params, (error, results, fields)=>{
-                if(results.length < 0) resolve([undefined])
+                // if(results.length == 0) resolve([undefined])
                 if(error) reject(error);
                 if(results == undefined) reject();
-                console.log(`[UserService] readFromDatabase successful. results`);
+                // console.log(`[UserService] readFromDatabase successful. results`);
                 resolve( results.map(r=>({...r}) ))
             })
         })

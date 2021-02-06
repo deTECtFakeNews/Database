@@ -135,7 +135,7 @@ const TweetService = {
             let q = Data.Database.query(query, query_params, (error, results, fields)=>{
                 if(error) reject(error);
                 if(results.length<1) reject();
-                console.log(`[TweetService] readFromDatabase successful. results`);
+                // console.log(`[TweetService] readFromDatabase successful. results`);
                 resolve(results.map(r=>({...r}) ));
             })
         })
