@@ -139,6 +139,32 @@ class QueryModel{
             console.log('[QueryModel] fetch failed')
         }
     }
+
+    /**
+     * Gets entities
+     */
+    async getEntities(){
+        let stats = {}
+        let entities = []
+        await this.getTweets();
+        await Promise.all( this.statuses.map(async tweet=>{
+            await tweet._TweetEntities.read();
+            for(let entity of tweet._TweetEntities.entities){
+                let {type, value} = entity;
+                if(entitiesStats[type] == undefined) entitiesStats[type] = {};
+                if(entitiesStats[type][value] == undefined) entitiesStats[type][value] = 1; 
+                else entitiesStats[type][value]++;
+                entities.push({tweetID: tweet.tweetID, ...entity})
+            }
+        }) );
+
+        let entityStats = Object.fromEntries(
+            Object.entries(stats).sort(([,a], [,b])=>a-b)
+        )
+
+        return {entityStats, entities}
+    }
+
     /**
      * Print results
      */

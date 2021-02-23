@@ -35,12 +35,14 @@ router.get('/query/:queryIDs/tweets', async (req, res)=>{
     await Promise.all( queryIDs.map(async id=>{
         let query = (await QueryModel.read(id))[0];
         let contents = await query.getTweets();
+        let query_expanded = query.getData();
+        query_expanded.tweets = [];
         await Promise.all( contents.map(async tweet=>{
             await tweet._TweetStatsFreeze.read();
             let author = await tweet.getAuthor();
             let retweets = tweet._TweetStatsFreeze.getMax('retweetCount');
             let favorites = tweet._TweetStatsFreeze.getMax('favoriteCount');
-            results.push({
+            query_expanded.tweets.push({
                 tweetID: tweet.tweetID.toString(), 
                 queryID: query.queryID, 
                 query: query,
@@ -50,7 +52,8 @@ router.get('/query/:queryIDs/tweets', async (req, res)=>{
                 fullText: tweet.fullText, 
                 retweets, favorites
             })
-        }) )
+        }) );
+        results.push(query_expanded)
     }) )
     res.json(results);
 })
@@ -61,14 +64,14 @@ router.get('/query/:queryIDs/entities', async (req, res)=>{
     await Promise.all( queryIDs.map(async id=>{
         let query = (await QueryModel.read(id))[0];
         let tweets = await query.getTweets();
-        await Promise.all(tweets.map(async tweet=>{
-            let entities = await TweetModel.TweetEntities.read(tweet.tweetID);
-            for(let entity of entities[0]?.entities){
-                results.push({tweetID: tweet.tweetID, entity})
-            }
-        }))
+        let {entities, entitiesStats} = await query.getEntities();
+        let query_expanded = query.getData();
+        query_expanded.entities = entities;
+        query_expanded.entitiesStats = entitiesStats;
+        results.push(query_expanded)
     }) );
     res.json(results)
+    console.log("done")
 })
 
 
@@ -79,12 +82,13 @@ router.post('/tweet/:tweetID/analysis', async (req, res)=>{
         tweetID: req.query.tweetID,
         ...params
     });
-    try{
+    res.json(analysis.getData())
+    /* try{
         await analysis.insertToDatabase();
         res.status(200)
     } catch(e) {
         res.status(500)
-    }
+    } */
 })
 
 module.exports = router;

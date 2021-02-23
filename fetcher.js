@@ -11,11 +11,13 @@ Data.SSHDBconnect().then(async()=>{
         while(true){
             for(let query of queries){
                 console.log(query.query);
-                let results = await query.execute();
-                for(let tweet of results){
-                    console.log(query.queryID, tweet.tweetID)
+                if(query.queryID == 50 || query.queryID > 51 ) { 
+                    let results = await query.execute();
+                    for(let tweet of results){
+                        console.log(query.queryID, tweet.tweetID)
+                    }
+                    await delay(1*60*1000);
                 }
-                await delay(1*60*1000);
             }
         }
     })

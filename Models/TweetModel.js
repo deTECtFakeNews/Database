@@ -384,7 +384,6 @@ TweetModel.TweetEntities = class {
     static async read(query_params){
         try{
             let entries = await TweetService.TweetEntities.read(query_params);
-            return entries.map(e=> new TweetModel.TweetEntities(e));
         } catch (e){
             console.log(e)
         }
@@ -399,14 +398,16 @@ TweetModel.TweetEntities = class {
         this.entities = tweet.entities || [];
     }
 
- /*    async read(){
+    async read(){
         try{
-            let thisEntities = await TweetModel.TweetEntities.read(this.tweetID);
-            this.entities = thisEntities?.[0]?.entities;
+            let entries = await TweetService.TweetEntities.read(this.tweetID);
+            for(let entry of entries){
+                this.entities.push(entry);
+            }
         } catch(e){
-            console.error(e)
+            
         }
-    } */
+    }
 
     async insertToDatabase(){
         try{
