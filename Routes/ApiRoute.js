@@ -5,6 +5,8 @@ var { Parser } = require('json2csv');
 const FileService = require('../Services/FileService');
 const TweetModel = require('../Models/TweetModel');
 
+const fetch = require('node-fetch');
+
 var router = express.Router();
 
 router.use(express.json());
@@ -31,6 +33,7 @@ router.get('/query/:queryIDs', async (req, res)=>{
 router.get('/query/:queryIDs/tweets', async (req, res)=>{
     let queryIDs = req.params.queryIDs.split(',');
     let results = [];
+    let expansions = req.query.fields || "";
 
     await Promise.all( queryIDs.map(async id=>{
         let query = (await QueryModel.read(id))[0];
@@ -38,20 +41,8 @@ router.get('/query/:queryIDs/tweets', async (req, res)=>{
         let query_expanded = query.getData();
         query_expanded.tweets = [];
         await Promise.all( contents.map(async tweet=>{
-            await tweet._TweetStatsFreeze.read();
-            let author = await tweet.getAuthor();
-            let retweets = tweet._TweetStatsFreeze.getMax('retweetCount');
-            let favorites = tweet._TweetStatsFreeze.getMax('favoriteCount');
-            query_expanded.tweets.push({
-                tweetID: tweet.tweetID.toString(), 
-                queryID: query.queryID, 
-                query: query,
-                authorID: tweet.authorID.toString(), 
-                authorScreenName: author.screenName,
-                creationDate: tweet.creationDate,
-                fullText: tweet.fullText, 
-                retweets, favorites
-            })
+            let tweetData = await fetch(`http://${req.hostname}:8080/api/tweet/${tweet.tweetID}/?fields=${expansions}`);
+            query_expanded.tweets.push( await tweetData.json() )
         }) );
         results.push(query_expanded)
     }) )
@@ -74,6 +65,33 @@ router.get('/query/:queryIDs/entities', async (req, res)=>{
     console.log("done")
 })
 
+router.get('/tweet/:tweetIDs', async (req, res)=>{
+    let tweetIDs = req.params.tweetIDs.split(',');
+    let results = [];
+
+    let expansions = req.query.fields?.split(',') || []
+
+    await Promise.all( tweetIDs.map(async id=>{
+        let tweet = (await TweetModel.read(id))[0];
+        let tweet_expanded = tweet.getData();
+
+        if(expansions.includes('analysis') || expansions.includes('all')){
+            await tweet._TweetAnalysis.read();
+            tweet_expanded.analysis = tweet._TweetAnalysis.getData()
+        } 
+        if(expansions.includes('entities') || expansions.includes('all')){
+            await tweet._TweetEntities.read();
+            tweet_expanded.entities = tweet._TweetEntities.entities;
+        }
+        if(expansions.includes('stats') || expansions.includes('all')){
+            await tweet._TweetStatsFreeze.read();
+            tweet_expanded.stats = tweet._TweetStatsFreeze.stats;
+        }
+
+        results.push(tweet_expanded)
+    }) );
+    res.json(results);
+});
 
 
 router.post('/tweet/:tweetID/analysis', async (req, res)=>{
