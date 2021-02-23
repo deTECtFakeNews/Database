@@ -151,9 +151,9 @@ class QueryModel{
             await tweet._TweetEntities.read();
             for(let entity of tweet._TweetEntities.entities){
                 let {type, value} = entity;
-                if(entitiesStats[type] == undefined) entitiesStats[type] = {};
-                if(entitiesStats[type][value] == undefined) entitiesStats[type][value] = 1; 
-                else entitiesStats[type][value]++;
+                if(stats[type] == undefined) stats[type] = {};
+                if(stats[type][value] == undefined) stats[type][value] = 1; 
+                else stats[type][value]++;
                 entities.push({tweetID: tweet.tweetID, ...entity})
             }
         }) );
