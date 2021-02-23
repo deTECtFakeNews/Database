@@ -268,15 +268,46 @@ TweetModel.TweetStatsFreeze = class {
 }
 
 TweetModel.TweetAnalysis = class {
+    /**
+     * Create a new analysis object
+     * @param {{tweetID: String, fullText: string}} tweet Tweet tweetID and fullText
+     * @param {import("../Services/TweetService").TweetService_TweetAnalysis} analysis Data of analysis
+     */
     constructor(tweet, analysis){
         this.tweetID = tweet.tweetID;
         this.fullText = tweet.fullText;
-
-        this.translation = tweet.fullText;
+        this.assignAnalysisValues(analysis)
+    }
+    assignAnalysisValues(analysis){
+        // Sentiment
+        this.sentiment_negativity = analysis?.sentiment_negativity || null;
+        this.sentiment_neutrality = analysis?.sentiment_neutrality || null;
+        this.sentiment_positivity = analysis?.sentiment_positivity || null;
+        this.sentiment_compound = analysis?.sentiment_compound || null;
+        this.sentiment_polarity = analysis?.sentiment_polarity || null;
+        this.sentiment_subjectivity = analysis?.sentiment_subjectivity || null;
+        this.sentiment_anger = analysis?.sentiment_anger || null;
+        this.sentiment_anticipation = analysis?.sentiment_anticipation || null;
+        this.sentiment_disgust = analysis?.sentiment_disgust || null;
+        this.sentiment_fear = analysis?.sentiment_fear || null;
+        this.sentiment_joy = analysis?.sentiment_joy || null;
+        this.sentiment_negative = analysis?.sentiment_negative || null;
+        this.sentiment_positive = analysis?.sentiment_positive || null;
+        this.sentiment_sadness = analysis?.sentiment_sadness || null;
+        this.sentiment_surprise = analysis?.sentiment_surprise || null;
+        this.sentiment_trust = analysis?.sentiment_trust || null;
+        // Bert
+        this.bert_toxicity = analysis?.bert_toxicity
+        this.bert_irony = analysis?.bert_irony
+        this.bert_stance = analysis?.bert_stance
+        this.bert_hateSpeech = analysis?.bert_hateSpeech
+        this.processedTweet = analysis?.processedTweet
+        this.bert_generalClassification = analysis?.bert_generalClassification
     }
 
     async read(){
         let results = await TweetService.TweetAnalysis.read(this.tweetID)[0];
+        this.assignAnalysisValues(results);
     }
 
     /**
@@ -285,7 +316,28 @@ TweetModel.TweetAnalysis = class {
     getData(){
         return {
             tweetID: this.tweetID, 
-            translation: this.translation
+            sentiment_negativity: this.sentiment_negativity,
+            sentiment_neutrality: this.sentiment_neutrality,
+            sentiment_positivity: this.sentiment_positivity,
+            sentiment_compound: this.sentiment_compound,
+            sentiment_polarity: this.sentiment_polarity,
+            sentiment_subjectivity: this.sentiment_subjectivity,
+            sentiment_anger: this.sentiment_anger,
+            sentiment_anticipation: this.sentiment_anticipation,
+            sentiment_disgust: this.sentiment_disgust,
+            sentiment_fear: this.sentiment_fear,
+            sentiment_joy: this.sentiment_joy,
+            sentiment_negative: this.sentiment_negative,
+            sentiment_positive: this.sentiment_positive,
+            sentiment_sadness: this.sentiment_sadness,
+            sentiment_surprise: this.sentiment_surprise,
+            sentiment_trust: this.sentiment_trust,
+            bert_toxicity: this.bert_toxicity,
+            bert_irony: this.bert_irony,
+            bert_stance: this.bert_stance,
+            bert_hateSpeech: this.bert_hateSpeech,
+            processedTweet: this.processedTweet,
+            bert_generalClassification: this.bert_generalClassification
         }
     }
     /**
@@ -334,7 +386,7 @@ TweetModel.TweetEntities = class {
             let entries = await TweetService.TweetEntities.read(query_params);
             return entries.map(e=> new TweetModel.TweetEntities(e));
         } catch (e){
-            return;
+            console.log(e)
         }
     }
     /**
@@ -346,6 +398,16 @@ TweetModel.TweetEntities = class {
         this.fullText = tweet.fullText;
         this.entities = tweet.entities || [];
     }
+
+ /*    async read(){
+        try{
+            let thisEntities = await TweetModel.TweetEntities.read(this.tweetID);
+            this.entities = thisEntities?.[0]?.entities;
+        } catch(e){
+            console.error(e)
+        }
+    } */
+
     async insertToDatabase(){
         try{
             for(let entity of this.entities){

@@ -39,6 +39,29 @@ const UserService = require('./UserService');
   * @typedef {Object} TweetService_TweetAnalysis
   * @property {String|Number} tweetID
   * @property {String} translation
+  * @property {Number} sentiment_negativity
+  * @property {Number} sentiment_neutrality
+  * @property {Number} sentiment_positivity
+  * @property {Number} sentiment_compound
+  * @property {Number} sentiment_polarity
+  * @property {Number} sentiment_subjectivity
+  * @property {Number} sentiment_anger
+  * @property {Number} sentiment_anticipation
+  * @property {Number} sentiment_disgust
+  * @property {Number} sentiment_fear
+  * @property {Number} sentiment_joy
+  * @property {Number} sentiment_negative
+  * @property {Number} sentiment_positive
+  * @property {Number} sentiment_sadness
+  * @property {Number} sentiment_surprise
+  * @property {Number} sentiment_trust
+  * @property {Number} bert_toxicity
+  * @property {Number} bert_irony
+  * @property {Number} bert_stance
+  * @property {Number} bert_hateSpeech
+  * @property {String} processedTweet
+  * @property {String} bert_generalClassification
+
  */
 
 /**
@@ -324,7 +347,7 @@ TweetService.TweetAnalysis = {
     /**
      * Database - Read TweetAnalysis row(s) from table
      * @param {Object | Number | String} query_params Parameters to execute query | Id of row to read
-     * @returns {void}
+     * @returns {Promise<Array<TweetService_TweetAnalysis>>}
      */
     read: async (query_params)=>{
         return new Promise((resolve, reject)=>{
@@ -446,8 +469,8 @@ TweetService.TweetEntities = {
                 SELECT * FROM TweetEntities WHERE ${query_params != undefined && Object.keys(query_params).length!=0 ? '?' : '1=1'}`;
                 Data.Database.query(query, query_params, (error, results, fields)=>{
                     if(error) reject(error);
-                    if(results.length<1) reject();
-                    // console.log(`[TweetService] readFromDatabase successful. results`);
+                    // if(results.length<1) reject();
+                    console.log(`[TweetService] readFromDatabase successful. results`);
                     resolve(results.map(r=>({...r}) ));
                 })
         })
