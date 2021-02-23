@@ -42,7 +42,7 @@ router.get('/query/:queryIDs/tweets', async (req, res)=>{
         query_expanded.tweets = [];
         await Promise.all( contents.map(async tweet=>{
             let tweetData = await fetch(`http://${req.hostname}:8080/api/tweet/${tweet.tweetID}/?fields=${expansions}`);
-            query_expanded.tweets.push( await tweetData.json()[0] )
+            query_expanded.tweets.push( (await tweetData.json())[0] )
         }) );
         results.push(query_expanded)
     }) )
