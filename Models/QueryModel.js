@@ -144,23 +144,19 @@ class QueryModel{
      * Gets entities
      */
     async getEntities(){
-        let stats = {}
+        let entityStats = {}
         let entities = []
         await this.getTweets();
         await Promise.all( this.statuses.map(async tweet=>{
             await tweet._TweetEntities.read();
             for(let entity of tweet._TweetEntities.entities){
                 let {type, value} = entity;
-                if(stats[type] == undefined) stats[type] = {};
-                if(stats[type][value] == undefined) stats[type][value] = 1; 
-                else stats[type][value]++;
+                if(entityStats[type] == undefined) entityStats[type] = {};
+                if(entityStats[type][value] == undefined) entityStats[type][value] = 1; 
+                else entityStats[type][value]++;
                 entities.push({tweetID: tweet.tweetID, ...entity})
             }
         }) );
-
-        let entityStats = Object.fromEntries(
-            Object.entries(stats).sort(([,a], [,b])=>a-b)
-        )
 
         return {entityStats, entities}
     }
