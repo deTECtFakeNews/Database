@@ -187,7 +187,6 @@ QueryService.QueryTweet = {
             WHERE NOT EXISTS
                 (SELECT queryID, tweetID FROM QueryTweet WHERE queryID=${queryID} AND tweetID=${tweetID});
             `
-
             Data.Database.query(mysql_query, (error, results, fields)=>{
                 if(error) reject(error);
                 console.log("[QueryService.QueryTweet] insertToDatabase sucessful.");

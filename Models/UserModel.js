@@ -98,7 +98,7 @@ class UserModel{
             await UserService.UserStatsFreeze.create(this._UserStatsFreeze.getData());
             return;
         } catch(e){
-            console.error('[UserModel] insertToDatabase failed')
+            console.error('[UserModel] insertToDatabase failed', e)
         }
     }
     /**

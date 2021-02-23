@@ -1,5 +1,5 @@
-const { response } = require("express");
 const Data = require("../Data");
+const UserService = require('./UserService');
 
 /**
  * TweetServiceJSON Common structure for communication
@@ -20,6 +20,8 @@ const Data = require("../Data");
  * @property {Number} retweetCount
  * @property {Number} favoriteCount
  * @property {Number} replyCount
+ * 
+ * @property {Array<TweetService_TweetEntity>} entities Array with entities
  */
 
  /**
@@ -33,16 +35,24 @@ const Data = require("../Data");
   */
 
 /**
- * TweetService_TweetAnalysis Common structure for communication
- * @typedef {Object} TweetService_TweetAnalysis
- * @property {String|Number} tweetID
- * @property {String} translation
+  * TweetService_TweetAnalysis Common structure for communication
+  * @typedef {Object} TweetService_TweetAnalysis
+  * @property {String|Number} tweetID
+  * @property {String} translation
+ */
+
+/**
+  * TweetService_TweetEntity Common structure for communication
+  * @typedef {Object} TweetService_TweetEntity
+  * @property {hashtag|url|symbol|userMention} type Type of entity
+  * @property {Number|String} value Value of entity
  */
 
 
 const TweetService = {
     TweetStatsFreeze: {},
     TweetAnalysis: {},
+    TweetEntities: {},
     /**
      * Internal - Receives data from Twitter object and returns in normalized form with the same nomenclature as database.
      * @param {Object} data Data object as receoved from Twitter API
@@ -63,7 +73,9 @@ const TweetService = {
         updateDate: new Date().toISOString(),
         retweetCount: data.retweet_count, 
         favoriteCount: data.favorite_count, 
-        replyCount: data.reply_count || 0
+        replyCount: data.reply_count || 0,
+
+        entities: TweetService.TweetEntities.normalize(data.entities)
     }),
     /**
      * Database - Creates Table Tweet in Database. (For backup and maintenance)
@@ -346,5 +358,100 @@ TweetService.TweetAnalysis = {
     }
 }
 
+TweetService.TweetEntities = {
+    /**
+     * Database - Create table
+     */
+    createTable: ()=>{
+        return new Promise((resolve, reject)=>{
+            let query = `CREATE TABLE \`TweetEntities\` (
+                \`tweetID\` bigint(8) NOT NULL,
+                \`type\` enum('hashtag','media','userMention','url','symbol','poll') COLLATE utf8_unicode_ci DEFAULT NULL,
+                \`value\` varchar(50) COLLATE utf8_unicode_ci DEFAULT NULL,
+                KEY \`fk_TweetEntities_Tweet\` (\`tweetID\`),
+                CONSTRAINT \`fk_TweetEntities_Tweet\` FOREIGN KEY (\`tweetID\`) REFERENCES \`Tweet\` (\`tweetID\`) ON DELETE CASCADE ON UPDATE CASCADE
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;`
+            Data.Database.query(query, (error, results, fields)=>{
+                if(error) reject(error);
+                console.log("[TweetService.TweetEntities] createTable successful");
+                resolve(results);
+            })
+
+        })
+    },
+    /**
+     * Normalize into array of entities
+     * @param {Object} entities Entities object received from API
+     * @returns {Array<TweetService_TweetEntity>}
+     */
+    normalize: (entities)=>{
+        let hashtags = entities.hashtags.map(h=>({type: 'hashtag', value: h.text}));
+        let userMentions = entities.user_mentions.map(u=>({type: 'userMention', value: u.id}));
+        let urls = entities.urls.map(u=>({type: 'url', value: u.expanded_url}));
+        let symbols = entities.symbols.map(s=>({type: 'symbol', value: s.text}));
+        return [...hashtags, ...userMentions, ...urls, ...symbols]
+    },
+    /**
+     * Get entities from string of text
+     * @param {String} text Text to analyze
+     * @returns {Array<TweetService_TweetEntity>}
+     */
+    getFromText: async (text)=>{
+        let mentions = text.match(/\B@\w+/g) || [];
+        let hashtags = text.match(/\B\#\w+/g) || [];
+        let symbols = text.match(/\B\$\w+/g) || [];
+        let urls = text.match(/(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig)|| [];
+        urls.pop()
+        let mentions_ids = await Promise.all(mentions.map(async m=> await UserService.getID(m) ));
+        return [
+            ...hashtags.map(h=>({type: 'hashtag', value: h.substr(1)})),
+            ...mentions_ids.map(m=>({type: 'userMention', value: m})),
+            ...symbols.map(s=>({type: 'symbol', value: s.substr(1)})),
+            ...urls.map(u=>({type: 'url', value: u}))
+        ];
+    },
+    /**
+     * Database - Creates (inserts into new row) new TweetEntity in table
+     * @param {TweetService_TweetEntity} entity
+     */
+    create: async (entity)=>{
+        return new Promise((resolve, reject)=>{
+            let query = `
+            INSERT INTO TweetEntities (tweetID, type, value)
+            SELECT ${entity.tweetID}, '${entity.type}', '${entity.value}' FROM DUAL
+            WHERE NOT EXISTS (SELECT * FROM TweetEntities 
+                WHERE tweetID=${entity.tweetID} AND
+                type='${entity.type}' AND 
+                value='${entity.value}');`;
+            // console.log(query)
+
+            
+            Data.Database.query(query, (error, results, fields)=>{
+                console.log(entity.value)
+                if(error && error.code != 'ER_DUP_ENTRY') reject (error);
+                console.log(`[TweetService.TweetEntity] insertToDatabase successful.`);
+                resolve(results);
+            })
+        })
+    },
+    /**
+     * Database - Read TweetEntities rows from Table
+     * @param {Object | Number | String} query_params Parameters to execute query | Id of tweet
+     * @returns {Promise<Array<TweetService_TweetEntity>>}
+     */
+    read: async (query_params)=>{
+        return new Promise((resolve, reject)=>{
+            if(typeof query_params == 'string' || typeof query_params == 'number') query_params = {tweetID: query_params};
+            let query = `
+                SELECT * FROM TweetEntities WHERE ${query_params != undefined && Object.keys(query_params).length!=0 ? '?' : '1=1'}`;
+                Data.Database.query(query, query_params, (error, results, fields)=>{
+                    if(error) reject(error);
+                    if(results.length<1) reject();
+                    // console.log(`[TweetService] readFromDatabase successful. results`);
+                    resolve(results.map(r=>({...r}) ));
+                })
+        })
+    }
+}
 
 module.exports = TweetService;

@@ -1,3 +1,4 @@
+const { text } = require("express");
 const QueryService = require("../Services/QueryService");
 const TweetModel = require("./TweetModel");
 
@@ -92,7 +93,7 @@ class QueryModel{
             // Execute service
             let data = await QueryService.fetchAPI(this.query, {language: 'es'});
             // Store results here
-            let results = [];
+            // let results = [];
             data.statuses.forEach(async result=>{
                 // Get model of each result
                 let tweet = new TweetModel(result);
@@ -101,16 +102,20 @@ class QueryModel{
                 await QueryService.QueryTweet.create(this.queryID, tweet.tweetID);
                 // Update analysis
                 await tweet._TweetAnalysis.execute('translation');
-                await tweet._TweetAnalysis.insertToDatabase();
+                await tweet._TweetAnalysis.insertToDatabase(); 
+                // Get entities
+                await tweet._TweetEntities.insertToDatabase();
+
+
                 // End
                 console.log('[QueryModel] Tweet added to database')
                 this.statuses.push(tweet);
             })
             // Update last exec date
             await QueryService.update(this.queryID, {executeDate: new Date()});
-            return results;
+            return this.statuses;
         } catch (e) {
-            console.log('[QueryModel] execution failed', e)
+            console.log('[QueryModel] execution failed')
         }
         // return this;
     }

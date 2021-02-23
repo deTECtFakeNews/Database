@@ -2,7 +2,7 @@ const mysql = require('mysql2');
 const {Client} = require('ssh2');
 const sshConnection = new Client();
 const Twitter = require('twitter');
-
+// const Twitter = require('twitter-v2')
 
 const SSH_DATA = {
     host: '10.4.27.75',
@@ -11,6 +11,9 @@ const SSH_DATA = {
     password: 'TEC.Lalongo1606',
     tryKeyboard: true
 }
+/**
+ * @type {mysql.ConnectionOptions}
+ */
 const MYSQL_DATA = {
     host: '10.4.27.75',
     user: 'DataUser',
@@ -18,20 +21,21 @@ const MYSQL_DATA = {
     database: 'FakeNews',
     port: 3306,
     supportBigNumbers: true,
-    bigNumberStrings: true
+    bigNumberStrings: true,
+    multipleStatements: true
 }
-/* const TWITTER_DATA = {
+const TWITTER_DATA = {
     consumer_key: 'yV0a5aPMXLcW3aKMSvxE9jjzu',
     consumer_secret: 'CH7t2e1hEX0WY48xVP9bKq5kvriwSf5lo9NEov6j50uJRB9wC2',
     access_token_key: '57733058-dMO5On1f6s1OfCPUSSSgSOScTlDmJbzGFaqgl6VbH',
     access_token_secret: '3PGA7ukcygjWy5s4aiilMVi0nhGuAJH1oQjgRTXIOeLXk'
-}  */
-const TWITTER_DATA = { 
+} 
+/* const TWITTER_DATA = { 
     consumer_key: 'aVLHBb6eAQNcICDOiiKNTKT0F',
     consumer_secret: 'wNbQe0r3ARCNw1Vv1fLVxJ71OPxIrffNT1vm2BT0UeuzOIWXzw',
     access_token_key: '780387937108299776-sV7W0qip4zMXKRlY5EU6DDScFBH3wkP',
     access_token_secret: 'BmC4AJGRMJaTNj8nidvGH1nnWlUlMe62ykl130ilsKNsF'
-}
+} */
 
 
 /**

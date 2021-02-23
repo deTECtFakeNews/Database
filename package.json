@@ -5,7 +5,7 @@
   "main": "Data.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node index.js"
+    "start": "node server.js & node fetcher.js &"
   },
   "author": "Eduardo Villalpando Mello",
   "license": "ISC",
@@ -19,6 +19,7 @@
     "mysql": "^2.18.1",
     "mysql2": "^2.2.5",
     "ssh2": "^0.8.9",
-    "twitter": "^1.7.1"
+    "twitter": "^1.7.1",
+    "twitter-v2": "^1.0.2"
   }
 }

@@ -62,6 +62,11 @@ class TweetModel {
 
         this._TweetStatsFreeze = new TweetModel.TweetStatsFreeze(tweet);
         this._TweetAnalysis = new TweetModel.TweetAnalysis(tweet);
+        this._TweetEntities = new TweetModel.TweetEntities(tweet);
+    }
+
+    async update(){
+        return await TweetModel.getFromAPI(this.tweetID);
     }
 
     /**
@@ -75,7 +80,7 @@ class TweetModel {
             inReplyToUserID: this.inReplyToUserID, 
             inReplyToTweetID: this.inReplyToTweetID, 
             quotesTweetID: this.quotesTweetID, 
-            creationDate: this.creationDate, 
+            creationDate: new Date(this.creationDate).toJSON().slice(0,19).replace('T', ' '), 
             fullText: this.fullText, 
             placeLat: this.placeLat,
             placeLng: this.placeLng,
@@ -132,7 +137,8 @@ class TweetModel {
             let tweet = await TweetService.read(this.inReplyToTweetID) || await TweetService.fetchAPI(this.inReplyToTweetID);
             return new TweetModel(tweet)
         } catch(e){
-            if( e[0].code == '88') console.log('API limit exceeded');
+            if( e[0]?.code == '88') console.log('API limit exceeded');
+            else console.log(e)
         }
     }
     /**
@@ -177,9 +183,7 @@ class TweetModel {
             // Then, add TweetStatsFreeze
             await this._TweetStatsFreeze.pushStats(this._latestStats);
 
-            // await this._TweetStatsFreeze.insertToDatabase();
-            // If it exists, update TweetStatsFreeze
-            // await this._TweetStatsFreeze.updateToDatabase();
+            await this._TweetEntities.insertToDatabase();
 
             console.log('[TweetModel] insert successful')
 
@@ -193,8 +197,15 @@ class TweetModel {
      * Updates this in database with data ???
      */
     async updateToDatabase(){
-        await TweetService.update(this.tweetID, this.getData())
-        await this._TweetStatsFreeze.pushStats(this._latestStats);
+        // await TweetService.update(this.tweetID, this.getData())
+        // await this._TweetStatsFreeze.pushStats(this._latestStats);
+        
+        await this._TweetEntities.getFromText()
+        await this._TweetEntities.insertToDatabase();
+
+        await this._TweetAnalysis.execute('translation');
+        await this._TweetAnalysis.insertToDatabase();
+
         // return await TweetService.TweetStatsFreeze.update(this.tweetID, this.getStats())
     }
     /**
@@ -230,10 +241,7 @@ TweetModel.TweetStatsFreeze = class {
     async pushStats(stats){
         try{
             // Check if data is valid
-            if(stats.favoriteCount == null && stats.replyCount == null && stats.retweetCount == null) {
-                console.log("AAAAAAAAAAAAAAAAAAAA");
-                return;
-            }
+            if(stats.favoriteCount == null && stats.replyCount == null && stats.retweetCount == null) return;
             // Read
             await this.read();
 
@@ -309,68 +317,62 @@ TweetModel.TweetAnalysis = class {
     }
 }
 
-/* 
-TweetModel.TweetAnalysis = class {
-    constructor(tweet, analysis){
+TweetModel.TweetEntities = class {
+    /**
+     * Create TweetEntities table in database
+     */
+    static async createTable(){
+        return await TweetService.TweetEntities.createTable()
+    }
+    /**
+     * Search for TweetEntities in database
+     * @param {Object|Number|String} query_params Parameters to execute search in database  
+     * @returns {Promise<Array<import("../Services/TweetService").TweetService_TweetEntity>>}
+     */
+    static async read(query_params){
+        try{
+            let entries = await TweetService.TweetEntities.read(query_params);
+            return entries.map(e=> new TweetModel.TweetEntities(e));
+        } catch (e){
+            return;
+        }
+    }
+    /**
+     * 
+     * @param {import("../Services/TweetService").TweetService_data} tweet 
+     */
+    constructor(tweet){
         this.tweetID = tweet.tweetID;
         this.fullText = tweet.fullText;
-        // Translation
-        this.translation = tweet.translation;
-        // Sentiment
-        this.sentiment = {}
-        this.sentiment.fullText = tweet.sentiment_fullText
-        this.sentiment.negativity = tweet.sentiment_negativity
-        this.sentiment.neutrality = tweet.sentiment_neutrality
-        this.sentiment.positivity = tweet.sentiment_positivity
-        this.sentiment.compound = tweet.sentiment_compound
-        this.sentiment.polarity = tweet.sentiment_polarity
-        this.sentiment.subjectivity = tweet.sentiment_subjectivity
-        this.sentiment.anger = tweet.sentiment_anger
-        this.sentiment.anticipation = tweet.sentiment_anticipation
-        this.sentiment.disgust = tweet.sentiment_disgust
-        this.sentiment.fear = tweet.sentiment_fear
-        this.sentiment.joy = tweet.sentiment_joy
-        this.sentiment.negative = tweet.sentiment_negative
-        this.sentiment.positive = tweet.sentiment_positive
-        this.sentiment.sadness = tweet.sentiment_sadness
-        this.sentiment.surprise = tweet.sentiment_surprise
-        this.sentiment.trust = tweet.sentiment_trust
+        this.entities = tweet.entities || [];
     }
-    getData(){
-        return {
-            translation: this.translation,
-            sentiment: this.sentiment
-        }
-    }
-    getSQLData(){
-        return {
-            tweetID: this.tweetID,
-            sentiment_negativity: this.sentiment.negativity,
-            sentiment_neutrality: this.sentiment.neutrality,
-            sentiment_positivity: this.sentiment.positivity,
-            sentiment_compound: this.sentiment.compound,
-            sentiment_polarity: this.sentiment.polarity,
-            sentiment_subjectivity: this.sentiment.subjectivity,
-            sentiment_anger: this.sentiment.anger,
-            sentiment_anticipation: this.sentiment.anticipation,
-            sentiment_disgust: this.sentiment.disgust,
-            sentiment_fear: this.sentiment.fear,
-            sentiment_joy: this.sentiment.joy,
-            sentiment_negative: this.sentiment.negative,
-            sentiment_positive: this.sentiment.positive,
-            sentiment_sadness: this.sentiment.sadness,
-            sentiment_surprise: this.sentiment.surprise,
-            sentiment_trust: this.sentiment.trust,
-        }
-    }
-    async execute(analysis_name){
-        if(analysis_name == "sentiment"){
-            // this.sentiment = await AnalysisService.getSentiment(this.fullText);
+    async insertToDatabase(){
+        try{
+            for(let entity of this.entities){
+                await TweetService.TweetEntities.create({tweetID: this.tweetID, ...entity})
+            }            
+        } catch (e){
+            console.log(e)
             return;
         }
     }
 
+
+    async getFromText(){
+        this.entities = await TweetService.TweetEntities.getFromText(this.fullText);
+        return this.entities;
+    }
+
+    async get(type){
+        await this.getFromText()
+        return this.entities.filter(e=>e.type==type).map(e=>e.value);
+    }
+
+    print(){
+        console.log(this.tweetID)
+        console.log(this.entities)
+        console.log('===')
+    }
 }
- */
 
 module.exports = TweetModel;

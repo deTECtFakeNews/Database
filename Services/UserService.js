@@ -1,3 +1,4 @@
+const { response } = require("express");
 const { DATE } = require("mysql/lib/protocol/constants/types");
 const Data = require("../Data");
 
@@ -111,7 +112,7 @@ const UserService = {
                 query = 'SELECT * FROM User';
             }
             Data.Database.query(query, query_params, (error, results, fields)=>{
-                // if(results.length == 0) resolve([undefined])
+                if(results.length == 0) resolve([undefined])
                 if(error) reject(error);
                 if(results == undefined) reject();
                 // console.log(`[UserService] readFromDatabase successful. results`);
@@ -155,6 +156,26 @@ const UserService = {
             Data.Twitter.get('users/show', {user_id: id}, (error, data, response)=>{
                 if(error) reject(error);
                 resolve(UserService.normalize(data))
+            })
+        })
+    },
+
+    getID: (screen_name)=>{
+        return new Promise(async (resolve, reject)=>{
+            try{
+                let user = (await UserService.read({screenName: screen_name}))[0].userID || await UserService.fetchIdAPI(screen_name);
+                return user;
+            } catch (e){
+                return -1;
+            }
+        })
+    },
+
+    fetchIdAPI: async(screen_name)=>{
+        return new Promise((resolve, reject)=>{
+            Data.Twitter.get('users/show', {screen_name}, (error, data, response)=>{
+                if(error) reject(error);
+                resolve(data.id)
             })
         })
     }

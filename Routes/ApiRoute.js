@@ -29,6 +29,7 @@ router.get('/query/:queryIDs/tweets', async (req, res)=>{
             results.push({
                 tweetID: tweet.tweetID.toString(), 
                 queryID: query.queryID, 
+                query: query,
                 authorID: tweet.authorID.toString(), 
                 authorScreenName: author.screenName,
                 creationDate: tweet.creationDate,
@@ -42,8 +43,7 @@ router.get('/query/:queryIDs/tweets', async (req, res)=>{
 
     if(req.query.format == 'csv'){
         let csv = await FileService.createCSV(results);
-        // res.end(csv)
-        // let csv = new Parser().parse(results);
+        res.setHeader('content-type', 'text/csv; charset=utf-8')
         res.attachment('queries.csv');
         res.status(200).send(csv);
     } else {
