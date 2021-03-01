@@ -6,6 +6,7 @@ const FileService = require('../Services/FileService');
 const TweetModel = require('../Models/TweetModel');
 
 const fetch = require('node-fetch');
+const GoogleDriveService = require('../Services/GoogleDriveService');
 
 var router = express.Router();
 
@@ -14,6 +15,27 @@ router.use(express.json());
 router.get('/', (req, res)=>{
     res.end("API ENDPOINT")
 });
+
+router.get('/spreadsheet', async(req, res)=>{
+    res.end(`
+        /new Queries to be added this week
+        /old Queries to be deactivated this week
+        /updates Queries to be modified
+    `)
+})
+
+router.get('/spreadsheet/:sheet', async (req, res)=>{
+    let sheet = req.params.sheet;
+    let sheet_num = 0;
+    if(sheet == 'new') sheet_num = 1;
+    else if(sheet == 'old') sheet_num = 2;
+    else if(sheet == 'updates') sheet_num = 3;
+    else{
+        res.status(404);
+        return;
+    }
+    res.json( await GoogleDriveService.readSpreadsheet('1Hpb_UJ_VBHktK18qrxoYKUwMrRFbd6VECgIO52XlrAI', sheet_num) );
+})
 
 router.get('/query', async (req, res)=>{
     let queries = (await QueryModel.read()).map(q=>q.getData());

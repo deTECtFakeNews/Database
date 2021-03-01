@@ -12,7 +12,7 @@ class QueryModel{
     /**
      * Creates a new query in database
      * @param {String} search Text to be searched using API
-     * @returns {QueryModel}
+     * @returns {Promise<QueryModel>}
      */
     static async createNew(search){
         let query = new QueryModel({query: search});
