@@ -51,6 +51,7 @@ class QueryModel{
         this.resultType = data.resultType || 'mixed';
         this.language = data.language || 'und';
         this.resultsCount = data.resultsCount || 300;
+        this.shouldExecute = data.shouldExecute;
         /**
          * @type {Array<TweetModel>}
          */
@@ -89,6 +90,7 @@ class QueryModel{
      * @returns {Promise<Array<TweetModel>>}
      */
     async execute(){
+        // if(!this.shouldExecute) return;
         try{
             // Execute service
             let data = await QueryService.fetchAPI(this.query, {language: 'es'});
@@ -151,10 +153,10 @@ class QueryModel{
             await tweet._TweetEntities.read();
             for(let entity of tweet._TweetEntities.entities){
                 let {type, value} = entity;
-                if(entityStats[type] == undefined) entityStats[type] = {};
-                if(entityStats[type][value] == undefined) entityStats[type][value] = 1; 
-                else entityStats[type][value]++;
-                entities.push({tweetID: tweet.tweetID, ...entity})
+                if(entityStats[type] == undefined){entityStats[type] = {};}
+                if(entityStats[type][value] == undefined){entityStats[type][value] = 1; }
+                else{ entityStats[type][value]++;}
+                entities.push({tweetID: tweet.tweetID, ...entity} )
             }
         }) );
 

@@ -55,10 +55,11 @@ router.get('/query/:queryIDs/entities', async (req, res)=>{
     await Promise.all( queryIDs.map(async id=>{
         let query = (await QueryModel.read(id))[0];
         let tweets = await query.getTweets();
-        let {entities, entitiesStats} = await query.getEntities();
+
+        let {entities, entityStats} = await query.getEntities();
         let query_expanded = query.getData();
         query_expanded.entities = entities;
-        query_expanded.entitiesStats = entitiesStats;
+        query_expanded.entityStats = entityStats;
         results.push(query_expanded)
     }) );
     res.json(results)
@@ -87,6 +88,9 @@ router.get('/tweet/:tweetIDs', async (req, res)=>{
             await tweet._TweetStatsFreeze.read();
             tweet_expanded.stats = tweet._TweetStatsFreeze.stats;
         }
+        /* if(expansions.includes('retweets')){
+            tweet_expanded.retweets = await tweet.getRetweets();
+        } */
 
         results.push(tweet_expanded)
     }) );

@@ -236,7 +236,8 @@ const TweetService = {
         return new Promise((resolve, reject)=>{
             Data.Twitter.get('/statuses/retweets', {id, count: 100}, (error, data, response)=>{
                 if(error) reject(error);
-                let parsedData = data.map(d=>TweetService.normalize(d));
+                if(data==undefined) return []
+                let parsedData = data.map(d=>TweetService.normalize(d)) || [];
                 resolve( parsedData.map(d=>({
                     creationDate: d.creationDate,
                     authorID: d.authorID

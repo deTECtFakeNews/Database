@@ -17,7 +17,7 @@ const TweetService = require("./TweetService");
  * @property {String} language 3 letter code of the language used to execute the query
  * @property {String} query Actual query to be performed
  * @property {Number} resultsCount Number of results to be fetched 
- * 
+ * @property {Boolean} shouldExecute Determines whether the query is active or not
  */
 
 const QueryService = {
