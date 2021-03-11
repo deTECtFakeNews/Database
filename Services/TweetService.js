@@ -447,11 +447,8 @@ TweetService.TweetEntities = {
                 WHERE tweetID=${entity.tweetID} AND
                 type='${entity.type}' AND 
                 value='${entity.value}');`;
-            // console.log(query)
-
-            
+            // console.log(query)            
             Data.Database.query(query, (error, results, fields)=>{
-                console.log(entity.value)
                 if(error && error.code != 'ER_DUP_ENTRY') reject (error);
                 console.log(`[TweetService.TweetEntity] insertToDatabase successful.`);
                 resolve(results);

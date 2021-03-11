@@ -175,6 +175,14 @@ class QueryModel{
     getResultsData(){
         return this.statuses.map(l=>l.getData())
     }
+
+    async deactivate(){
+        QueryService.update(this.queryID, {shouldExecute: false})
+    }
+    async activate(){
+        QueryService.update(this.queryID, {shouldExecute: true})
+    }
+
 }
 
 module.exports = QueryModel;
