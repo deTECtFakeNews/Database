@@ -8,7 +8,7 @@ const delay = ms => new Promise(res => setTimeout(res, ms));
 
 
 Data.SSHDBconnect().then(async()=>{
-    Data.Twitter.get('application/rate_limit_status.json', (err, data, res)=>{
+    /* Data.Twitter.get('application/rate_limit_status.json', (err, data, res)=>{
         {
             let {limit, remaining, reset} = data.resources.friendships['/friendships/show']
             reset = new Date(reset*1000)
@@ -19,10 +19,11 @@ Data.SSHDBconnect().then(async()=>{
             reset = new Date(reset*1000)
             console.log('/statuses/retweets', {limit, remaining, reset});
         }
-    })
+    }) */
 
     TweetService.readStream(undefined, {
         onResult: async row => {
+            console.log("Tweet");
             Data.Database.pause();
             try{
                 const tweet = new TweetModel(row);
@@ -39,16 +40,18 @@ Data.SSHDBconnect().then(async()=>{
         }
     })
 
-    /* UserService.readStream(undefined, {
+    UserService.readStream(undefined, {
         onResult: async row => {
+            console.log("User");
+            Data.Database.pause()
             try{
-                Data.Database.pause()
                 let followers = await UserService.readStreamAndFetchFollowers(row.userID);
-                Data.Database.resume()
+                await delay(10*1000);
             } catch(e){
                 console.error(e)
             }
+            Data.Database.resume()
         }
-    }) */
+    })
 
 })

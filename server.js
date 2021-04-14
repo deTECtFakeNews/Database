@@ -14,9 +14,7 @@ const PORT = process.env.PORT || 8080;
 
 
 Data.SSHDBconnect().then(async ()=>{
-    Data.Database.connect((err)=>{
-        console.log(err)
-    });
+
     
 
 
