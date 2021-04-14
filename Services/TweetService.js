@@ -76,6 +76,7 @@ const TweetService = {
     TweetStatsFreeze: {},
     TweetAnalysis: {},
     TweetEntities: {},
+    TweetRetweet: {},
     /**
      * Internal - Receives data from Twitter object and returns in normalized form with the same nomenclature as database.
      * @param {Object} data Data object as receoved from Twitter API
@@ -165,8 +166,12 @@ const TweetService = {
             if(typeof query_params == 'string' || typeof query_params == 'number'){
                 query_params = {tweetID: query_params};
             }
-            let query = `
-                SELECT * FROM Tweet WHERE ${query_params != undefined && Object.keys(query_params).length!=0 ? '?' : '1=1'}`;
+            let query = '';
+            if(Object.keys(query_params).length>0){
+                query = 'SELECT * FROM Tweet WHERE ?';
+            } else {
+                query = 'SELECT * FROM Tweet';
+            }
             let q = Data.Database.query(query, query_params, (error, results, fields)=>{
                 if(error) reject(error);
                 if(results.length<1) reject();
@@ -174,6 +179,27 @@ const TweetService = {
                 resolve(results.map(r=>({...r}) ));
             })
         })
+    },
+    /**
+     * Database - Read Tweet row(s) from table
+     * @param {Object | Number | String} query_params Parameters to execute query | Id of row to read
+     * @param {{onError: Function, onFields: Function, onResult: Function, onEnd: Function}} events
+     */
+    readStream: (query_params = {}, events)=>{
+        if(typeof query_params == 'string' || typeof query_params == 'number') {
+            query_params = {tweetID: query_params};
+        }
+        let query = '';
+        if(Object.keys(query_params).length>0){
+            query = 'SELECT * FROM Tweet WHERE ?';
+        } else {
+            query = 'SELECT * FROM Tweet';
+        }
+        Data.Database.query(query, query_params)
+            .on('error', events.onError || (()=>{}))
+            .on('fields', events.onFields || (()=>{}))
+            .on('result', events.onResult || (()=>{}))
+            .on('end', events.onEnd || (()=>{}))
     },
     /**
      * 
@@ -236,10 +262,11 @@ const TweetService = {
         return new Promise((resolve, reject)=>{
             Data.Twitter.get('/statuses/retweets', {id, count: 100}, (error, data, response)=>{
                 if(error) reject(error);
-                if(data==undefined) return []
+                if(data==undefined || !Array.isArray(data)) return []
                 let parsedData = data.map(d=>TweetService.normalize(d)) || [];
                 resolve( parsedData.map(d=>({
-                    creationDate: d.creationDate,
+                    tweetID: id,
+                    creationDate: new Date(d.creationDate).toISOString().slice(0, 19).replace('T', ' '),
                     authorID: d.authorID
                 })) )
             })
@@ -473,6 +500,27 @@ TweetService.TweetEntities = {
                 })
         })
     }
+}
+
+TweetService.TweetRetweet = {
+    /**
+     * Database - Creates (inserts into new row) new TweetRetweet to table
+     * @param {{tweetID: Number|String, userID: Number|String, creationDate: Date}} retweet 
+     * @returns {Promise}
+     */
+    create: (retweet)=>{
+        return new Promise((resolve, reject)=>{
+            let q = Data.Database_Slave2.query('INSERT INTO TweetRetweet SET ?', retweet, (error, results, fields)=>{
+                if(error && error.code != 'ER_DUP_ENTRY'){
+                    reject(q.sql);
+                } else {
+                    console.log(`[TweetService.TweetRetweet] (${retweet.tweetID}) was uploaded`)
+                    resolve(results);
+                }
+            })
+        })
+    }
+
 }
 
 module.exports = TweetService;

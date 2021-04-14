@@ -32,6 +32,7 @@ const Data = require("../Data");
 const UserService = {
     UserStatsFreeze: {},
     UserAnalysis: {}, 
+    UserFollower: {},
     /**
      * Internal - Receives data from  Twitter object and returns in normalized form with the same nomenclature as database.
      * @param {Object} data Data object as received by Twitter API
@@ -121,6 +122,27 @@ const UserService = {
         })
     },
     /**
+     * 
+     * @param {Object | Number | String} query_params Parameters to execute query | Id of row to read
+     * @param {{onError: Function, onFields: Function, onResult: Function, onEnd: Function}} events
+     */
+    readStream: (query_params = {}, events)=>{
+        if(typeof query_params == 'string' || typeof query_params == 'number') {
+            query_params = {userID: query_params};
+        }
+        let query = '';
+        if(Object.keys(query_params).length>0){
+            query = 'SELECT * FROM User WHERE ?';
+        } else {
+            query = 'SELECT * FROM User';
+        }
+        Data.Database.query(query, query_params)
+            .on('error', events.onError || (()=>{}))
+            .on('fields', events.onFields || (()=>{}))
+            .on('result', events.onResult || (()=>{}))
+            .on('end', events.onEnd || (()=>{}))
+    },
+    /**
      * Database - Update User row with new data 
      * @param {Number | String} id Id of row to be updated with data
      * @param {UserService_Data} user Data of the user to be updated
@@ -157,6 +179,56 @@ const UserService = {
                 if(error) reject(error);
                 resolve(UserService.normalize(data))
             })
+        })
+    },
+    /**
+     * Twitter API - See if `source_id` follows `target_id`
+     * @param {Number|String} source_id Id of test user
+     * @param {Number|String} target_id Id of base user
+     * @returns {Promise<Boolean>}
+     */
+    doesAFollowB: (source_id, target_id)=>{
+        return new Promise((resolve, reject)=>{
+            if(source_id==-1 || target_id ==-1) reject();
+            Data.Twitter.get('friendships/show', {source_id, target_id}, (error, data, response)=>{
+                if(error) reject(error);
+                if(data.relationship.source.following) resolve(true);
+                else {resolve(false)}
+            })
+        })
+    },
+
+    readStreamAndFetchFollowers: (id)=>{
+        return new Promise(async (resolve, reject)=>{
+            let followers = [];
+            if(id==-1){
+                resolve(followers)
+                return;
+            }
+            /**@type {import("mysql").PoolConnection} */
+            Data.Database_Slave.query(`
+            SELECT * FROM User as a WHERE a.userID NOT IN (
+                SELECT UserFollower.followerID FROM UserFollower WHERE a.userID = UserFollower.userID
+            );
+            `)
+                .on('error', reject)
+                .on('result', async row => {
+                    Data.Database_Slave.pause();
+                    try{
+                        let isFollowing = await UserService.doesAFollowB(row.userID, id)
+                        console.log(id, '-->', row.userID, isFollowing);
+                        if(isFollowing){
+                            followers.push(row.userID);
+                            await UserService.UserFollower.create({userID: id, followerID: row.userID});
+                        }
+                    }catch(e){
+                        reject(e)
+                    }
+                    Data.Database_Slave.resume();
+                })
+                .on('end', ()=>{
+                    resolve(true);
+                })
         })
     },
 
@@ -281,5 +353,45 @@ UserService.UserAnalysis = {
     }
 } 
 
+UserService.UserFollower = {
+    /**
+     * Database - Creates (inserts into new row) new UserFollower in table
+     * @param {{userID: Number|String, followerID: Number|String}} param0 Id of user and follower
+     */
+    create: ({userID, followerID})=>{
+        return new Promise((resolve, reject)=>{
+            let query = `
+            INSERT INTO UserFollower (userID, followerID)
+            SELECT ${userID}, ${followerID} FROM DUAL
+            WHERE NOT EXISTS 
+            ( SELECT * FROM UserFollower WHERE userID=${userID} AND followerID=${followerID} );`;
+            Data.Database_Slave2.query(query, (error, results, fields)=>{
+                if(error && error.code != 'ER_DUP_ENTRY') reject(error);
+                console.log(`[UserService.UserFollower] insertToDatabase successful. ${userID}-->${followerID}`);
+                resolve(results)
+            })
+        })
+    },
+    /**
+     * Database - Read UserFollower rows from table
+     * @param {Object|Number|String} query_params Parameters to execute query | Id of user
+     * @returns {Promise<Array<Object>>}
+     */
+    read: (query_params)=>{
+        return new Promise((resolve, reject)=>{
+            if(typeof query_params == 'string' || typeof query_params == 'number'){
+                query_params = {userID: query_params}
+            }
+            let query = Object.keys(query_params).length>0 ? 'SELECT * FROM UserFollower WHERE' : 'SELECT * FROM User';
+            Data.Database_Slave2.query(query, query_params, (error, results, fields)=>{
+                if(results == undefined) reject();
+                if(results.length == 0) resolve([]);
+                if(error) reject(error);
+                resolve( results.map(r=>({...r})) );
+            })
+        })
+    },
+
+}
 
 module.exports = UserService;

@@ -1,8 +1,6 @@
 const mysql = require('mysql2');
 const {Client} = require('ssh2');
-const sshConnection = new Client();
 const Twitter = require('twitter');
-// const Twitter = require('twitter-v2')
 
 const SSH_DATA = {
     host: '10.4.27.75',
@@ -12,9 +10,9 @@ const SSH_DATA = {
     tryKeyboard: true
 }
 /**
- * @type {mysql.ConnectionOptions}
+ * @type {mysql.PoolOptions}
  */
-const MYSQL_DATA = {
+ const MYSQL_DATA = {
     host: '10.4.27.75',
     user: 'DataUser',
     password: 'TEC.F4keNews',
@@ -22,14 +20,16 @@ const MYSQL_DATA = {
     port: 3306,
     supportBigNumbers: true,
     bigNumberStrings: true,
-    multipleStatements: true
+    multipleStatements: true,
+    connectionLimit: 100
 }
 const TWITTER_DATA = {
-    consumer_key: 'yV0a5aPMXLcW3aKMSvxE9jjzu',
-    consumer_secret: 'CH7t2e1hEX0WY48xVP9bKq5kvriwSf5lo9NEov6j50uJRB9wC2',
-    access_token_key: '57733058-dMO5On1f6s1OfCPUSSSgSOScTlDmJbzGFaqgl6VbH',
-    access_token_secret: '3PGA7ukcygjWy5s4aiilMVi0nhGuAJH1oQjgRTXIOeLXk'
+    consumer_key: 'sHL0MJor5Avq0MEhI1F92k84R',
+    consumer_secret: 'W5EQssAKUKwaDYHcWcJx3EhIweEezSLMNx3uFy9DAgZQnOzcDi',
+    access_token_key: '780387937108299776-Ls0o5Nw468RrGTu5SjnJYT8NIdJ2bRM',
+    access_token_secret: 'OSu5PSjMOGohifRhgSZizm9ZR3m2Wngd6coh6oyVGYF0U'
 } 
+
 /* const TWITTER_DATA = { 
     consumer_key: 'aVLHBb6eAQNcICDOiiKNTKT0F',
     consumer_secret: 'wNbQe0r3ARCNw1Vv1fLVxJ71OPxIrffNT1vm2BT0UeuzOIWXzw',
@@ -37,49 +37,72 @@ const TWITTER_DATA = {
     access_token_secret: 'BmC4AJGRMJaTNj8nidvGH1nnWlUlMe62ykl130ilsKNsF'
 } */
 
-
-/**
- * Data object for interfacing with sources
- * @typedef {Object} Data
- * @property {mysql.Connection} Database Database Object
- * @property {Twitter} Twitter Twitter Object
- * @property {function} SSHDBconnect Connect to DB over SSH
- */
-/**
- * @type {Data}
- */
 const Data = {
-    Database: null,
+    /**@type {mysql.PoolCluster} */
+    DatabasePoolCluster: mysql.createPoolCluster({canRetry: false}), 
+    /**@type {mysql.PoolConnection} */
+    Database: null, 
+    /**@type {Twitter} */
     Twitter: new Twitter(TWITTER_DATA),
-    SSHDBconnect: async()=>{}
+    /**@type {Promise<import('ssh2').ClientChannel>} */
+    SSHDBconnect: null
 }
 
-let SSHstream = () => new Promise((resolve, reject)=>{
+let SSHstream = ()=>new Promise((resolve, reject)=>{
+    let sshConnection = new Client();
     // Connect
     sshConnection.connect(SSH_DATA);
-    // "Type" password
-    sshConnection.on('keyboard-interactive', (name, instructions, lang, propmts, finish)=>{
-        finish([SSH_DATA.password]);
-    });
+    // Type Password
+    sshConnection.on('keyboard-interactive', 
+    (name, instructions, lang, prompts, finish)=>{finish( [SSH_DATA.password] )});
     // When ready
     sshConnection.on('ready', ()=>{
         console.log("Server :: SSH Connection ready");
-        // Forward
-        sshConnection.forwardOut(SSH_DATA.host, MYSQL_DATA.port, MYSQL_DATA.host, MYSQL_DATA.port, (err, stream) => {
-            if (err) reject(err);
-            resolve(stream);
-        })
+        // Forward connection
+        sshConnection.forwardOut(
+            SSH_DATA.host, 
+            MYSQL_DATA.port, 
+            MYSQL_DATA.host, 
+            MYSQL_DATA.port, 
+            (err, stream) => { if(err) reject(err); resolve(stream); }
+        )
+    })
+    sshConnection.on('close', (e)=>{
+        console.log(e)
     })
 })
 
-let SSHDBconnect = async () => {
-    try{
-        Data.Database = mysql.createConnection({...MYSQL_DATA, stream: await SSHstream()})
-    } catch (e) {
-        return e;
-    }
+let DatabaseGetConnection = (name) => new Promise((resolve, reject)=>{
+    Data.DatabasePoolCluster.getConnection(name, (err, connection)=>{
+        if(err) {
+            connection?.release();
+            reject(err);
+        } else {
+            console.log("Server :: DB Connection ready", connection.connectionId)
+            connection.connect()
+            resolve(connection);
+        }
+    })
+})
+
+let SSHDBconnect = async ()=>{
+    Data.DatabasePoolCluster.add('main', {
+        ...MYSQL_DATA,
+        stream: await SSHstream()
+    });
+    Data.DatabasePoolCluster.add('slave', {
+        ...MYSQL_DATA,
+        stream: await SSHstream()
+    });
+    Data.DatabasePoolCluster.add('slave2', {
+        ...MYSQL_DATA,
+        stream: await SSHstream()
+    });
+    Data.Database = await Data.DatabaseGetConnection('main');
+    Data.Database_Slave = await Data.DatabaseGetConnection('slave');
+    Data.Database_Slave2 = await Data.DatabaseGetConnection('slave2');
 }
 
 Data.SSHDBconnect = SSHDBconnect;
-
+Data.DatabaseGetConnection = DatabaseGetConnection;
 module.exports = Data;

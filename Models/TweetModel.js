@@ -158,12 +158,19 @@ class TweetModel {
      * Returns list of retweets (date and user)
      */
     async getRetweets(){
+        if(this.tweetID==-1) return [];
         try{
+            // await this._TweetStatsFreeze.pushStats();
             return await TweetService.fetchRetweetAPI(this.tweetID)
         } catch (e) {
-            console.log("[TweetModel] could not get retweets")
+            console.log("[TweetModel] could not get retweets", e)
+            return []
         }
     }
+
+    /**
+     * Pushes list of retweets
+     */
 
     /**
      * Insert this to database (and all dependencies)
@@ -238,10 +245,10 @@ TweetModel.TweetStatsFreeze = class {
      * 
      * @param {import("../Services/TweetService").TweetService_StatsFreeze_Data} stats 
      */
-    async pushStats(stats){
+    async pushStats(stats = {}){
         try{
             // Check if data is valid
-            if(stats.favoriteCount == null && stats.replyCount == null && stats.retweetCount == null) return;
+            if(stats.favoriteCount == null && stats.replyCount == null && stats.retweetCount == null) stats = {favoriteCount: null, replyCount: null, retweetCount: null, updateDate: null, tweetID: this.tweetID};
             // Read
             await this.read();
 
@@ -256,7 +263,7 @@ TweetModel.TweetStatsFreeze = class {
             }
 
         } catch(e){
-            console.error('[TweetModel.TweetStatsFreeze] error')
+            console.error('[TweetModel.TweetStatsFreeze] error', e)
         }
     }
 

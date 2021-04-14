@@ -82,7 +82,7 @@ class QueryModel{
             let result = await QueryService.create(this.getData());
             this.queryID = result.insertId;
         } catch (e){
-            console.log('[QueryModel] insertToDatabase failed', e)
+            console.log('[QueryModel] insertToDatabase failed', this.query)
         }
     }
     /**
