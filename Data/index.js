@@ -45,7 +45,10 @@ const Data = {
     /**@type {Twitter} */
     Twitter: new Twitter(TWITTER_DATA),
     /**@type {Promise<import('ssh2').ClientChannel>} */
-    SSHDBconnect: null
+    SSHDBconnect: null,
+
+    DatabaseGetConnection: null, 
+    DatabaseCreateConnection: null
 }
 
 let SSHstream = ()=>new Promise((resolve, reject)=>{
@@ -72,7 +75,7 @@ let SSHstream = ()=>new Promise((resolve, reject)=>{
     })
 })
 
-let DatabaseGetConnection = (name) => new Promise((resolve, reject)=>{
+Data.DatabaseGetConnection = (name) => new Promise((resolve, reject)=>{
     Data.DatabasePoolCluster.getConnection(name, (err, connection)=>{
         if(err) {
             connection?.release();
@@ -85,24 +88,21 @@ let DatabaseGetConnection = (name) => new Promise((resolve, reject)=>{
     })
 })
 
+Data.DatabaseCreateConnection = async (name)=>{
+    let conn = Data.DatabasePoolCluster.add(name, {
+        ...MYSQL_DATA, stream: await SSHstream()
+    })
+    return await Data.DatabaseGetConnection(name)
+}
+
 let SSHDBconnect = async ()=>{
-    Data.DatabasePoolCluster.add('main', {
-        ...MYSQL_DATA,
-        stream: await SSHstream()
-    });
-    Data.DatabasePoolCluster.add('slave', {
-        ...MYSQL_DATA,
-        stream: await SSHstream()
-    });
-    Data.DatabasePoolCluster.add('slave2', {
-        ...MYSQL_DATA,
-        stream: await SSHstream()
-    });
-    Data.Database = await Data.DatabaseGetConnection('main');
-    Data.Database_Slave = await Data.DatabaseGetConnection('slave');
-    Data.Database_Slave2 = await Data.DatabaseGetConnection('slave2');
+    Data.Database = await Data.DatabaseCreateConnection('main')
+    Data.Database_Slave = await Data.DatabaseCreateConnection('slave')
+    Data.Database_Slave2 = await Data.DatabaseCreateConnection('slave2')
+
+    Data.Database_UserStatsFreeze = await Data.DatabaseCreateConnection('userstats')
+
 }
 
 Data.SSHDBconnect = SSHDBconnect;
-Data.DatabaseGetConnection = DatabaseGetConnection;
 module.exports = Data;

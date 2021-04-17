@@ -35,7 +35,7 @@ class UserModel{
             let data = await UserService.fetchAPI(id);
             return new UserModel(data)
         } catch(e){
-
+            throw e;
         }
     }
     /**
@@ -55,6 +55,14 @@ class UserModel{
         this.placeDescription = data.placeDescription;
 
         this._UserStatsFreeze = new UserModel.UserStatsFreeze(data);
+        
+        {
+            if('followersCount' in data && 'followingCount' in data && 'favoritesCount' in data && 'listedCount' in data && 'statusesCount' in data){
+                let {followersCount, followingCount, favoritesCount, listedCount, statusesCount} = data;
+                this.latestStats = {followersCount, followingCount, favoritesCount, listedCount, statusesCount}
+            }
+        }
+
     }
     /**
      * Returns user data in UserService_Data format
@@ -95,7 +103,9 @@ class UserModel{
         try{
             if(this.userID == -1 || this.userID == null) return;
             await UserService.create(this.getData());
-            await UserService.UserStatsFreeze.create(this._UserStatsFreeze.getData());
+            if(this.latestStats){
+                await this._UserStatsFreeze.pushStats(this.latestStats);
+            }
             return;
         } catch(e){
             console.error('[UserModel] insertToDatabase failed', e)
@@ -117,35 +127,42 @@ class UserModel{
     }
 }
 
+
 UserModel.UserStatsFreeze = class{
-    /**
-     * Create table
-     */
-    static async createTable(){
-        return await UserService.UserStatsFreeze.createTable();
-    }
+    userID;
+    /**@type {Array<import("../Services/UserService").UserService_StatsFreeze_Data>} */
+    stats = [];
     constructor(user){
         this.userID = user.userID;
-        this.updateDate = new Date().toISOString().slice(0, 19).replace('T', ' ');;
-        this.followersCount = user.followersCount;
-        this.followingsCount = user.followingsCount;
-        this.listedCount = user.listedCount;
-        this.favoritesCount = user.favoritesCount;
-        this.statusesCount = user.statusesCount;
+        this.stats = []
     }
-    getData(){
-        return {
-            userID:  this.userID,
-            updateDate: this.updateDate,
-            followersCount:  this.followersCount,
-            followingCount:  this.followingsCount,
-            listedCount:  this.listedCount,
-            favoritesCount:  this.favoritesCount,
-            statusesCount:  this.statusesCount,
-        } 
+    async read(){
+        if(this.userID == -1) return []
+        this.stats = await UserService.UserStatsFreeze.read(this.userID);
+        return this.stats;
     }
-    async updateToDatabase(){
-        return await UserService.UserStatsFreeze.update(this.userID, this.getData());
+    async pushStats({followersCount, followingCount, listedCount, favoritesCount, statusesCount}){
+        // if(followersCount == undefined || followingCount == undefined || listedCount == undefined || favoritesCount == undefined || statusesCount == undefined) return;
+        try{
+            await this.read();
+            let last = this.stats[this.stats.length-1] || {followersCount: -1, followingCount: -1, listedCount: -1, favoritesCount: -1, statusesCount: -1}
+            
+            if(followersCount != last.followersCount || followingCount != last.followingCount || listedCount != last.listedCount || favoritesCount != last.favoritesCount || statusesCount != last.statusesCount){
+                let newStats = {
+                    ...{followersCount, followingCount, listedCount, favoritesCount, statusesCount},
+                    userID: this.userID, 
+                    updateDate: new Date()
+                };
+                await UserService.UserStatsFreeze.create(newStats);
+                this.stats.push(newStats);
+            }
+        } catch (e){
+            throw e;
+        }
+    }
+    getMax(stat){
+        if(this.stats.length == 0) return -1;
+        return Math.max( ...this.stats.map(l=>l[stat]) );
     }
 }
 

@@ -1,13 +1,14 @@
 const { response } = require("express");
 const { DATE } = require("mysql/lib/protocol/constants/types");
 const Data = require("../Data");
+const SystemService = require("./SystemService");
 
 /**
  * UserServiceJSON Common structure for communication
  * @typedef {Object} UserService_Data
  * @property {String} userID 
  * @property {Number} followersCount 
- * @property {Number} followingsCount 
+ * @property {Number} followingCount 
  * @property {Number} listedCount 
  * @property {Number} favoritesCount 
  * @property {Number} statusesCount 
@@ -41,7 +42,7 @@ const UserService = {
     normalize: data=>({
         userID: data.id_str, 
         followersCount: data.followers_count,
-        followingsCount: data.friends_count,
+        followingCount: data.friends_count,
         listedCount: data.listed_count, 
         favoritesCount: data.favourites_count, 
         statusesCount: data.statuses_count, 
@@ -126,7 +127,7 @@ const UserService = {
      * @param {Object | Number | String} query_params Parameters to execute query | Id of row to read
      * @param {{onError: Function, onFields: Function, onResult: Function, onEnd: Function}} events
      */
-    readStream: (query_params = {}, events)=>{
+    readStream: (query_params = {}, events, options)=>{
         if(typeof query_params == 'string' || typeof query_params == 'number') {
             query_params = {userID: query_params};
         }
@@ -136,6 +137,7 @@ const UserService = {
         } else {
             query = 'SELECT * FROM User';
         }
+        if(options?.additionalSQL) query+=' '+options.additionalSQL;
         Data.Database.query(query, query_params)
             .on('error', events.onError || (()=>{}))
             .on('fields', events.onFields || (()=>{}))
@@ -174,6 +176,7 @@ const UserService = {
      * @returns {Promise<UserService_Data>}
      */
     fetchAPI: async(id)=>{
+        await SystemService.delay(5*1000);
         return new Promise((resolve, reject)=>{
             Data.Twitter.get('users/show', {user_id: id}, (error, data, response)=>{
                 if(error) reject(error);
@@ -255,71 +258,31 @@ const UserService = {
 
 UserService.UserStatsFreeze = {
     /**
-     * Database - Create table
-     * @returns {Promise}
+     * Database - Read UserStatsFreeze riw
+     * @param {UserService_StatsFreeze_Data} userStats 
+     * @returns 
      */
-    createTable: async ()=>{
+    create: (userStats)=>{
         return new Promise((resolve, reject)=>{
-            let query = 
-                `CREATE TABLE IF NOT EXISTS \`UserStatsFreeze\` (
-                    id int NOT NULL AUTO_INCREMENT, 
-                    userID BIGINT(8) NOT NULL UNIQUE,
-                    updateDate timestamp NOT NULL default CURRENT_TIMESTAMP,
-                    followersCount BIGINT(8) NOT NULL default 0,
-                    followingCount BIGINT(8) NOT NULL default 0,
-                    listedCount BIGINT(8) NOT NULL default 0,
-                    favoritesCount BIGINT(8) NOT NULL default 0,
-                    statusesCount BIGINT(8) NOT NULL default 0,
-                    PRIMARY KEY (\`id\`), KEY \`id\` (\`id\`),
-                    -- KEY \`userID\` (\`userID\`),
-                    CONSTRAINT \`userStatsFreeze_userID\` FOREIGN KEY (\`userID\`)
-                        REFERENCES \`User\` (\`userID\`) ON DELETE CASCADE
-                );`
-            connection.query(query, (error, results, fields)=>{
-                if(error) reject(error)
-                console.log("[UserService.UserStatsFreeze] createTable successfully");
-                resolve(results);
-            })
-        })
-    },
-    /**
-     * Database - Creates (inserts into new row) new UserStatsFreeze to table
-     * @param {UserService_StatsFreeze_Data} userStats User statistics to be inserted
-     * @returns {Promise}
-     */
-    create: async(userStats)=>{
-        return new Promise((resolve, reject)=>{
-            Data.Database.query("INSERT INTO `UserStatsFreeze` SET ?", userStats, (error, results, fields)=>{
+            Data.Database_UserStatsFreeze.query('INSERT INTO UserStatsFreeze SET ?', userStats, (error, results, fields)=>{
                 if(error && error.code != 'ER_DUP_ENTRY') reject(error);
-                console.log(`[UserService.UserStatsFreeze] insertToDatabase successful. userID=${userStats.userID}`);
                 resolve(results);
             })
         })
     },
-    /**
-     * Database - Read UserStatsFreeze row(s) from table
-     * @name read_userstats
-     * @param {Object | Number | String} query_params Parameters to execute query | Id of User
-     * @returns {Promise}
-     */
-    read: async(query_params)=>{
-        return await UserService.readFromDatabase(query_params);
-    },
-    /**
-     * Database - Update UserStatsFreeze row with new data 
-     * @param {Number | String} id Id of row to be updated with data
-     * @param {UserService_StatsFreeze_Data} user Data to be updated
-     * @returns {Promise}
-     */
-    update: async(id, userStats)=>{
+    read: async (query_params)=>{
         return new Promise((resolve, reject)=>{
-            Data.Database.query(`UPDATE UserStatsFreeze SET ? WHERE UserStatsFreeze.userID=${id}`, userStats, (error, results, fields)=>{
+            if(typeof query_params == 'string' || typeof query_params == 'number') query_params = {tweetID: query_params};
+            let query = Object.keys(query_params).length>0 ?
+                'SELECT * FROM TweetStatsFreeze WHERE ?' : 'SELECT * FROM TweetStatsFreeze';
+            Data.Database_UserStatsFreeze.query(query, query_params, (error, results, fields)=>{
                 if(error) reject(error);
-                console.log(`[UserService.UserStatsFreeze] updateToDatabase successful.`);
-                resolve(results);
+                if(results == undefined) reject();
+                if(results.length < 0) resolve ([]);
+                resolve(Object.values(results));
             })
         })
-    },
+    }
 }
 
 UserService.UserAnalysis = {
@@ -354,6 +317,16 @@ UserService.UserAnalysis = {
 } 
 
 UserService.UserFollower = {
+    fetchStreamAPI: (userID, {onResult, onError}, cursor = -1)=>{
+        if(userID == -1 ) return;
+        Data.Twitter.get('followers/ids.json', {user_id: userID, cursor}, (error, data, response)=>{
+            if(error) return onError?.(error[0]);
+            else if (data){
+                data.ids.forEach( onResult );
+            }
+        })
+    },
+    
     /**
      * Database - Creates (inserts into new row) new UserFollower in table
      * @param {{userID: Number|String, followerID: Number|String}} param0 Id of user and follower
@@ -367,7 +340,6 @@ UserService.UserFollower = {
             ( SELECT * FROM UserFollower WHERE userID=${userID} AND followerID=${followerID} );`;
             Data.Database_Slave2.query(query, (error, results, fields)=>{
                 if(error && error.code != 'ER_DUP_ENTRY') reject(error);
-                console.log(`[UserService.UserFollower] insertToDatabase successful. ${userID}-->${followerID}`);
                 resolve(results)
             })
         })
