@@ -1,28 +1,24 @@
-const { text } = require("express");
-const Data = require("./Data");
-const QueryModel = require("./Models/QueryModel");
-const GoogleDriveService = require("./Services/GoogleDriveService");
-const delay = ms => new Promise(res => setTimeout(res, ms));
+const Connection = require("./Data");
+const QueryModel = require("./Models/Query/QueryModel");
+const QueryService = require("./Services/Query/QueryService");
 
-
-Data.SSHDBconnect().then(async()=>{
-    while(true){
-        // let newQueries = await GoogleDriveService.readSpreadsheet('1Hpb_UJ_VBHktK18qrxoYKUwMrRFbd6VECgIO52XlrAI', 1)
-    
-        // newQueries.entries.forEach(async element => {
-        //     await QueryModel.createNew(element.query)
-        // });
-
-        let queries = await QueryModel.read();
-        for(let query of queries){
-            console.log(query.query);
-            if(query.shouldExecute){
-                let results = await query.execute();
-                for(let tweet of results){
-                    console.log(query.queryID, tweet.tweetID);
-                }
-                await delay(1*60*1000);
+function executeAllQueries(){
+    QueryService.stream(undefined, {
+        onResult: async q => {
+            try{
+                let query = new QueryModel(q);
+                await query.execute();
+                console.log(`Executed query ${query.query}. Fetched ${query.savedTweets.length} tweets`)
+            } catch(e){
+                console.log(`An error ocurred executing query ${q.query}`)
+                console.error(e)
             }
-        }
-    }
+        },
+        onEnd: executeAllQueries
+    })
+}
+
+
+Connection.connect().then(()=>{
+    executeAllQueries();
 })
