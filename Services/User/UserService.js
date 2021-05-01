@@ -49,7 +49,7 @@ const normalize = data => ({
  * @returns {Promise}
  */
 const create = (user) => new Promise((resolve, reject) => {
-    if(user.userID == undefined) return;
+    if(user.userID == undefined || user.userID == -1) return;
     const database = Connection.connections['user-main-write'];
     database.query('INSERT INTO User SET ?', user, (error, results, fields)=>{
         database.release();

@@ -9,14 +9,24 @@ const SystemService = require("../System/SystemService");
 const create = ({userID, followerID}) => new Promise(async (resolve, reject) => {
     if(userID == undefined || userID == -1 || followerID == undefined || followerID == -1) resolve();
     const database = Connection.connections['user-followers-write'];
-    let query = `
-        INSERT INTO UserFollower SET ?`;
+    let query = `INSERT INTO UserFollower SET ?`;
     database.query(query, {userID, followerID}, (error, results, fields)=>{
         database.release();
         if(error) reject(error);
         resolve(results)
     })
 });
+
+const bulkCreate = (values) => new Promise((resolve, reject)=>{
+    const database = Connection.connections['user-followers-write'];
+    let query = `
+    SET FOREIGN_KEY_CHECKS = 0; INSERT IGNORE INTO UserFollower (userID, followerID) VALUES ?; SET FOREIGN_KEY_CHECKS = 1;`;
+    database.query(query, [values], (error, results, fields)=>{
+        database.release();
+        if(error) reject(error);
+        resolve(results)
+    })
+})
 
 /**
  * Database - Read rows from `UserFollower` table
@@ -59,7 +69,7 @@ const stream = async (query_params, { onError = ()=>{}, onFields = ()=>{}, onRes
 /**
  * API - Fetch ids of followers
  * @param {String} userID ID of User to fetch followers from
- * @returns {Promise}
+ * @returns {Promise<Array<String>>}
  */
 const fetchAPI = userID => new Promise(async (resolve, reject) => {
     if(userID == -1) return;
@@ -72,5 +82,5 @@ const fetchAPI = userID => new Promise(async (resolve, reject) => {
     })
 });
 
-const UserFollowerService = {create, read, stream, fetchAPI};
+const UserFollowerService = {create, bulkCreate, read, stream, fetchAPI};
 module.exports = UserFollowerService;

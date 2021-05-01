@@ -2,7 +2,7 @@ const UserModel = require("../User/UserModel");
 const TweetEntitiesModel = require("./TweetEntitiesModel");
 const TweetStatsModel = require("./TweetStatsModel");
 // const TweetRetweetModel = require("./TweetRetweetModel");
-const TweetService = require("../../Services/TweetService");
+const TweetService = require("../../Services/Tweet/TweetService");
 
 class TweetModel{
     /**@type {String} Id of Tweet in Twitter and Database */
@@ -43,6 +43,7 @@ class TweetModel{
 
     _isRetweet;
 
+    shouldUploadRetweets = false;
     /**
      * Creates a new object for managing Tweet
      * @param {import("../../Services/Tweet/TweetService").TweetJSONExtended} tweet Data to load into object
@@ -59,11 +60,10 @@ class TweetModel{
         this.placeLng = tweet.placeLng;
         this.placeLat = tweet.placeLat;
         this.placeDescription = tweet.placeDescription;
-
-        if(tweet.author) this.author = new UserModel(tweet.author);
-        if(this.inReplyToTweetID != -1) this.repliedTweet = new TweetModel({tweetID: this.inReplyToTweetID});
-        if(this.inReplyToUserID != -1) this.repliedUser = new UserModel({userID: this.inReplyToUserID});
-        if(this.quotesTweetID != -1) this.quotedTweet = new TweetModel({tweetID: this.quotesTweetID});
+        this.author = new UserModel(tweet.author || {userID: this.authorID});
+        this.repliedTweet = this.tweetID != -1 ? new TweetModel({tweetID: this.inReplyToTweetID}) : null;
+        this.repliedUser = new UserModel({userID: this.inReplyToUserID});
+        this.quotedTweet = this.tweetID != -1 ? new TweetModel({tweetID: this.quotesTweetID}) : null;
 
         this.stats = new TweetStatsModel(tweet.latestStats || {tweetID: this.tweetID});
         this.retweets = new TweetRetweetModel({tweetID: this.tweetID});
@@ -87,7 +87,8 @@ class TweetModel{
 
     async readSelf(){
         if(this.tweetID == -1) return;
-        let tweetJSON = await TweetService.read(this.tweetID);
+        let tweetJSON = (await TweetService.read(this.tweetID))[0];
+        if(tweetJSON == undefined) throw 'No results';
         this.authorID = tweetJSON.authorID || -1;
         this.inReplyToUserID = tweetJSON.inReplyToUserID || -1;
         this.inReplyToTweetID = tweetJSON.inReplyToTweetID || -1;
@@ -98,10 +99,6 @@ class TweetModel{
         this.placeLng = tweetJSON.placeLng;
         this.placeLat = tweetJSON.placeLat;
         this.placeDescription = tweetJSON.placeDescription;
-
-        if(this.inReplyToTweetID != -1) this.repliedTweet = new TweetModel({tweetID: this.inReplyToTweetID});
-        if(this.inReplyToUserID != -1) this.repliedUser = new UserModel({userID: this.inReplyToUserID});
-        if(this.quotesTweetID != -1) this.quotedTweet = new TweetModel({tweetID: this.quotesTweetID});
 
         this.entities = new TweetEntitiesModel({tweetID: this.tweetID, fullText: this.fullText});
     }
@@ -121,9 +118,6 @@ class TweetModel{
         this.placeDescription = tweetJSON.placeDescription;
 
         this.author = new UserModel(tweetJSON.author);
-        if(this.inReplyToTweetID != -1) this.repliedTweet = new TweetModel({tweetID: this.inReplyToTweetID});
-        if(this.inReplyToUserID != -1) this.repliedUser = new UserModel({userID: this.inReplyToUserID});
-        if(this.quotesTweetID != -1) this.quotedTweet = new TweetModel({tweetID: this.quotesTweetID});
 
         this.stats = new TweetStatsModel(tweetJSON.latestStats);
         this.entities = new TweetEntitiesModel({tweetID: this.tweetID, fullText: this.fullText});
@@ -142,7 +136,7 @@ class TweetModel{
     }
 
     async getAuthor(){
-        if(this.tweetID == -1 || this.authorID == -1 || this.author != undefined) return this.author;
+        // if(this.tweetID == -1 || this.authorID == -1) return this.author;
         try{
             await this.author.getSelf();
         } catch(e){
@@ -172,31 +166,34 @@ class TweetModel{
         }
     }
 
-    async upload(){
+    async upload({shouldUploadRetweets = false} = {}){
         if(this.tweetID == -1) return;
         try{
             // Author
-            await this.getAuthor();
+            await this.author.getSelf();
             await this.author.upload();
             // In reply to tweetID
             await this.repliedTweet.getSelf();
             await this.repliedTweet.upload();
+            // Quotes
+            await this.quotedTweet.getSelf();
+            await this.quotedTweet.upload();
             // In reply to userID
             if(this.inReplyToUserID != this.authorID && this.inReplyToUserID != this.repliedTweet.authorID){
-                await this.repliedUser.readSelf();
+                await this.repliedUser.getSelf();
                 await this.repliedUser.upload();
             }
             // Create tweet
             await TweetService.create(this.toJSON());
             // Upload stats and entities
             await this.stats.upload();
-            if(this.stats.latestStats?.retweetCount > 20) {
+            if(this.stats.latestStats?.retweetCount > 20 && shouldUploadRetweets) {
                 await this.retweets.upload();
             }
             await this.entities.upload();
 
         } catch(e){
-
+            throw e;
         }
     }
 }
@@ -218,7 +215,7 @@ class TweetRetweetModel{
             this.latestRetweets = (await TweetRetweetService.fetchAPI(this.tweetID))
                 .map(t => {
                     let tweet = new TweetModel(t);
-                    tweet._isRetweet = true;
+                    tweet.shouldUploadRetweets = false;
                     return tweet;
                 })
             return this.latestRetweets;

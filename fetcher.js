@@ -7,6 +7,7 @@ function executeAllQueries(){
         onResult: async q => {
             try{
                 let query = new QueryModel(q);
+                if(!query.shouldExecute) return;
                 await query.execute();
                 console.log(`Executed query ${query.query}. Fetched ${query.savedTweets.length} tweets`)
             } catch(e){

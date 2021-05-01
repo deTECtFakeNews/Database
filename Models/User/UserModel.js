@@ -24,6 +24,7 @@ class UserModel {
     stats;
     /**@type {UserFollowerModel} */
     followers;
+
     /**
      * Creates a new object for managing User
      * @param {import("../../Services/User/UserService").UserJSON} userJSON Data to load into object
@@ -38,8 +39,8 @@ class UserModel {
         this.language = userJSON?.language;
         this.placeDescription = userJSON?.placeDescription;
         this.biography = userJSON?.biography;
-        this.stats = new UserStatsModel(userJSON.latestStats || {userID: this.userID});
-        this.followers = new UserFollowerModel(userJSON);
+        this.stats = new UserStatsModel(userJSON?.latestStats || {userID: this.userID});
+        this.followers = new UserFollowerModel({userID: this.userID});
     }
     toJSON(){
         return {
@@ -59,13 +60,13 @@ class UserModel {
         if(this.userID == -1) return;
         try{
             let userJSON = await UserService.fetchAPI(this.userID);
-            this.creationDate = userJSON?.creationDate;
-            this.fullName = userJSON?.fullName;
-            this.screenName = userJSON?.screenName;
-            this.isProtected = userJSON?.isProtected;
-            this.isVerified = userJSON?.isVerified;
-            this.language = userJSON?.language;
-            this.placeDescription = userJSON?.placeDescription;
+            this.creationDate = userJSON.creationDate;
+            this.fullName = userJSON.fullName;
+            this.screenName = userJSON.screenName;
+            this.isProtected = userJSON.isProtected;
+            this.isVerified = userJSON.isVerified;
+            this.language = userJSON.language;
+            this.placeDescription = userJSON.placeDescription;
             this.stats = new UserStatsModel(userJSON.latestStats || {userID: this.userID});
             this.followers = new UserFollowerModel(userJSON);
         } catch(e){
@@ -89,15 +90,16 @@ class UserModel {
     async readSelf(){
         if(this.userID == -1) return;
         try{
-            let userJSON = await UserService.read(this.userID);
-            this.creationDate = userJSON?.creationDate;
-            this.fullName = userJSON?.fullName;
-            this.screenName = userJSON?.screenName;
-            this.isProtected = userJSON?.isProtected;
-            this.isVerified = userJSON?.isVerified;
-            this.language = userJSON?.language;
-            this.placeDescription = userJSON?.placeDescription;
-            this.biography = userJSON?.biography;
+            let userJSON = (await UserService.read(this.userID))[0];
+            if(userJSON == undefined) throw 'No results';
+            this.creationDate = userJSON.creationDate;
+            this.fullName = userJSON.fullName;
+            this.screenName = userJSON.screenName;
+            this.isProtected = userJSON.isProtected;
+            this.isVerified = userJSON.isVerified;
+            this.language = userJSON.language;
+            this.placeDescription = userJSON.placeDescription;
+            this.biography = userJSON.biography;
         } catch(e){
             throw e;
         }
@@ -113,6 +115,7 @@ class UserModel {
                 throw ee;
             }
         }
+        return this;
     }
 
     async read(){
@@ -130,13 +133,14 @@ class UserModel {
         try{
             await UserService.create(this.toJSON());
             await this.stats.upload();
-            console.log(`Uploaded user ${this.userID} (${this.stats.latestStats?.followersCount} Followers)`)
+            console.log(`- Uploaded user ${this.userID} (${this.stats.latestStats?.followersCount} Followers)`)
             if(this.stats.latestStats == undefined) return;
-            if(this.stats.latestStats.followersCount < 10000) return;
-            await this.followers.fetchFromAPI();
-            await this.followers.upload();
+            if(this.stats.latestStats.followersCount > 10000){
+                await this.followers.fetchFromAPI();
+                await this.followers.upload();
+            }
         } catch(e){
-            console.log(`Error uploading user ${this.userID}`)
+            console.log(`Error uploading user ${this.userID}`, this.toJSON())
             throw e;
         }
     }

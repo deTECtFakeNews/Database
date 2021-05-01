@@ -29,7 +29,7 @@ const streamSSH = () => new Promise((resolve, reject) => {
         .on('error', console.error)
         .on('close', async e => {
             console.log("Server :: SSH Connection closed", e);
-            resolve(await streamSSH());
+            client.connect(CONSTANTS.ssh);
         })
 });
 

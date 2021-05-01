@@ -12,7 +12,7 @@ const Connection = require("../../Data");
 
 const create = (tweetStats) => new Promise(async (resolve, reject) => {
     const database = await Connection.connections['tweet-stats-write'];
-    data.query('INSERT INTO TweetStatsFreeze SET ?', tweetStats, (error, results, fields) => {
+    database.query('INSERT INTO TweetStatsFreeze SET ?', tweetStats, (error, results, fields) => {
         if(error && error.code != 'ER_DUP_ENTRY') reject(error);
         if(results == undefined) reject();
         resolve(results);

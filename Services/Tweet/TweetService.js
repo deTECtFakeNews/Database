@@ -64,9 +64,9 @@ const normalize = data => ({
  * @param {TweetJSON} tweet TweetJSON with data to be added to database 
  * @returns {Promise}
  */
-const create = tweet => new Promise(async (resolve, reject) => {
+const create = tweet => new Promise((resolve, reject) => {
     if(tweet.tweetID == -1 || tweet.tweetID == undefined) return;
-    const database = await Connection.connections['tweet-main-write'];
+    const database = Connection.connections['tweet-main-write'];
     database.query('INSERT INTO Tweet SET ?', tweet, (error, results, fields)=>{
         database.release();
         if(error && error.code != 'ER_DUP_ENTRY') reject(error);
@@ -79,12 +79,12 @@ const create = tweet => new Promise(async (resolve, reject) => {
  * @param {UserJSON|String} query_params Parameters to search | tweetID of Tweet to read
  * @returns {Promise<Array<TweetJSON>>}
  */
-const read = (query_params) => new Promise( async (resolve, reject) => {
+const read = (query_params) => new Promise((resolve, reject) => {
     if(typeof query_params == 'string' || typeof query_params == 'number'){
         query_params = {tweetID: query_params}
     }
     let query = query_params == undefined ? 'SELECT * FROM Tweet ORDER BY creationDate DESC' : 'SELECT * FROM Tweet WHERE ? ORDER BY creationDate DESC';
-    const database = await Connection.connections['tweet-main-read'];
+    const database = Connection.connections['tweet-main-read'];
     database.query(query, query_params, (error, results, fields)=>{
         database.release();
         if(error) reject(error);
@@ -99,12 +99,12 @@ const read = (query_params) => new Promise( async (resolve, reject) => {
  * @param {{onError: Function, onFields: Function, onResult: Function, onEnd: Function}} param1 Callback functions
  * @returns {VoidFunction}
  */
-const stream = async (query_params, {onError=()=>{}, onFields=()=>{}, onResult=()=>{}, onEnd=()=>{}}) => {
+const stream = (query_params, {onError=()=>{}, onFields=()=>{}, onResult=()=>{}, onEnd=()=>{}}) => {
     if(typeof query_params == 'string' || typeof query_params == 'number'){
         query_params = {userID: query_params}
     }
     let query = query_params == undefined ? 'SELECT * FROM Tweet ORDER BY creationDate DESC' : 'SELECT * FROM Tweet WHERE ? ORDER BY creationDate DESC';
-    const database = await Connection.connections['tweet-main-read'];
+    const database = Connection.connections['tweet-main-read'];
     database.query(query, query_params)
         .on('end', ()=>{
             database.release();
@@ -128,8 +128,8 @@ const stream = async (query_params, {onError=()=>{}, onFields=()=>{}, onResult=(
  * @param {TweetJSON} tweet New tweet data
  * @returns {Promise}
  */
-const update = (tweetID, tweet) => new Promise(async (resolve, reject) => {
-    const database = await Connection.connections['tweet-main-write'];
+const update = (tweetID, tweet) => new Promise((resolve, reject) => {
+    const database = Connection.connections['tweet-main-write'];
     database.query('UPDATE Users SET ? WHERE ?', [tweet, {tweetID}], (error, results, fields) => {
         database.release();
         if(error) reject(error);

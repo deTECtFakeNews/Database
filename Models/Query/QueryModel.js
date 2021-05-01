@@ -36,10 +36,11 @@ class QueryModel {
                 .map(tweet => new TweetModel(tweet));
             for(let tweet of this.latestTweets){
                 try{
-                    await tweet.upload();
+                    await tweet.upload({shouldUploadRetweets: true});
                     this.savedTweets.push(tweet);
                     await QueryTweetService.create({tweetID: tweet.tweetID, queryID: this.queryID});
                     await QueryService.update(this.queryID, {executeDate: new Date()});
+                    console.log(`Added tweet ${tweet.tweetID} to query ${this.queryID}`)
                 } catch(e){
                     console.log(`Error inserting tweet with tweetID=${tweet.tweetID} and userID=${tweet.authorID}`, e)
                 }
