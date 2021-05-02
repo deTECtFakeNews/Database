@@ -45,7 +45,7 @@ class TweetRetweetModel{
                 }
             }
         } catch(e){
-
+            throw e;
         }
     }
     

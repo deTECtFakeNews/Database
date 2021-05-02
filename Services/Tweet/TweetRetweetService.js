@@ -1,5 +1,6 @@
 const Connection = require("../../Data");
-const { normalize } = require("../TweetService");
+const UserService = require('../User/UserService');
+// const {normalize} = require('./TweetService');
 
 /**
  * @typedef {Object} TweetRetweetJSON
@@ -9,16 +10,54 @@ const { normalize } = require("../TweetService");
  */
 
 /**
+ * Transforms Twitter API Tweet Object to Tweet interface
+ * @param {Object} data 
+ * @returns {TweetJSONExtended}
+ */
+ const normalize = data => ({
+    tweetID: data.id_str,
+    authorID: data.user.id_str,
+    inReplyToUserID: data.in_reply_to_user_id_str || -1,
+    inReplyToTweetID: data.in_reply_to_status_id_str || -1,
+    quotesTweetID: data.quoted_status_id_str || -1, 
+    creationDate: new Date(data.created_at),
+    fullText: data.full_text || data.text, 
+    language: data.lang || null, 
+    placeLng: data.coordinates?.coordinates?.[0] || null, 
+    placeLat: data.coordinates?.coordinates?.[1] || null, 
+    placeDescription: data.place?.full_name || null, 
+    
+    latestStats: {
+        tweetID: data.id_str,
+        updateDate: new Date(), 
+        retweetCount: data.retweet_count, 
+        favoriteCount: data.favorite_count, 
+        replyCount: data.reply_count
+    },
+    author: UserService.normalize(data.user)
+});
+
+/**
  * Database - Creates a new row in `TweetRetweet` table
  * @param {TweetRetweetJSON} tweetRetweet TweetRetweetJSON with data to be added to database
  * @returns {Promise}
  */
-const create = (tweetRetweet) => new Promise(async (resolve, reject) => {
+const create = (tweetRetweet) => new Promise((resolve, reject) => {
     if(tweetRetweet.tweetID == -1 || tweetRetweet.tweetID == undefined || tweetRetweet.userID == undefined || tweetRetweet.creationDate == undefined) return;
-    const database = await Connection.connections['tweet-retweet-write'];
+    const database = Connection.connections['tweet-retweet-write'];
     database.query('INSERT INTO TweetRetweet SET ?', tweetRetweet, (error, results, fields) => {
         database.release();
         if(error && error.code != 'ER_DUP_ENTRY') reject(error);
+        resolve(results);
+    })
+})
+
+
+const bulkCreate = (values) => new Promise((resolve, reject) => {
+    const database = Connection.connections['tweet-retweet-write'];
+    database.query('INSERT IGNORE INTO TweetRetweet (tweetID, authorID, creationDate) VALUES ?', [values], (error, results, fields) => {
+        database.release();
+        if(error) reject(error);
         resolve(results);
     })
 })
