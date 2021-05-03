@@ -57,7 +57,7 @@ class UserStatsModel {
     }
     async upload(){
         if(this.userID == -1) return;
-        if(!this.latestStats == undefined) return;
+        if(this.latestStats == undefined) return;
         try{
             await this.read();
             if(this.savedStats.length == 0 || areDifferentStats(this.savedStats[this.savedStats.length-1], this.latestStats)){

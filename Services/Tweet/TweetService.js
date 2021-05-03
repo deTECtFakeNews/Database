@@ -147,8 +147,11 @@ const fetchAPI = (tweetID) => new Promise(async (resolve, reject) => {
     await Connection.Twitter.delay('statuses/show/:id');
     Connection.Twitter.get(`statuses/show/${tweetID}`, {tweet_mode: 'extended'}, (error, data, response) => {
         if(error) reject(error);
-        if(data==undefined) reject();
-        resolve(normalize(data)); 
+        if(data == undefined) reject();
+        if(data.user == undefined) reject(); // Reject data if user object is not present
+        try{
+            resolve(normalize(data)); 
+        } catch(e) {reject(e)} 
     })
 })
 

@@ -13,7 +13,7 @@ class TweetStatsModel {
     /**@type {String} ID of Tweet in Twitter and Database */
     tweetID;
     /**@type {Array<TweetStatsJSON>} */
-    savedStats;
+    savedStats = [];
     /**@type {TweetStatsJSON} */
     latestStats;
     constructor(tweetStats){
@@ -43,15 +43,16 @@ class TweetStatsModel {
         this.savedStats = await TweetStatsService.read(this.tweetID);
         return this.savedStats;
     }
-    async upload(){
+    async upload(){ 
         if(this.tweetID == -1) return;
-        try{
-            if((this.latestStats && this.savedStats.length>0) && areDifferentStats(this.latestStats, this.savedStats[this.savedStats.length-1])){
+        if(this.latestStats == undefined) return;
+        try{ 
+            if(this.savedStats.length == 0 || areDifferentStats(this.savedStats[this.savedStats.length-1], this.latestStats)){
                 await TweetStatsService.create(this.latestStats);
                 this.savedStats.push(this.latestStats);
             }
         } catch(e){
-
+            throw e;
         }
     }
     getMax(stat){
