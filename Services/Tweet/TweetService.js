@@ -83,7 +83,7 @@ const read = (query_params) => new Promise((resolve, reject) => {
     if(typeof query_params == 'string' || typeof query_params == 'number'){
         query_params = {tweetID: query_params}
     }
-    let query = query_params == undefined ? 'SELECT * FROM Tweet ORDER BY creationDate DESC' : 'SELECT * FROM Tweet WHERE ? ORDER BY creationDate DESC';
+    let query = query_params == undefined ? 'SELECT * FROM Tweet ORDER BY creationDate ASC' : 'SELECT * FROM Tweet WHERE ? ORDER BY creationDate ASC';
     const database = Connection.connections['tweet-main-read'];
     database.query(query, query_params, (error, results, fields)=>{
         database.release();
@@ -103,7 +103,8 @@ const stream = (query_params, {onError=()=>{}, onFields=()=>{}, onResult=()=>{},
     if(typeof query_params == 'string' || typeof query_params == 'number'){
         query_params = {userID: query_params}
     }
-    let query = query_params == undefined ? 'SELECT * FROM Tweet ORDER BY creationDate DESC' : 'SELECT * FROM Tweet WHERE ? ORDER BY creationDate DESC';
+    //let query = query_params == undefined ? 'SELECT * FROM Tweet ORDER BY creationDate ASC' : 'SELECT * FROM Tweet WHERE ? ORDER BY creationDate ASC';
+    let query = 'SELECT * FROM view_util_crawler ORDER BY MAX ASC';
     const database = Connection.connections['tweet-main-read'];
     database.query(query, query_params)
         .on('end', ()=>{

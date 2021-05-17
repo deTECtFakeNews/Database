@@ -3,7 +3,7 @@ const TweetEntitiesModel = require("./TweetEntitiesModel");
 const TweetStatsModel = require("./TweetStatsModel");
 // const TweetRetweetModel = require("./TweetRetweetModel");
 const TweetService = require("../../Services/Tweet/TweetService");
-
+const {TweetRetweetService} = TweetService;
 class TweetModel{
     /**@type {String} Id of Tweet in Twitter and Database */
     tweetID;
@@ -187,7 +187,10 @@ class TweetModel{
             await TweetService.create(this.toJSON());
             // Upload stats and entities
             await this.stats.upload();
-            if(this.stats.latestStats?.retweetCount > 20 && shouldUploadRetweets) {
+		console.log('Uplaodaed stats', this.stats.latestStats?.retweetCount);
+            if(this.stats.latestStats?.retweetCount >= 20) {
+		console.log('Uploading rts');
+		await this.retweets.fetchFromAPI();
                 await this.retweets.upload();
             }
             await this.entities.upload();
@@ -239,14 +242,15 @@ class TweetRetweetModel{
     }
     async upload(){
         if(this.tweetID == -1) return;
-        try{
-            for(let retweet of this.latestRetweets){
-                await TweetRetweetService.create({authorID: retweet.authorID, creationDate: retweet.creationDate, tweetID: retweet.tweetID});
-                await retweet.author.upload();
-            }
-        } catch(e){
-
-        }
+        for(let retweet of this.latestRetweets){
+		try{
+				//await retweet.author.upload();
+			await TweetRetweetService.create({authorID: retweet.authorID, creationDate: retweet.creationDate, tweetID: retweet.tweetID});
+			console.log('Uploading retweets')
+		} catch(e){
+			console.log('Error uploading retweets', e);
+		}
+	}
     }
     
 }

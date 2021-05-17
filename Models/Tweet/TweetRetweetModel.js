@@ -39,9 +39,9 @@ class TweetRetweetModel{
         try{
             for(let retweet of this.latestRetweets){
                 console.log('RT: Updated tweet', retweet.tweetID)
-                if( retweet.author.stats.latestStats.followerCount > 30 ){
-                    await TweetRetweetService.create({authorID: retweet.authorID, creationDate: retweet.creationDate, tweetID: retweet.tweetID});
+                if( true || retweet.author.stats.latestStats.followerCount > 30 ){
                     await retweet.author.upload();
+		    await TweetRetweetService.create({authorID: retweet.authorID, creationDate: retweet.creationDate, tweetID: retweet.tweetID});
                 }
             }
         } catch(e){

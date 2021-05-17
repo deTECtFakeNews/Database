@@ -30,22 +30,8 @@ class UserFollowerModel {
         }
     }
     async upload(){
-        if(this.userID == -1) return;
-        /* let count = 0;
-        for(let follower of this.latestFollowers){
-            if(this.savedFollowers.find(({followerID})=>followerID==follower)) continue;
-            try{
-                await UserFollowerService.create({userID: this.userID, followerID: follower});
-                count++;
-                console.log(`Added follower ${follower} to ${this.userID}`)
-            } catch(e){
-                if(e.code != 'ER_NO_REFERENCED_ROW_2' && e.code != 'ER_DUP_ENTRY') throw e;
-            }
-        }
-        console.log(`Added ${count} followers to ${this.userID}`) */
-        console.log('Uploading followers')
+        console.log('Uploading followers');
         await UserFollowerService.bulkCreate(
-            // Make 2D array
             this.latestFollowers.map(({userID, followerID})=>[userID, followerID])
         );
     }
