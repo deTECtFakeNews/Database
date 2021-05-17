@@ -38,7 +38,7 @@ const twitter_all = [
 ]
 
 const seed = process.argv[2];
-
+console.log('Seed is', seed)
 const twitter = twitter_all[ seed || 0 ];
 
 

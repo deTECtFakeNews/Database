@@ -114,7 +114,6 @@ const stream = (query_params, {onError=()=>{}, onFields=()=>{}, onResult=()=>{},
             seedQuery = 'ORDER BY RAND()';
             break;
         default:
-        case 0:
             seedQuery = 'ORDER BY MAX ASC';
             break;
     }
