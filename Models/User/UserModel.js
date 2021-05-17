@@ -138,8 +138,11 @@ class UserModel {
             console.log(`Uploaded User ${this.userID} (followers: ${this.stats.latestStats?.followersCount})`)
             if(this.stats.latestStats.followersCount >= 10000 && uploadFollowers){
                 console.log('-- Fetching followers')
-                await this.followers.fetchFromAPI();
-                await this.followers.upload();
+                await this.followers.read();
+                if(this.followers.savedFollowers.length==0){
+                    await this.followers.fetchFromAPI();
+                    await this.followers.upload();
+                }
             }
         } catch(e){
             throw e;

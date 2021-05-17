@@ -105,7 +105,20 @@ const stream = (query_params, {onError=()=>{}, onFields=()=>{}, onResult=()=>{},
         query_params = {userID: query_params}
     }
     //let query = query_params == undefined ? 'SELECT * FROM Tweet ORDER BY creationDate ASC' : 'SELECT * FROM Tweet WHERE ? ORDER BY creationDate ASC';
-    let query = 'SELECT * FROM view_util_crawler ORDER BY MAX ' + ( seed == 0 ? 'ASC' : 'DESC' );
+    let seedQuery = '';
+    switch(seed){
+        case 1:
+            seedQuery = 'ORDER BY MAX DESC';
+            break;
+        case 2:
+            seedQuery = 'ORDER BY RAND()';
+            break;
+        default:
+        case 0:
+            seedQuery = 'ORDER BY MAX ASC';
+            break;
+    }
+    let query = 'SELECT * FROM view_util_crawler ' + seedQuery;
     const database = Connection.connections['tweet-main-read'];
     database.query(query, query_params)
         .on('end', ()=>{
