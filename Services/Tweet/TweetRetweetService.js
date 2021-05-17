@@ -43,12 +43,14 @@ const UserService = require('../User/UserService');
  * @returns {Promise}
  */
 const create = (tweetRetweet) => new Promise((resolve, reject) => {
-    if(tweetRetweet.tweetID == -1 || tweetRetweet.tweetID == undefined || tweetRetweet.userID == undefined || tweetRetweet.creationDate == undefined) return;
+    console.log(tweetRetweet)
+    // if(tweetRetweet.tweetID == -1 || tweetRetweet.tweetID == undefined || tweetRetweet.userID == undefined || tweetRetweet.creationDate == undefined) return;
     const database = Connection.connections['tweet-retweet-write'];
     database.query('INSERT INTO TweetRetweet SET ?', tweetRetweet, (error, results, fields) => {
         database.release();
+        console.log('done')
         if(error && error.code != 'ER_DUP_ENTRY') reject(error);
-        resolve(results);
+        resolve();
     })
 })
 
@@ -116,7 +118,7 @@ const read = (query_params) => new Promise(async (resolve, reject) => {
  * @param {{count: Number}} param1 Options
  * @returns {Promise<Array<TweetRetweetJSON>>}
  */
-const fetchAPI = (tweetID, {count} = {count: 100}) => new Promise(async (resolve, reject) => {
+const fetchAPI = (tweetID, {count} = {count: 100, trim_user: false}) => new Promise(async (resolve, reject) => {
     await Connection.Twitter.delay('statuses/retweets/:id');
     Connection.Twitter.get('/statuses/retweets', {id: tweetID, count}, (error, data, response)=>{
         if(error) reject(error);

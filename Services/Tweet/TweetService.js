@@ -53,10 +53,10 @@ const normalize = data => ({
         tweetID: data.id_str,
         updateDate: new Date(), 
         retweetCount: data.retweet_count, 
-        favoriteCount: data.favorite_count, 
-        replyCount: data.reply_count
+        favoriteCount: data.retweeted_status ? data.retweeted_status.favorite_count : data.favorite_count, 
+        replyCount: data.reply_count  || -1
     },
-    author: UserService.normalize(data.user)
+    author: data.user ? UserService.normalize(data.user) : undefined
 });
 
 /**
@@ -104,7 +104,7 @@ const stream = (query_params, {onError=()=>{}, onFields=()=>{}, onResult=()=>{},
         query_params = {userID: query_params}
     }
     //let query = query_params == undefined ? 'SELECT * FROM Tweet ORDER BY creationDate ASC' : 'SELECT * FROM Tweet WHERE ? ORDER BY creationDate ASC';
-    let query = 'SELECT * FROM view_util_crawler ORDER BY MAX ASC';
+    let query = 'SELECT * FROM view_util_crawler ORDER BY MAX DESC';
     const database = Connection.connections['tweet-main-read'];
     database.query(query, query_params)
         .on('end', ()=>{
@@ -148,11 +148,8 @@ const fetchAPI = (tweetID) => new Promise(async (resolve, reject) => {
     await Connection.Twitter.delay('statuses/show/:id');
     Connection.Twitter.get(`statuses/show/${tweetID}`, {tweet_mode: 'extended'}, (error, data, response) => {
         if(error) reject(error);
-        if(data == undefined) reject();
-        if(data.user == undefined) reject(); // Reject data if user object is not present
-        try{
-            resolve(normalize(data)); 
-        } catch(e) {reject(e)} 
+        if(data == undefined) reject(error);
+        resolve(normalize(data)); 
     })
 })
 

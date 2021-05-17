@@ -17,7 +17,7 @@ class UserFollowerModel {
             this.latestFollowers = this.latestFollowers.map(l=>({userID: this.userID, followerID: l}))
             return this.latestFollowers;
         } catch(e){
-            console.error(e)
+            throw e;
         }
     }
     async read(){
@@ -26,14 +26,17 @@ class UserFollowerModel {
             this.savedFollowers = await UserFollowerService.read(this.userID);
             return this.savedFollowers;
         } catch (e){
-
+            throw e;
         }
     }
     async upload(){
-        console.log('Uploading followers');
-        await UserFollowerService.bulkCreate(
-            this.latestFollowers.map(({userID, followerID})=>[userID, followerID])
-        );
+        try{
+            await UserFollowerService.bulkCreate(
+                this.latestFollowers.map(({userID, followerID})=>[userID, followerID]));
+                console.log('Uploaded followers for', this.userID);
+        } catch(e){
+            throw e;
+        }
     }
 
 }

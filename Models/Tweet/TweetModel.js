@@ -166,36 +166,38 @@ class TweetModel{
         }
     }
 
-    async upload({shouldUploadRetweets = false} = {}){
+    async upload({uploadRetweets = true, uploadFollowers = true} = {}){
         if(this.tweetID == -1) return;
         try{
             // Author
             await this.author.getSelf();
-            await this.author.upload();
+            await this.author.upload({uploadFollowers});
             // In reply to tweetID
             await this.repliedTweet.getSelf();
-            await this.repliedTweet.upload();
+            await this.repliedTweet.upload({uploadRetweets});
             // Quotes
             await this.quotedTweet.getSelf();
-            await this.quotedTweet.upload();
+            await this.quotedTweet.upload({uploadRetweets});
             // In reply to userID
             if(this.inReplyToUserID != this.authorID && this.inReplyToUserID != this.repliedTweet.authorID){
                 await this.repliedUser.getSelf();
-                await this.repliedUser.upload();
+                await this.repliedUser.upload({uploadFollowers});
             }
             // Create tweet
             await TweetService.create(this.toJSON());
             // Upload stats and entities
+            // await this.stats.read();
+            await this.stats.readSelf();
             await this.stats.upload();
-		console.log('Uplaodaed stats', this.stats.latestStats?.retweetCount);
-            if(this.stats.latestStats?.retweetCount >= 20) {
-		console.log('Uploading rts');
-		await this.retweets.fetchFromAPI();
+            console.log(`uploaded Tweet ${this.tweetID} ${this.fullText.substr(0, 20)}...  (author ${this.authorID}, retweets: ${this.stats.latestStats.retweetCount})`)
+            if(this.stats.latestStats?.retweetCount >= 20 && uploadRetweets) {
+                console.log('Uploading rts');
+                await this.retweets.fetchFromAPI();
                 await this.retweets.upload();
             }
             await this.entities.upload();
-
         } catch(e){
+            console.log('Perdoname pero no', e)
             throw e;
         }
     }
@@ -206,7 +208,7 @@ class TweetRetweetModel{
     /**@type {String} */
     tweetID;
     /**@type {Array<TweetModel>} */
-    latestRetweets;
+    latestRetweets = [];
     /**@type {Array<TweetModel>} */
     savedRetweets;
     constructor({tweetID}){
@@ -216,14 +218,11 @@ class TweetRetweetModel{
         if(this.tweetID == -1) return;
         try{
             this.latestRetweets = (await TweetRetweetService.fetchAPI(this.tweetID))
-                .map(t => {
-                    let tweet = new TweetModel(t);
-                    tweet.shouldUploadRetweets = false;
-                    return tweet;
-                })
+                .map(t => new TweetModel(t))
             return this.latestRetweets;
         } catch(e){
-            console.log('Could not fetch retweets', e)
+            console.log('Could not fetch retweets', e);
+            throw e;
         }
     }
     async read(){
@@ -242,15 +241,19 @@ class TweetRetweetModel{
     }
     async upload(){
         if(this.tweetID == -1) return;
+        console.log(`Uploading ${this.latestRetweets.length} rts`)
         for(let retweet of this.latestRetweets){
-		try{
-				//await retweet.author.upload();
-			await TweetRetweetService.create({authorID: retweet.authorID, creationDate: retweet.creationDate, tweetID: retweet.tweetID});
-			console.log('Uploading retweets')
-		} catch(e){
-			console.log('Error uploading retweets', e);
-		}
-	}
+            try{
+                // console.log(retweet.author)
+                // console.log(retweet.authorID)
+                await retweet.author.upload({uploadFollowers: false, fetchStatsFromAPI: true});
+                // console.log('uploadded user')
+                await TweetRetweetService.create({authorID: retweet.authorID, creationDate: retweet.creationDate, tweetID: this.tweetID});
+                console.log(`Uploaded rt by ${retweet.authorID}`)
+            } catch(e){
+                console.log('Error uploading retweets', e);
+            }
+	    }
     }
     
 }

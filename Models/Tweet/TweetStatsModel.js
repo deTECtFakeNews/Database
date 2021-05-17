@@ -35,22 +35,40 @@ class TweetStatsModel {
             this.latestStats = latestStats;
             return this.latestStats;
         } catch(e) {
-            const defaultStats = {tweetID: this.tweetID, updateDate: new Date(), retweetCount: -1, replyCount: -1, favoriteCount: -1}
+            // this.latestStats = {tweetID: this.tweetID, updateDate: new Date(), retweetCount: -1, replyCount: -1, favoriteCount: -1}
+            throw e;
+        }
+    }
+    async readSelf(){
+        try{
+            console.log('from api')
+            await this.fetchFromAPI();
+        } catch(e){
+            try{
+                console.log(e)
+            console.log('from db')
+                await this.read();
+            } catch(ee){
+                throw ee;
+            }
         }
     }
     async read(){
         if(this.tweetID == -1) return;
-        this.savedStats = await TweetStatsService.read(this.tweetID);
+        try{
+            this.savedStats = await TweetStatsService.read(this.tweetID);
+            if(this.latestStats == undefined) this.latestStats = this.savedStats[this.savedStats.length-1];
+        } catch(e){
+            throw e;
+        }
         return this.savedStats;
     }
     async upload(){ 
         if(this.tweetID == -1) return;
         if(this.latestStats == undefined) return;
         try{ 
-            if(this.savedStats.length == 0 || areDifferentStats(this.savedStats[this.savedStats.length-1], this.latestStats)){
-                await TweetStatsService.create(this.latestStats);
-                this.savedStats.push(this.latestStats);
-            }
+            await TweetStatsService.create(this.latestStats);
+            this.savedStats.push(this.latestStats);
         } catch(e){
             throw e;
         }

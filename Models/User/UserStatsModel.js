@@ -36,6 +36,7 @@ class UserStatsModel {
     }
     async fetchFromAPI(){
         if(this.userID == -1) return;
+        if(this.latestStats) return;
         try{
             let {latestStats} = await UserService.fetchAPI(this.userID);
             this.latestStats = latestStats;
@@ -52,18 +53,31 @@ class UserStatsModel {
     }
     async read(){
         if(this.userID == -1) return;
-        this.savedStats = await UserStatsService.read(this.userID);
-        return this.savedStats;
+        try{
+            this.savedStats = await UserStatsService.read(this.userID);
+            if(this.latestStats == undefined) this.latestStats = this.savedStats[this.savedStats.length-1];
+            return this.savedStats;
+        } catch(e) {
+            throw e;
+        }
+    }
+    async readSelf(){
+        try{
+            await this.fetchFromAPI()
+        } catch(e) {
+            try{
+                await this.read()
+            } catch(ee) {
+                throw ee;
+            }
+        }
     }
     async upload(){
         if(this.userID == -1) return;
         if(this.latestStats == undefined) return;
         try{
-            await this.read();
-            if(this.savedStats.length == 0 || areDifferentStats(this.savedStats[this.savedStats.length-1], this.latestStats)){
-                await UserStatsService.create(this.latestStats);
-                this.savedStats.push(this.latestStats)
-            }
+            await UserStatsService.create(this.latestStats);
+            this.savedStats.push(this.latestStats)
         } catch(e) {
             throw e
         }
