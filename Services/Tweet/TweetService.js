@@ -56,7 +56,7 @@ const normalize = data => ({
         favoriteCount: data.retweeted_status ? data.retweeted_status.favorite_count : data.favorite_count, 
         replyCount: data.reply_count  || -1
     },
-    author: data.user ? UserService.normalize(data.user) : undefined
+    author: data.user!=undefined ? UserService.normalize(data.user) : undefined
 });
 
 /**
@@ -104,7 +104,7 @@ const stream = (query_params, {onError=()=>{}, onFields=()=>{}, onResult=()=>{},
         query_params = {userID: query_params}
     }
     //let query = query_params == undefined ? 'SELECT * FROM Tweet ORDER BY creationDate ASC' : 'SELECT * FROM Tweet WHERE ? ORDER BY creationDate ASC';
-    let query = 'SELECT * FROM view_util_crawler ORDER BY MAX DESC';
+    let query = 'SELECT * FROM view_util_crawler ORDER BY MAX ASC';
     const database = Connection.connections['tweet-main-read'];
     database.query(query, query_params)
         .on('end', ()=>{
@@ -149,7 +149,9 @@ const fetchAPI = (tweetID) => new Promise(async (resolve, reject) => {
     Connection.Twitter.get(`statuses/show/${tweetID}`, {tweet_mode: 'extended'}, (error, data, response) => {
         if(error) reject(error);
         if(data == undefined) reject(error);
-        resolve(normalize(data)); 
+        try{
+            resolve(normalize(data)); 
+        } catch(e){reject(e)}
     })
 })
 
