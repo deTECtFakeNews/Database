@@ -192,8 +192,11 @@ class TweetModel{
             console.log(`uploaded Tweet ${this.tweetID} ${this.fullText.substr(0, 20)}...  (author ${this.authorID}, retweets: ${this.stats.latestStats.retweetCount})`)
             if(this.stats.latestStats?.retweetCount >= 20 && uploadRetweets) {
                 console.log('Uploading rts');
-                await this.retweets.fetchFromAPI();
-                await this.retweets.upload();
+                await this.retweets.read();
+                if(this.retweets.savedRetweets.length==0){
+                    await this.retweets.fetchFromAPI();
+                    await this.retweets.upload();
+                }
             }
             await this.entities.upload();
         } catch(e){
