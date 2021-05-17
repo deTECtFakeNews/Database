@@ -34,9 +34,9 @@ const twitter_all = [
     }
 ]
 
-// console.log(process.argv)
+const seed = process.argv[2];
 
-const twitter = twitter_all[ process.argv[2] || 0 ];
+const twitter = twitter_all[ seed || 0 ];
 
 
-module.exports = {ssh, mysql, twitter}
+module.exports = {ssh, mysql, twitter, seed}
