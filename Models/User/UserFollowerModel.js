@@ -14,7 +14,6 @@ class UserFollowerModel {
         if(this.userID == -1 || this.latestFollowers.length > 0) return;
         try{
             this.latestFollowers = await UserFollowerService.fetchAPI(this.userID);
-            this.latestFollowers = this.latestFollowers.map(l=>({userID: this.userID, followerID: l}))
             return this.latestFollowers;
         } catch(e){
             throw e;
@@ -32,8 +31,10 @@ class UserFollowerModel {
     async upload(){
         try{
             await UserFollowerService.bulkCreate(
-                this.latestFollowers.map(({userID, followerID})=>[userID, followerID]));
-                console.log('Uploaded followers for', this.userID);
+                this.latestFollowers.map(followerID=>[this.userID, followerID])
+            );
+            await UserFollowerService.purge(this.userID);
+            console.log('Uploaded followers for', this.userID);
         } catch(e){
             throw e;
         }

@@ -128,18 +128,16 @@ class UserModel {
         }
     }
 
-    async upload({uploadFollowers = true, fetchStatsFromAPI = false} = {}){
+    async upload({uploadFollowers = true} = {}){
         if(this.userID == -1) return;
         try{
             await UserService.create(this.toJSON());
-            if(fetchStatsFromAPI) await this.stats.readSelf();
-            else await this.stats.read();
+            if(this.stats.latestStats == undefined) await this.stats.readSelf();
             await this.stats.upload();
             console.log(`Uploaded User ${this.userID} (followers: ${this.stats.latestStats?.followersCount})`)
             if(this.stats.latestStats.followersCount >= 10000 && uploadFollowers){
-                console.log('-- Fetching followers')
-                await this.followers.read();
-                if(this.followers.savedFollowers.length==0){
+                if(this.followers.savedFollowers.length == 0) await this.followers.read();
+                if(this.followers.savedFollowers.length == 0){
                     await this.followers.fetchFromAPI();
                     await this.followers.upload();
                 }
