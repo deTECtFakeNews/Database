@@ -140,6 +140,8 @@ class UserModel {
                 if(this.followers.savedFollowers.length == 0){
                     await this.followers.fetchFromAPI();
                     await this.followers.upload();
+                } else {
+                    return;
                 }
             }
         } catch(e){

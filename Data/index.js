@@ -74,7 +74,7 @@ const createDatabaseConnection = async (name) => {
 const connections = {}
 
 const connect = async () => {
-    connections['main'] = await createDatabaseConnection('main');
+    // connections['main'] = await createDatabaseConnection('main');
     // USERS
     connections['user-main-read'] = await createDatabaseConnection('user-main-read');
     connections['user-main-write'] = await createDatabaseConnection('user-main-write');
@@ -87,6 +87,7 @@ const connect = async () => {
 
     connections['tweet-main-write'] = await createDatabaseConnection('tweet-main-write');
     connections['tweet-main-read'] = await createDatabaseConnection('tweet-main-read');
+    connections['tweet-main-read-2'] = await createDatabaseConnection('tweet-main-read-2');
     
     connections['tweet-entities-write'] = await createDatabaseConnection('tweet-entities-write');
     connections['tweet-entities-read'] = await createDatabaseConnection('tweet-entities-read');

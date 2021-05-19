@@ -33,6 +33,7 @@ class UserFollowerModel {
             await UserFollowerService.bulkCreate(
                 this.latestFollowers.map(followerID=>[this.userID, followerID])
             );
+            console.log('B')
             await UserFollowerService.purge(this.userID);
             console.log('Uploaded followers for', this.userID);
         } catch(e){

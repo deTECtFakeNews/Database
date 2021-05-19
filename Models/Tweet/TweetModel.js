@@ -87,20 +87,27 @@ class TweetModel{
 
     async readSelf(){
         if(this.tweetID == -1) return;
-        let tweetJSON = (await TweetService.read(this.tweetID))[0];
-        if(tweetJSON == undefined) throw 'No results';
-        this.authorID = tweetJSON.authorID || -1;
-        this.inReplyToUserID = tweetJSON.inReplyToUserID || -1;
-        this.inReplyToTweetID = tweetJSON.inReplyToTweetID || -1;
-        this.quotesTweetID = tweetJSON.quotesTweetID || -1;
-        this.creationDate = tweetJSON.creationDate;
-        this.fullText = tweetJSON.fullText;
-        this.language = tweetJSON.language;
-        this.placeLng = tweetJSON.placeLng;
-        this.placeLat = tweetJSON.placeLat;
-        this.placeDescription = tweetJSON.placeDescription;
+        try{
+            let tweetJSON = await TweetService.read(this.tweetID);
+            console.log('tweetjson', tweetJSON)
+            tweetJSON = tweetJSON[0];
 
-        this.entities = new TweetEntitiesModel({tweetID: this.tweetID, fullText: this.fullText});
+
+            this.authorID = tweetJSON?.authorID || -1;
+            this.inReplyToUserID = tweetJSON?.inReplyToUserID || -1;
+            this.inReplyToTweetID = tweetJSON?.inReplyToTweetID || -1;
+            this.quotesTweetID = tweetJSON?.quotesTweetID || -1;
+            this.creationDate = tweetJSON?.creationDate;
+            this.fullText = tweetJSON?.fullText;
+            this.language = tweetJSON?.language;
+            this.placeLng = tweetJSON?.placeLng;
+            this.placeLat = tweetJSON?.placeLat;
+            this.placeDescription = tweetJSON?.placeDescription;
+    
+            this.entities = new TweetEntitiesModel({tweetID: this.tweetID, fullText: this.fullText});
+        } catch(e){
+            throw e;
+        }
     }
 
     async fetchSelfFromAPI(){
@@ -173,11 +180,12 @@ class TweetModel{
             await this.author.getSelf();
             await this.author.upload({uploadFollowers});
             // In reply to tweetID
+            // console.log(this.repliedTweet)
             await this.repliedTweet.getSelf();
-            await this.repliedTweet.upload({uploadRetweets});
+            await this.repliedTweet.upload({uploadRetweets, uploadFollowers});
             // Quotes
             await this.quotedTweet.getSelf();
-            await this.quotedTweet.upload({uploadRetweets});
+            await this.quotedTweet.upload({uploadRetweets, uploadFollowers});
             // In reply to userID
             if(this.inReplyToUserID != this.authorID && this.inReplyToUserID != this.repliedTweet.authorID){
                 await this.repliedUser.getSelf();
