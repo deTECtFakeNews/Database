@@ -122,8 +122,12 @@ const fetchAPI = (tweetID, {count} = {count: 100, trim_user: false}) => new Prom
     await Connection.Twitter.delay('statuses/retweets/:id');
     Connection.Twitter.get('/statuses/retweets', {id: tweetID, count}, (error, data, response)=>{
         if(error) reject(error);
-        if(data==undefined || !Array.isArray(data)) reject();
-        resolve(data.map(normalize))
+        if(typeof data=='undefined' || !Array.isArray(data)) reject();
+        try{
+            resolve(data.map(normalize))
+        } catch(e) {
+            reject(e);
+        }
     })
 })
 
