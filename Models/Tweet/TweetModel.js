@@ -89,7 +89,6 @@ class TweetModel{
         if(this.tweetID == -1) return;
         try{
             let tweetJSON = await TweetService.read(this.tweetID);
-            console.log('tweetjson', tweetJSON)
             tweetJSON = tweetJSON[0];
 
 
