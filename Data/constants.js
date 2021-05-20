@@ -19,7 +19,7 @@ const mysql = {
     database: 'FakeNews'
 }
 
-const twitter_all = [
+const twitter = [
     {
         consumer_key: 'sHL0MJor5Avq0MEhI1F92k84R',
         consumer_secret: 'W5EQssAKUKwaDYHcWcJx3EhIweEezSLMNx3uFy9DAgZQnOzcDi',
@@ -36,10 +36,5 @@ const twitter_all = [
         bearer_token: 'AAAAAAAAAAAAAAAAAAAAAKcVKwEAAAAA%2BmSfUUG%2BXU5EGBARSsFpv2V5ij0%3D8uu71THVjwvT8BLavr9AGKPRz8mQSAzfu7dej9vlD0yrzHMm7x'
     }
 ]
-
-const seed = process.argv[2];
-console.log('Seed is', seed)
-const twitter = twitter_all[ seed || 0 ];
-
-
+const seed = 0;
 module.exports = {ssh, mysql, twitter, seed}

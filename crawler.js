@@ -10,7 +10,7 @@ Connection.connect().then(async ()=>{
                 let tweet = new TweetModel(t);
                 // await tweet.readSelf();
                 console.log('AAAAA')
-                await tweet.upload({uploadFollowers: false});
+                await tweet.upload({uploadFollowers: true});
             } catch(e) {
                 console.log(e)
             }

@@ -43,12 +43,10 @@ const UserService = require('../User/UserService');
  * @returns {Promise}
  */
 const create = (tweetRetweet) => new Promise((resolve, reject) => {
-    console.log(tweetRetweet)
     // if(tweetRetweet.tweetID == -1 || tweetRetweet.tweetID == undefined || tweetRetweet.userID == undefined || tweetRetweet.creationDate == undefined) return;
     const database = Connection.connections['tweet-retweet-write'];
     database.query('INSERT INTO TweetRetweet SET ?', tweetRetweet, (error, results, fields) => {
         database.release();
-        console.log('done')
         if(error && error.code != 'ER_DUP_ENTRY') reject(error);
         resolve();
     })

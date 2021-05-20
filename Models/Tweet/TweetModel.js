@@ -251,13 +251,9 @@ class TweetRetweetModel{
     }
     async upload(){
         if(this.tweetID == -1) return;
-        console.log(`Uploading ${this.latestRetweets.length} rts`)
         for(let retweet of this.latestRetweets){
             try{
-                // console.log(retweet.author)
-                // console.log(retweet.authorID)
                 await retweet.author.upload({uploadFollowers: false});
-                // console.log('uploadded user')
                 await TweetRetweetService.create({authorID: retweet.authorID, creationDate: retweet.creationDate, tweetID: this.tweetID});
                 console.log(`Uploaded rt by ${retweet.authorID}`)
             } catch(e){

@@ -1,42 +1,97 @@
 const CONSTANTS = require('./constants');
-const _twitter = require('twitter');
-const Twitter = new _twitter(CONSTANTS.twitter);
+const TwitterClient = require('twitter');
+const SystemService = require('../Services/System/SystemService');
 
-const twitterEndpoints = {
-    'users/show': {
-        rateLimit: (15/900)*60*1000, 
-        lastExecution: new Date()
-    },
-    'followers/ids': {
-        rateLimit: (15/15)*60*1000,
-        lastExecution: new Date()
-    }, 
-    'statuses/show/:id': {
-        rateLimit: (15/900)*60*1000,
-        lastExecution: new Date()
-    },
-    'statuses/oembed': {
-        rateLimit: 0, 
-        lastExecution: new Date()
-    }, 
-    'statuses/retweets/:id': {
-        rateLimit: (15/75)*60*1000, 
-        lastExecution: new Date()
-    }, 
-    'search/tweets': {
-        rateLimit: (15/180)*60*1000, 
-        lastExecution: new Date()
+class TwitterClientExtended extends TwitterClient{
+    static counter = 0;
+    static rateLimits = {
+        'users/show': (15/90)*60*1000,
+        'followers/ids': (15/15)*60*1000, 
+        'statuses/show/:id': (15/900)*60*1000,
+        'statuses/oembed': 0,
+        'statuses/retweets/:id': (15/75)*60*1000,
+        'search/tweets': (15/180)*60*1000 
+    }
+    static getEnpoint(path){
+        if(/statuses\/show\/\d+/.test(path)) return 'statuses/show/:id';
+        if(/statuses\/show\/\d+/.test(path)) return 'statuses/show/:id';
+        return path;
+    }
+    executions = {
+        'users/show': new Date(0), 
+        'followers/ids': new Date(0), 
+        'statuses/show/:id': new Date(0), 
+        'statuses/oembed': new Date(0), 
+        'statuses/retweets/:id': new Date(0), 
+        'search/tweets': new Date(0)
+    }
+    constructor(props){
+        super(props);
+        this.id = TwitterClientExtended.counter;
+        TwitterClientExtended.counter++;
+    }
+    getRemainingTime(endpoint){
+        let timeSinceLastExecution = new Date().getTime() - this.executions[endpoint]?.getTime();
+        let remainingTime = TwitterClientExtended.rateLimits[endpoint] - timeSinceLastExecution;
+        if(remainingTime<0) remainingTime = 0;
+        return remainingTime;
+    }
+    async delay(endpoint){
+        let remainingTime = this.getRemainingTime();
+        await SystemService.delay(remainingTime);
+        this.executions[endpoint] = new Date();
+        return 0;
+    }
+
+    get(path, ...args){
+        let endpoint = TwitterClientExtended.getEnpoint(path);
+        this.delay(endpoint).then(()=>{
+            super.get(path, ...args);
+        })
+    }
+
+  /*   async get(path, params){
+        let endpoint = TwitterClientExtended.getEnpoint(path);
+        await this.delay(endpoint);
+        return await super.get(path, params)
+    } */
+    
+    post(path, ...args){
+        let endpoint = TwitterClientExtended.getEnpoint(path);
+        this.delay(endpoint).then(()=>{
+            super.post(path, ...args);
+        })
+    }
+    
+/*     async post(path, params){
+        let endpoint = TwitterClientExtended.getEnpoint(path);
+        await this.delay(endpoint);
+        return await super.post(path, params)
+    } */
+}
+
+class Twitter {
+    /** @type {Array<TwitterClientExtended>} */
+    clients = []
+    constructor(clients){
+        this.clients = clients.map(d => new TwitterClientExtended(d));
+    }
+    getFastestClientByEndpoint(endpoint){
+        let client = this.clients.reduce((a, b) => a?.getRemainingTime(endpoint) < b?.getRemainingTime(endpoint) ? a : b);
+        console.log('🌐'+client.id, endpoint);
+        return client;
+    }
+    async delay(){ return 0; }
+    get(path, ...args){
+        const client = this.getFastestClientByEndpoint(path);
+        return client.get(path, ...args);
+    }
+    post(path, ...args){
+        const client = this.getFastestClientByEndpoint(path);
+        return client.post(path, ...args);
     }
 }
 
-Twitter.delay = endpoint => new Promise((resolve, reject)=>{
-    const timeSinceLastExecution = new Date() - twitterEndpoints[endpoint].lastExecution;
-    const remainingTime = twitterEndpoints[endpoint].rateLimit - timeSinceLastExecution;
-    if(remainingTime < 0) resolve();
-    setTimeout(()=>{
-        twitterEndpoints[endpoint].lastExecution = new Date();
-        resolve();
-    }, remainingTime)
-})
 
-module.exports = Twitter;
+
+module.exports = new Twitter(CONSTANTS.twitter);
