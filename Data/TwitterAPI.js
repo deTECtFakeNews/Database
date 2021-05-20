@@ -13,7 +13,7 @@ class TwitterClientExtended extends TwitterClient{
         'search/tweets': (15/180)*60*1000 
     }
     static getEnpoint(path){
-        if(/statuses\/show\/\d+/.test(path)) return 'statuses/show/:id';
+        if(/statuses\/retweets\/\d+/.test(path) || path == 'statuses/retweets') return 'statuses/retweets/:id';
         if(/statuses\/show\/\d+/.test(path)) return 'statuses/show/:id';
         return path;
     }
@@ -31,13 +31,14 @@ class TwitterClientExtended extends TwitterClient{
         TwitterClientExtended.counter++;
     }
     getRemainingTime(endpoint){
-        let timeSinceLastExecution = new Date().getTime() - this.executions[endpoint]?.getTime();
+        let timeSinceLastExecution = new Date().getTime() - (this.executions[endpoint])?.getTime();
         let remainingTime = TwitterClientExtended.rateLimits[endpoint] - timeSinceLastExecution;
+        // console.log('⌛', endpoint, this.executions[endpoint], timeSinceLastExecution, remainingTime)
         if(remainingTime<0) remainingTime = 0;
         return remainingTime;
     }
     async delay(endpoint){
-        let remainingTime = this.getRemainingTime();
+        let remainingTime = this.getRemainingTime(endpoint);
         await SystemService.delay(remainingTime);
         this.executions[endpoint] = new Date();
         return 0;
@@ -78,16 +79,20 @@ class Twitter {
     }
     getFastestClientByEndpoint(endpoint){
         let client = this.clients.reduce((a, b) => a?.getRemainingTime(endpoint) < b?.getRemainingTime(endpoint) ? a : b);
-        console.log('🌐'+client.id, endpoint);
+        console.log('🌐'+client.id, endpoint, client.getRemainingTime(endpoint));
+        if(endpoint == 'followers/ids'){
+            console.log('\u0007')
+            console.log('==============================')
+        }
         return client;
     }
     async delay(){ return 0; }
     get(path, ...args){
-        const client = this.getFastestClientByEndpoint(path);
+        const client = this.getFastestClientByEndpoint(TwitterClientExtended.getEnpoint(path));
         return client.get(path, ...args);
     }
     post(path, ...args){
-        const client = this.getFastestClientByEndpoint(path);
+        const client = this.getFastestClientByEndpoint(TwitterClientExtended.getEnpoint(path));
         return client.post(path, ...args);
     }
 }
