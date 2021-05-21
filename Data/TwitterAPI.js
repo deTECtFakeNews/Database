@@ -18,12 +18,24 @@ class TwitterClientExtended extends TwitterClient{
         return path;
     }
     executions = {
-        'users/show': new Date(0), 
-        'followers/ids': new Date(0), 
-        'statuses/show/:id': new Date(0), 
-        'statuses/oembed': new Date(0), 
-        'statuses/retweets/:id': new Date(0), 
-        'search/tweets': new Date(0)
+        'users/show': {
+            remainingCalls: 90, limitReset: new Date(0)
+        },
+        'followers/ids': {
+            remainingCalls: 15, limitReset: new Date(0)
+        },
+        'statuses/show/:id': {
+            remainingCalls: 900, limitReset: new Date(0)
+        },
+        'statuses/oembed': {
+            remainingCalls: 0, limitReset: new Date(0)
+        },
+        'statuses/retweets/:id': {
+            remainingCalls: 75, limitReset: new Date(0)
+        },
+        'search/tweets': {
+            remainingCalls: 180, limitReset: new Date(0)
+        },
     }
     constructor(props){
         super(props);
@@ -31,23 +43,35 @@ class TwitterClientExtended extends TwitterClient{
         TwitterClientExtended.counter++;
     }
     getRemainingTime(endpoint){
-        let timeSinceLastExecution = new Date().getTime() - (this.executions[endpoint])?.getTime();
-        let remainingTime = TwitterClientExtended.rateLimits[endpoint] - timeSinceLastExecution;
-        // console.log('⌛', endpoint, this.executions[endpoint], timeSinceLastExecution, remainingTime)
+        let remainingTime = (this.executions[endpoint].limitReset.getTime() - new Date().getTime())/this.executions[endpoint].remainingCalls;
         if(remainingTime<0) remainingTime = 0;
         return remainingTime;
     }
     async delay(endpoint){
         let remainingTime = this.getRemainingTime(endpoint);
         await SystemService.delay(remainingTime);
-        this.executions[endpoint] = new Date();
         return 0;
     }
 
     get(path, ...args){
         let endpoint = TwitterClientExtended.getEnpoint(path);
         this.delay(endpoint).then(()=>{
-            super.get(path, ...args);
+            let callback;
+            let params;
+            if(typeof args[0] == 'function'){
+                callback = args[0];
+                params = {};
+            }
+            if(typeof args[0] == 'object' && typeof args[1] == 'function'){
+                callback = args[1];
+                params = args[0]
+            }
+            super.get(path, params, (error, data, response)=>{
+                this.executions[endpoint].remainingCalls = response.headers['x-rate-limit-remaining'];
+                this.executions[endpoint].limitReset = new Date(0);
+                this.executions[endpoint].limitReset.setUTCSeconds(response.headers['x-rate-limit-reset'])
+                callback(error, data, response);
+            })
         })
     }
 
@@ -81,8 +105,8 @@ class Twitter {
         let client = this.clients.reduce((a, b) => a?.getRemainingTime(endpoint) < b?.getRemainingTime(endpoint) ? a : b);
         console.log('🌐'+client.id, endpoint, client.getRemainingTime(endpoint));
         if(endpoint == 'followers/ids'){
-            console.log('\u0007')
-            console.log('==============================')
+            process.stdout.write('\u0007')
+            //console.log('\u0007')
         }
         return client;
     }
