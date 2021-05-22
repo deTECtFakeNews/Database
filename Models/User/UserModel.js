@@ -141,7 +141,7 @@ class UserModel {
                     await this.followers.fetchFromAPI();
                     await this.followers.upload();
                 } else {
-                    return;
+                    console.log('User already has followers')
                 }
             }
         } catch(e){

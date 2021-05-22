@@ -27,9 +27,11 @@ Connection.connect().then(async ()=>{
         }
     })
     /* function test(){
-        Connection.Twitter.get('application/rate_limit_status', (error)=>{
+        Connection.Twitter.get('application/rate_limit_status', (error, res)=>{
             if(error) console.error(error)
-            else test();
+            else{
+                console.log(res.resources)
+            }
         })
     } */
     test();

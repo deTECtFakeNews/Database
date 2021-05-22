@@ -21,10 +21,10 @@ const bulkCreate = (values) => new Promise((resolve, reject)=>{
     const database = Connection.connections['user-followers-write'];
     let query = `
     SET FOREIGN_KEY_CHECKS=0; INSERT IGNORE INTO UserFollower (userID, followerID) VALUES ?; SET FOREIGN_KEY_CHECKS=1;`;
-    let q = database.query(query, [values], (error, results, fields)=>{
+    database.query(query, [values], (error, results, fields)=>{
         database.release();
         if(error) reject(error);
-        resolve(results)
+        resolve(fields)
     })
 })
 

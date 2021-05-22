@@ -4,16 +4,17 @@ const SystemService = require('../Services/System/SystemService');
 
 class TwitterClientEndpoint {
     static compareTime = new Date();
-    constructor({remainingCalls, limitReset} = {}){
+    constructor({remainingCalls, limitReset, hasExecuted} = {}){
         this.remainingCalls = remainingCalls;
-        this.limitReset = limitReset || new Date(0);
+        this.limitReset = limitReset || new Date();
+        this.hasExecuted = false;
     }
     getDelay(){
-        this.delayTime = (this.limitReset.getTime() - new Date().getTime())/this.remainingCalls;
-        return this.delayTime > 0 ? this.delayTime : 0;
+        this.delayTime = (this.limitReset - new Date())/this.remainingCalls;
+        this.delayTime = this.delayTime > 0 ? this.delayTime : 0
+        return  this.delayTime;
     }
 }
-
 
 class TwitterClientExtended extends TwitterClient{
     static counter = 0;
@@ -40,7 +41,7 @@ class TwitterClientExtended extends TwitterClient{
         return this.executions[endpoint].getDelay();
     }
     async delay(endpoint){
-        let remainingTime = this.getDelay(endpoint);
+        let remainingTime = this.executions[endpoint].getDelay();
         await SystemService.delay(remainingTime);
         return 0;
     }
@@ -60,8 +61,9 @@ class TwitterClientExtended extends TwitterClient{
             }
             super.get(path, params, (error, data, response)=>{
                 this.executions[endpoint].remainingCalls = response.headers['x-rate-limit-remaining'];
-                this.executions[endpoint].limitReset = new Date(0);
-                this.executions[endpoint].limitReset.setUTCSeconds(response.headers['x-rate-limit-reset'])
+                this.executions[endpoint].limitReset = new Date(response.headers['x-rate-limit-reset']*1000)
+                
+                console.log(`🌐${this.id} ${endpoint}  🕖 ${this.executions[endpoint].delayTime} with ${this.executions[endpoint].remainingCalls} left`)
                 callback(error, data, response);
             })
         })
@@ -95,10 +97,7 @@ class Twitter {
     }
     getFastestClientByEndpoint(endpoint){
         let client = this.clients.reduce((a, b) => a?.getDelay(endpoint) < b?.getDelay(endpoint) ? a : b);
-        console.log('🌐'+client.id, endpoint, client.getDelay(endpoint));
-        if(endpoint == 'followers/ids'){
-            // process.stdout.write('\u0007')
-        }
+        console.log();
         return client;
     }
     async delay(){ return 0; }

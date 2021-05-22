@@ -42,13 +42,14 @@ class UserStatsModel {
             this.latestStats = latestStats;
             return this.latestStats;
         } catch(e){
-            const defaultStats = {favoritesCount: -1, followersCount: -1, followingCount: -1, listedCount: -1, statusesCount: -1, updateDate: new Date(), userID: this.userID, isSuspended: false }
+            /* const defaultStats = {favoritesCount: -1, followersCount: -1, followingCount: -1, listedCount: -1, statusesCount: -1, updateDate: new Date(), userID: this.userID, isSuspended: false }
             if(e[0]?.code == 63 && e[0]?.message == 'User has been suspended.'){
                 defaultStats.isSuspended = true;
                 this.latestStats = defaultStats;
             } else {
                 throw e;
-            }
+            } */
+            throw e;
         }
     }
     async read(){

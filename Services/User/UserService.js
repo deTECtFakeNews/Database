@@ -91,7 +91,7 @@ const stream = (query_params, { onError = ()=>{}, onFields = ()=>{}, onResult = 
         SELECT User.* FROM User 
             JOIN UserStatsFreeze USING (userID)
             LEFT JOIN UserFollower USING (userID)
-            WHERE UserStatsFreeze.followersCount >= 10000 AND UserFollower.userID IS NULL GROUP BY userID
+            WHERE UserStatsFreeze.followersCount >= 10000 AND UserFollower.userID IS NULL GROUP BY userID ORDER BY UserStatsFreeze.followersCount DESC
     `
     // let query = query_params == undefined ? 'SELECT * FROM User' : 'SELECT * FROM User WHERE ?';
     const database = Connection.connections['user-main-read'];
