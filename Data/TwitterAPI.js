@@ -2,53 +2,45 @@ const CONSTANTS = require('./constants');
 const TwitterClient = require('twitter');
 const SystemService = require('../Services/System/SystemService');
 
+class TwitterClientEndpoint {
+    static compareTime = new Date();
+    constructor({remainingCalls, limitReset} = {}){
+        this.remainingCalls = remainingCalls;
+        this.limitReset = limitReset || new Date(0);
+    }
+    getDelay(){
+        this.delayTime = (this.limitReset.getTime() - new Date().getTime())/this.remainingCalls;
+        return this.delayTime > 0 ? this.delayTime : 0;
+    }
+}
+
+
 class TwitterClientExtended extends TwitterClient{
     static counter = 0;
-    static rateLimits = {
-        'users/show': (15/90)*60*1000,
-        'followers/ids': (15/15)*60*1000, 
-        'statuses/show/:id': (15/900)*60*1000,
-        'statuses/oembed': 0,
-        'statuses/retweets/:id': (15/75)*60*1000,
-        'search/tweets': (15/180)*60*1000 
-    }
     static getEnpoint(path){
         if(/statuses\/retweets\/\d+/.test(path) || path == 'statuses/retweets') return 'statuses/retweets/:id';
         if(/statuses\/show\/\d+/.test(path)) return 'statuses/show/:id';
         return path;
     }
     executions = {
-        'users/show': {
-            remainingCalls: 90, limitReset: new Date(0)
-        },
-        'followers/ids': {
-            remainingCalls: 15, limitReset: new Date(0)
-        },
-        'statuses/show/:id': {
-            remainingCalls: 900, limitReset: new Date(0)
-        },
-        'statuses/oembed': {
-            remainingCalls: 0, limitReset: new Date(0)
-        },
-        'statuses/retweets/:id': {
-            remainingCalls: 75, limitReset: new Date(0)
-        },
-        'search/tweets': {
-            remainingCalls: 180, limitReset: new Date(0)
-        },
+        'users/show': new TwitterClientEndpoint({remainingCalls: 90}),
+        'followers/ids': new TwitterClientEndpoint({remainingCalls: 15}),
+        'statuses/show/:id': new TwitterClientEndpoint({remainingCalls: 900}),
+        'statuses/oembed': new TwitterClientEndpoint({remainingCalls: 0}),
+        'statuses/retweets/:id': new TwitterClientEndpoint({remainingCalls: 75}),
+        'search/tweets': new TwitterClientEndpoint({remainingCalls: 180}),
+        'application/rate_limit_status': new TwitterClientEndpoint({remainingCalls: 180})
     }
     constructor(props){
         super(props);
         this.id = TwitterClientExtended.counter;
         TwitterClientExtended.counter++;
     }
-    getRemainingTime(endpoint){
-        let remainingTime = (this.executions[endpoint].limitReset.getTime() - new Date().getTime())/this.executions[endpoint].remainingCalls;
-        if(remainingTime<0) remainingTime = 0;
-        return remainingTime;
+    getDelay(endpoint){
+        return this.executions[endpoint].getDelay();
     }
     async delay(endpoint){
-        let remainingTime = this.getRemainingTime(endpoint);
+        let remainingTime = this.getDelay(endpoint);
         await SystemService.delay(remainingTime);
         return 0;
     }
@@ -102,11 +94,10 @@ class Twitter {
         this.clients = clients.map(d => new TwitterClientExtended(d));
     }
     getFastestClientByEndpoint(endpoint){
-        let client = this.clients.reduce((a, b) => a?.getRemainingTime(endpoint) < b?.getRemainingTime(endpoint) ? a : b);
-        console.log('🌐'+client.id, endpoint, client.getRemainingTime(endpoint));
+        let client = this.clients.reduce((a, b) => a?.getDelay(endpoint) < b?.getDelay(endpoint) ? a : b);
+        console.log('🌐'+client.id, endpoint, client.getDelay(endpoint));
         if(endpoint == 'followers/ids'){
-            process.stdout.write('\u0007')
-            //console.log('\u0007')
+            // process.stdout.write('\u0007')
         }
         return client;
     }
