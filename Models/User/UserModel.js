@@ -135,7 +135,7 @@ class UserModel {
             if(this.stats.latestStats == undefined) await this.stats.readSelf();
             await this.stats.upload();
             console.log(`Uploaded User ${this.userID} (followers: ${this.stats.latestStats?.followersCount})`)
-            if(this.stats.latestStats.followersCount >= 10000 && uploadFollowers){
+            if(this.stats.latestStats?.followersCount >= 10000 && uploadFollowers){
                 if(this.followers.savedFollowers.length == 0) await this.followers.read();
                 if(this.followers.savedFollowers.length == 0){
                     await this.followers.fetchFromAPI();

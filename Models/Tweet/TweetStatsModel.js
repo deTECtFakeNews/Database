@@ -1,12 +1,21 @@
 const TweetService = require("../../Services/Tweet/TweetService");
 const { TweetStatsService } = require("../../Services/Tweet/TweetService");
 
-const areDifferentStats = (stat1, stat2)=>{
-    return(
-        stat1.retweetCount != stat2.retweetCount ||
-        stat1.favoriteCount != stat2.favoriteCount ||
-        stat1.replyCount != stat2.replyCount
-    )
+class TweetStats{
+    tweetID;
+    updateDate;
+    retweetCount;
+    favoriteCount;
+    replyCount;
+    status;
+    constructor({tweetID, updateDate, retweetCount, favoriteCount, replyCount, status}){
+        this.tweetID = tweetID;
+        this.updateDate = updateDate || new Date();
+        this.retweetCount = retweetCount || -1;
+        this.favoriteCount = favoriteCount || -1;
+        this.replyCount = replyCount || -1;
+        this.status = status || 'active';
+    }
 }
 
 class TweetStatsModel {
@@ -18,15 +27,10 @@ class TweetStatsModel {
     latestStats;
     constructor(tweetStats){
         this.tweetID = tweetStats?.tweetID || -1;
-        if(tweetStats == undefined) return;
-
-        this.latestStats = {
-            tweetID: this.tweetID, 
-            updateDate: tweetStats?.updateDate || new Date(),
-            retweetCount: tweetStats?.retweetCount || 0, 
-            favoriteCount: tweetStats?.retweetCount || 0, 
-            replyCount: tweetStats?.replyCount || 0
-        }
+        let {tweetID, updateDate, retweetCount, favoriteCount, replyCount, status} = tweetStats;   
+        if(updateDate || retweetCount || favoriteCount || replyCount){
+            this.latestStats = new TweetStats({tweetID: this.tweetID, updateDate, retweetCount, favoriteCount, replyCount})
+        }     
     }
     async fetchFromAPI(){
         if(this.tweetID == -1) return;
@@ -35,18 +39,24 @@ class TweetStatsModel {
             this.latestStats = latestStats;
             return this.latestStats;
         } catch(e) {
-            // this.latestStats = {tweetID: this.tweetID, updateDate: new Date(), retweetCount: -1, replyCount: -1, favoriteCount: -1}
-            throw e;
+            if(e[0].code == '144'){
+                this.latestStats = new TweetStats({tweetID: this.tweetID, status: 'not found'})
+            } else if(e[0].code == '179'){
+                this.latestStats = new TweetStats({tweetID: this.tweetID, status: 'private'})
+            } else if(e[0].code == '34'){
+                this.latestStats = new TweetStats({tweetID: this.tweetID, status: 'not exits'})
+            } else if(e[0].code == '63'){
+                this.latestStats = new TweetStats({tweetID: this.tweetID, status: 'user suspended'})
+            } else {
+                throw e;
+            }
         }
     }
     async readSelf(){
         try{
-            console.log('from api')
             await this.fetchFromAPI();
         } catch(e){
             try{
-                console.log(e)
-            console.log('from db')
                 await this.read();
             } catch(ee){
                 throw ee;

@@ -7,6 +7,7 @@ const Connection = require("../../Data");
  * @property {Number} retweetCount Number of times this Tweet has been retweeted
  * @property {Number} favoriteCount Number of times people have liked this Tweet
  * @property {Number} replyCount Number of Tweets that reply to this Tweet
+ * @property {String} status Status of the tweet (active/private/deleted)
  * */
 
 

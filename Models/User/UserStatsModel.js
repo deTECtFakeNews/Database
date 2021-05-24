@@ -1,19 +1,25 @@
 const UserService = require("../../Services/User/UserService");
 const {UserStatsService} = require("../../Services/User/UserService");
 
-/**
- * Compares fields to determine if two stats JSON are different
- * @param {import("../../Services/User/UserStatsService").UserStatsJSON} stat1 
- * @param {import("../../Services/User/UserStatsService").UserStatsJSON} stat2 
- */
-const areDifferentStats = (stat1, stat2) => {
-    return (
-        stat1.favoritesCount != stat2.favoritesCount ||
-        stat1.followersCount != stat2.followersCount ||
-        stat1.followingCount != stat2.followingCount ||
-        stat1.listedCount != stat1.listedCount ||
-        stat1.statusesCount != stat1.listedCount
-    )
+class UserStats {
+    favoritesCount;
+    followersCount;
+    followingCount;
+    listedCount;
+    statusesCount;
+    updateDate;
+    status;
+    userID;
+    constructor({favoritesCount, followersCount, followingCount, listedCount, statusesCount, updateDate, status, userID}){
+        this.favoritesCount = favoritesCount || -1;
+        this.followersCount = followersCount || -1;
+        this.followingCount = followingCount || -1;
+        this.listedCount = listedCount || -1;
+        this.statusesCount = statusesCount || -1;
+        this.updateDate = updateDate || new Date();
+        this.status = status || 'active';
+        this.userID = userID;
+    }
 }
 
 class UserStatsModel {
@@ -31,7 +37,9 @@ class UserStatsModel {
         this.userID = userStats?.userID || -1;
         let {favoritesCount, followersCount, followingCount, listedCount, statusesCount, updateDate} = userStats;
         if(favoritesCount || followersCount || followingCount || listedCount || statusesCount){
-            this.latestStats = {favoritesCount, followersCount, followingCount, listedCount, statusesCount, updateDate, userID: this.userID}
+            this.latestStats = new UserStats({favoritesCount, followersCount, followingCount, listedCount, statusesCount, updateDate, userID: this.userID})
+        } else {
+            this.latestStats = undefined;
         }
     }
     async fetchFromAPI(){
@@ -42,20 +50,22 @@ class UserStatsModel {
             this.latestStats = latestStats;
             return this.latestStats;
         } catch(e){
-            /* const defaultStats = {favoritesCount: -1, followersCount: -1, followingCount: -1, listedCount: -1, statusesCount: -1, updateDate: new Date(), userID: this.userID, isSuspended: false }
-            if(e[0]?.code == 63 && e[0]?.message == 'User has been suspended.'){
-                defaultStats.isSuspended = true;
-                this.latestStats = defaultStats;
+            if(e[0].code == '17'){
+                this.latestStats = new UserStats({userID: this.userID, status: 'no match'})
+            } else if(e[0].code == '50'){
+                this.latestStats = new UserStats({userID: this.userID, status: 'not found'})
+            } else if(e[0].code == '63'){
+                this.latestStats = new UserStats({userID: this.userID, status: 'suspended'})
             } else {
                 throw e;
-            } */
-            throw e;
+            }
         }
     }
     async read(){
         if(this.userID == -1) return;
         try{
             this.savedStats = await UserStatsService.read(this.userID);
+            if(this.savedStats.length == 0) throw "No stats sorry";
             if(this.latestStats == undefined) this.latestStats = this.savedStats[this.savedStats.length-1];
             return this.savedStats;
         } catch(e) {

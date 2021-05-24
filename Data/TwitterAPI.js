@@ -62,7 +62,6 @@ class TwitterClientExtended extends TwitterClient{
             super.get(path, params, (error, data, response)=>{
                 this.executions[endpoint].remainingCalls = response.headers['x-rate-limit-remaining'];
                 this.executions[endpoint].limitReset = new Date(response.headers['x-rate-limit-reset']*1000)
-                
                 console.log(`🌐${this.id} ${endpoint}  🕖 ${this.executions[endpoint].delayTime} with ${this.executions[endpoint].remainingCalls} left`)
                 callback(error, data, response);
             })

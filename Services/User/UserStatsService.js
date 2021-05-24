@@ -8,6 +8,7 @@ let Connection = require('../../Data/index');
  * @property {Number} listedCount Number of lists this account appears in 
  * @property {Number} favoritesCount Number of Tweets this account has liked
  * @property {Number} statusesCount Number of Tweets (including cites and quotes) this account has posted
+ * @property {String} status Status of account (active/suspended/removed)
  * @property {Date} updateDate Date of last update
  */
 
