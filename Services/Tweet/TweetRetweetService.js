@@ -117,8 +117,7 @@ const read = (query_params) => new Promise(async (resolve, reject) => {
  * @returns {Promise<Array<TweetRetweetJSON>>}
  */
 const fetchAPI = (tweetID, {count} = {count: 100, trim_user: false}) => new Promise(async (resolve, reject) => {
-    await Connection.Twitter.delay('statuses/retweets/:id');
-    Connection.Twitter.get('/statuses/retweets', {id: tweetID, count}, (error, data, response)=>{
+    Connection.Twitter.get('statuses/retweets', {id: tweetID, count}, (error, data, response)=>{
         if(error) reject(error);
         if(typeof data=='undefined' || !Array.isArray(data)) reject();
         try{
