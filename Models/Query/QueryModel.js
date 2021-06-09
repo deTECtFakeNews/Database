@@ -30,10 +30,15 @@ class QueryModel {
         
     }
 
-    async execute(){
+    async execute({historic = false} = {}){
         try{
-            this.latestTweets = (await QueryService.fetchAPI(this.query)).tweets
-                .map(tweet => new TweetModel(tweet));
+            if(!historic){
+                this.latestTweets = (await QueryService.fetchAPI(this.query)).tweets
+                    .map(tweet => new TweetModel(tweet));
+            } else {
+                this.latestTweets = (await QueryService.fetchAPIHistoric(this.query)).tweets
+                    .map(tweet => new TweetModel(tweet));
+            }
             for(let tweet of this.latestTweets){
                 try{
                     await tweet.upload({shouldUploadRetweets: true});
@@ -47,7 +52,6 @@ class QueryModel {
             }
         } catch(e){
             console.log("Error executing query", e)
-            // throw e;
         }
     }
 

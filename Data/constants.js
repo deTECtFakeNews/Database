@@ -33,7 +33,12 @@ const twitter = [
         access_token_secret: '3PGA7ukcygjWy5s4aiilMVi0nhGuAJH1oQjgRTXIOeLXk'
     }, 
     {
-        bearer_token: 'AAAAAAAAAAAAAAAAAAAAAKcVKwEAAAAA%2BmSfUUG%2BXU5EGBARSsFpv2V5ij0%3D8uu71THVjwvT8BLavr9AGKPRz8mQSAzfu7dej9vlD0yrzHMm7x'
+        bearer_token: 'AAAAAAAAAAAAAAAAAAAAAKcVKwEAAAAA%2BmSfUUG%2BXU5EGBARSsFpv2V5ij0%3D8uu71THVjwvT8BLavr9AGKPRz8mQSAzfu7dej9vlD0yrzHMm7x',
+        // v2Access: true
+    },
+    {
+        bearer_token: 'AAAAAAAAAAAAAAAAAAAAAJUaMAEAAAAA%2B617mWnAYyfWGrMpDYFlgHWrotY%3DH8XiyUdkojcd7jL6KhXSHU3ypAryl1xTgSzqKaqpJhbvRw3OZI', 
+        fullArchiveAccess: true
     }
 ]
 const seed = 0;

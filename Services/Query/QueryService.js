@@ -95,7 +95,6 @@ const update = (queryID, query) => new Promise(async (resolve, reject) => {
  * @returns {Promise<{meta: Object, tweets: Array<import("../Tweet/TweetService").TweetJSON>}>}
  */
 const fetchAPI = (search, options) => new Promise(async (resolve, reject) => {
-    await Connection.Twitter.delay('search/tweets');
     Connection.Twitter.get('search/tweets', {
         q: search + '-filter:retweets -RT',
         result_type: 'mixed', 
@@ -109,7 +108,26 @@ const fetchAPI = (search, options) => new Promise(async (resolve, reject) => {
             tweets: data.statuses?.map(TweetService.normalize) || []
         })
     })
+});
+
+
+const fetchAPIHistoric = (search, options) => new Promise(async (resolve, reject) => {
+    // Connection.Twitter.get('https://api.twitter.com/2/tweets/search/all', {
+    Connection.Twitter.get('tweets/search/fullarchive/development', {
+        query: search, 
+        maxResults: 500,
+        ...options
+    }, (error, data, response) => {
+        if(error) reject(error);
+        if(data.results == undefined) reject();
+        resolve({
+            meta: {
+                next: data.next
+            },
+            tweets: data.results?.map(TweetService.normalize) || []
+        })
+    })
 })
 
-const QueryService = {create, read, stream, update, fetchAPI, QueryTweetService};
+const QueryService = {create, read, stream, update, fetchAPI, fetchAPIHistoric, QueryTweetService};
 module.exports = QueryService;
