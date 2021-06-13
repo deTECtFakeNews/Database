@@ -34,10 +34,9 @@ const twitter = [
     }, 
     {
         bearer_token: 'AAAAAAAAAAAAAAAAAAAAAKcVKwEAAAAA%2BmSfUUG%2BXU5EGBARSsFpv2V5ij0%3D8uu71THVjwvT8BLavr9AGKPRz8mQSAzfu7dej9vlD0yrzHMm7x',
-        // v2Access: true
     },
     {
-        bearer_token: 'AAAAAAAAAAAAAAAAAAAAAJUaMAEAAAAA%2B617mWnAYyfWGrMpDYFlgHWrotY%3DH8XiyUdkojcd7jL6KhXSHU3ypAryl1xTgSzqKaqpJhbvRw3OZI', 
+        bearer_token: 'AAAAAAAAAAAAAAAAAAAAAG15NAEAAAAAFlZbssLOSRpbHQ4%2BwZfxYx73oUc%3DRYJXGLfaonLI5X1yH621w8cR8eGNIKuoVS6ytOzdYDoBaxshHd', 
         fullArchiveAccess: true
     }
 ]

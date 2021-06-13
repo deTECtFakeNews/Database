@@ -10,9 +10,13 @@ class TwitterClientEndpoint {
         this.hasExecuted = false;
     }
     getDelay(){
-        this.delayTime = (this.limitReset - new Date())/this.remainingCalls;
-        this.delayTime = this.delayTime > 0 ? this.delayTime : 0
-        return  this.delayTime;
+        if(this.remainingCalls == 0){
+            this.delayTime = 15*1000;
+        } else {
+            this.delayTime = (this.limitReset - new Date())/this.remainingCalls;
+            this.delayTime = this.delayTime > 0 ? this.delayTime : 0
+        }
+        return this.delayTime;
     }
 }
 // TwitterClient.prototype.options = 
@@ -21,8 +25,8 @@ class TwitterClientExtended extends TwitterClient{
     static getEnpoint(path){
         if(/(?:(?:\d\.*)+(?:\/\:*\w+)+)/.test(path) == false ) path = "1.1/"+path;
 
-        if(/statuses\/retweets\/\d+/.test(path) || path == '1.1/statuses/retweets') return '1.1/statuses/retweets/:id';
-        if(/statuses\/show\/\d+/.test(path)) return '1.1/statuses/show/:id';
+        if(/1\.1\/statuses\/retweets\/\d+/.test(path) || path == '1.1/statuses/retweets') return '1.1/statuses/retweets/:id';
+        if(/1\.1\/statuses\/show\/\d+/.test(path)) return '1.1/statuses/show/:id';
         if(/2\/tweets\/search\/all/.test(path)) return '2/tweets/search/all';
         if(/2\/tweets\/search\/recent/.test(path)) return '2/tweets/search/recent';
         return path;
@@ -46,7 +50,7 @@ class TwitterClientExtended extends TwitterClient{
         TwitterClientExtended.counter++;
     }
     getDelay(endpoint){
-        if(endpoint == '1.1/tweets/search/fullarchive/development' && this.fullArchiveAccess == false) return 1e10;
+        if(endpoint == '2/tweets/search/all' && this.fullArchiveAccess == false) return 1e10;
         return this.executions[endpoint].getDelay();
     }
     async delay(endpoint){

@@ -1,5 +1,6 @@
 const { QueryTweetService } = require("../../Services/Query/QueryService");
 const QueryService = require("../../Services/Query/QueryService");
+const TweetService = require("../../Services/Tweet/TweetService");
 const TweetModel = require("../Tweet/TweetModel");
 
 class QueryModel {
@@ -30,7 +31,7 @@ class QueryModel {
         
     }
 
-    async execute({historic = false} = {}){
+    /* async execute({historic = false} = {}){
         try{
             if(!historic){
                 this.latestTweets = (await QueryService.fetchAPI(this.query)).tweets
@@ -53,6 +54,57 @@ class QueryModel {
         } catch(e){
             console.log("Error executing query", e)
         }
+    } */
+
+    async execute({historic = false}) {
+        try{
+            if(!historic) return await this.executeLatest();
+            else return await this.executeAll();
+        } catch(e){
+            throw e;
+        }
+    }
+
+    async executeLatest(){
+        try{
+            (await QueryService.fetchAPI(this.query)).tweets
+            .forEach(async t => {
+                const tweet = new TweetModel(t);
+                try{
+                    await tweet.upload({shouldUploadRetweets: true});
+                    this.savedTweets.push(tweet);
+                    await QueryTweetService.create({tweetID: tweet.tweetID, queryID: this.queryID});
+                    await QueryService.update(this.queryID, {executeDate: new Date()});
+                    console.log(`Added tweet ${tweet.tweetID} to query ${this.queryID}`)
+                } catch(e){
+                    console.log(`Error inserting tweet with tweetID=${tweet.tweetID} and userID=${tweet.authorID}`, e)
+                }
+            })
+        } catch(e){
+            console.log("Error executing query", e)
+        }
+    }
+
+    executeAll(){
+        return new Promise((resolve, reject) => {
+            QueryService.fetchAPIHistoric(this.query, {
+                onResult: async id=>{
+                    try{
+                        const t  = await TweetService.fetchAPI(id);
+                        const tweet = new TweetModel(t);
+                        await tweet.upload({shouldUploadRetweets: true});
+                        this.savedTweets.push(tweet);
+                        await QueryTweetService.create({tweetID: tweet.tweetID, queryID: this.queryID});
+                        await QueryService.update(this.queryID, {executeDate: new Date()});
+                        console.log(`Added tweet ${tweet.tweetID} to query ${this.queryID}`);
+                    } catch(e){
+                        console.error(`Error inserting tweet with tweetID=${id}`, e)
+                    } 
+                }, 
+                onError: reject, 
+                onEnd: resolve
+            })
+        })
     }
 
     streamTweets({onResult = ()=>{}, onError = ()=>{}}){

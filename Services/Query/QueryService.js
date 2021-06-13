@@ -1,3 +1,4 @@
+const { response } = require("express");
 const Connection = require("../../Data");
 const TweetService = require("../Tweet/TweetService");
 const QueryTweetService = require("./QueryTweetService");
@@ -111,7 +112,7 @@ const fetchAPI = (search, options) => new Promise(async (resolve, reject) => {
 });
 
 
-const fetchAPIHistoric = (search, options) => new Promise(async (resolve, reject) => {
+/* const fetchAPIHistoric = (search, options) => new Promise(async (resolve, reject) => {
     // Connection.Twitter.get('https://api.twitter.com/2/tweets/search/all', {
     Connection.Twitter.get('tweets/search/fullarchive/development', {
         query: search, 
@@ -127,7 +128,27 @@ const fetchAPIHistoric = (search, options) => new Promise(async (resolve, reject
             tweets: data.results?.map(TweetService.normalize) || []
         })
     })
-})
+}) */
+
+const fetchAPIHistoric = (search, {
+    onResult = ()=>{}, 
+    onError = ()=>{}, 
+    onEnd = ()=>{}
+}, next_token) => {
+    Connection.Twitter.get('https://api.twitter.com/2/tweets/search/all', { query: search, max_results: 500, next_token }, async (error, data, response) => {
+        // Reject if there is an error    
+        if (error) return onError(error);
+        // Pass id of each result to onResult
+        await Promise.all(
+            data?.data?.map( async ({id}) => { await onResult(id) } )
+        );
+        // Call function again if there is another token
+        if(data.meta.next_token) fetchAPIHistoric(search, {onResult, onError, onEnd}, data.meta.next_token)
+        // Otherwise, call onEnd
+        else onEnd()
+    })
+}
+
 
 const QueryService = {create, read, stream, update, fetchAPI, fetchAPIHistoric, QueryTweetService};
 module.exports = QueryService;

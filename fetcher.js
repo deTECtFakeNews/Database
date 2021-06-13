@@ -2,7 +2,7 @@ const Connection = require("./Data");
 const QueryModel = require("./Models/Query/QueryModel");
 const QueryService = require("./Services/Query/QueryService");
 
-function executeAllQueries(){
+/* function executeAllQueries(){
     QueryService.stream(undefined, {
         onResult: async q => {
             try{
@@ -22,4 +22,19 @@ function executeAllQueries(){
 
 Connection.connect().then(()=>{
     executeAllQueries();
+}) */
+
+Connection.connect().then(()=>{
+    QueryService.stream(undefined, {
+        onResult: async q => {
+            try{
+                const query = new QueryModel(q);
+                if(!query.shouldExecute) return;
+                await query.executeAll();
+            } catch(e){
+                console.log(`An error ocurred executing query ${q.query}`)
+                // console.error(e)
+            }
+        }
+    })
 })
