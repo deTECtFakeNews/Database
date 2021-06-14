@@ -135,7 +135,7 @@ const fetchAPIHistoric = (search, {
     onError = ()=>{}, 
     onEnd = ()=>{}
 }, next_token) => {
-    Connection.Twitter.get('https://api.twitter.com/2/tweets/search/all', { query: search, max_results: 500, next_token }, async (error, data, response) => {
+    Connection.Twitter.get('https://api.twitter.com/2/tweets/search/all', { query: search + '-filter:retweets -RT', max_results: 500, next_token }, async (error, data, response) => {
         // Reject if there is an error    
         if (error) return onError(error);
         // data?.data?.forEach(async ({id}) => {await onResult(id)});
