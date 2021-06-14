@@ -131,17 +131,19 @@ const fetchAPI = (search, options) => new Promise(async (resolve, reject) => {
 }) */
 
 const fetchAPIHistoric = (search, {
-    onResult = ()=>{}, 
+    onResult = async ()=>{}, 
     onError = ()=>{}, 
     onEnd = ()=>{}
 }, next_token) => {
     Connection.Twitter.get('https://api.twitter.com/2/tweets/search/all', { query: search, max_results: 500, next_token }, async (error, data, response) => {
         // Reject if there is an error    
         if (error) return onError(error);
-        // Pass id of each result to onResult
-        await Promise.all(
-            data?.data?.map( async ({id}) => { await onResult(id) } )
-        );
+        // data?.data?.forEach(async ({id}) => {await onResult(id)});
+
+        for(let {id} of data?.data){
+            await onResult(id);
+        }
+
         // Call function again if there is another token
         if(data.meta.next_token) fetchAPIHistoric(search, {onResult, onError, onEnd}, data.meta.next_token)
         // Otherwise, call onEnd

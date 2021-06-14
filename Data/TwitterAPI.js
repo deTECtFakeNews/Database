@@ -10,7 +10,7 @@ class TwitterClientEndpoint {
         this.hasExecuted = false;
     }
     getDelay(){
-        if(this.remainingCalls == 0){
+        if(this.remainingCalls == 0 || this.remainingCalls == undefined){
             this.delayTime = 15*1000;
         } else {
             this.delayTime = (this.limitReset - new Date())/this.remainingCalls;
@@ -24,7 +24,6 @@ class TwitterClientExtended extends TwitterClient{
     static counter = 0;
     static getEnpoint(path){
         if(/(?:(?:\d\.*)+(?:\/\:*\w+)+)/.test(path) == false ) path = "1.1/"+path;
-
         if(/1\.1\/statuses\/retweets\/\d+/.test(path) || path == '1.1/statuses/retweets') return '1.1/statuses/retweets/:id';
         if(/1\.1\/statuses\/show\/\d+/.test(path)) return '1.1/statuses/show/:id';
         if(/2\/tweets\/search\/all/.test(path)) return '2/tweets/search/all';
@@ -82,13 +81,6 @@ class TwitterClientExtended extends TwitterClient{
             })
         })
     }
-
-  /*   async get(path, params){
-        let endpoint = TwitterClientExtended.getEnpoint(path);
-        await this.delay(endpoint);
-        return await super.get(path, params)
-    } */
-    
     post(path, ...args){
         // Add 1.1 dfault
         let endpoint = TwitterClientExtended.getEnpoint(path);
@@ -112,12 +104,6 @@ class TwitterClientExtended extends TwitterClient{
             })
         })
     }
-    
-/*     async post(path, params){
-        let endpoint = TwitterClientExtended.getEnpoint(path);
-        await this.delay(endpoint);
-        return await super.post(path, params)
-    } */
 }
 
 class Twitter {
