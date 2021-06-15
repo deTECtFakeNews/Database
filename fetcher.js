@@ -24,7 +24,7 @@ Connection.connect().then(()=>{
     executeAllQueries();
 }) */
 
-Connection.connect().then(()=>{
+function executeAll(){
     QueryService.stream(undefined, {
         onResult: async q => {
             try{
@@ -33,8 +33,13 @@ Connection.connect().then(()=>{
                 await query.executeAll();
             } catch(e){
                 console.log(`An error ocurred executing query ${q.query}`)
-                // console.error(e)
+                console.error(e)
             }
-        }
+        }, 
+        onEnd: executeAll
     })
+}
+
+Connection.connect().then(()=>{
+    executeAll();
 })

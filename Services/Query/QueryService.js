@@ -10,6 +10,9 @@ const QueryTweetService = require("./QueryTweetService");
  * @property {String} query Text to execute
  * @property {Date} firstExecuteDate Date of first execution
  * @property {Boolean} shouldExecute Determines if the server should execute the query
+ * 
+ * @property {String} historicNext Indicates token to be searched using fullarchive search
+ * @property {String} historicNewestID Indicates the newest tweetID from the last execution
 */
 
 
@@ -54,7 +57,7 @@ const stream = (query_params, { onError = ()=>{}, onFields = ()=>{}, onResult = 
     if(typeof query_params == 'string' || typeof query_params == 'number'){
         query_params = {queryID: query_params}
     }
-    let query = query_params == undefined ? 'SELECT * FROM Query ORDER BY queryID DESC' : 'SELECT * FROM Query WHERE ? ORDER BY queryID DESC';
+    let query = query_params == undefined ? 'SELECT * FROM Query ORDER BY queryID ASC' : 'SELECT * FROM Query WHERE ? ORDER BY queryID ASC';
     const database = Connection.connections['query-main-read'];
     database.query(query, query_params)
         .on('end', ()=>{
@@ -130,24 +133,26 @@ const fetchAPI = (search, options) => new Promise(async (resolve, reject) => {
     })
 }) */
 
-const fetchAPIHistoric = (search, {
+const fetchAPIHistoric = (search, {next_token, since_id}, {
     onResult = async ()=>{}, 
     onError = ()=>{}, 
-    onEnd = ()=>{}
-}, next_token) => {
-    Connection.Twitter.get('https://api.twitter.com/2/tweets/search/all', { query: search + " -is:retweet", max_results: 500, next_token }, async (error, data, response) => {
-        // Reject if there is an error    
-        if (error) return onError(error);
-        // data?.data?.forEach(async ({id}) => {await onResult(id)});
-
-        for(let {id} of data?.data){
-            await onResult(id);
-        }
-
-        // Call function again if there is another token
-        if(data.meta.next_token) fetchAPIHistoric(search, {onResult, onError, onEnd}, data.meta.next_token)
-        // Otherwise, call onEnd
-        else onEnd()
+    onEnd = async ()=>{}
+}) => {
+    Connection.Twitter.get('https://api.twitter.com/2/tweets/search/all', 
+        { query: search + " -is:retweet", max_results: 500, next_token, since_id }, 
+        async (error, data, response) => {
+            // Reject if there is an error    
+            if (error) return onError(error);
+            // Call on result fot each tweet id
+            if(Array.isArray(data?.data)){
+                for(let {id} of data?.data){ await onResult(id); }
+            }            
+            // Call function again if there is another token
+            /* if(data.meta.next_token){
+                fetchAPIHistoric(search, {onResult, onError, onEnd}, data.meta.next_token)
+            } */
+            // Otherwise, call onEnd
+            await onEnd(data.meta)
     })
 }
 

@@ -14,6 +14,10 @@ class QueryModel {
     firstExecuteDate;
     /**@type {Boolean} Execute the query automatically? */
     shouldExecute;
+    /**@type {String} Parameter to be used to get the next page of results in Full Archive Search*/
+    historicNext;
+    /**@type {String} */
+    historicNewestID;
     /**@type {Array<TweetModel>} */
     savedTweets = [];
     /**@type {Array<TweetModel>} */
@@ -29,6 +33,8 @@ class QueryModel {
         this.firstExecuteDate = query.firstExecuteDate;
         this.shouldExecute = query.shouldExecute;
         
+        this.historicNext = query.historicNext || undefined;
+        this.historicNewestID = query.historicNewestID || undefined;
     }
 
     /* async execute({historic = false} = {}){
@@ -87,23 +93,35 @@ class QueryModel {
 
     executeAll(){
         return new Promise((resolve, reject) => {
-            QueryService.fetchAPIHistoric(this.query, {
-                onResult: async id=>{
-                    try{
-                        const t  = await TweetService.fetchAPI(id);
-                        const tweet = new TweetModel(t);
-                        await tweet.upload({shouldUploadRetweets: true});
-                        this.savedTweets.push(tweet);
-                        await QueryTweetService.create({tweetID: tweet.tweetID, queryID: this.queryID});
-                        await QueryService.update(this.queryID, {executeDate: new Date()});
-                        console.log(`Added tweet ${tweet.tweetID} to query ${this.queryID}`);
-                    } catch(e){
-                        console.error(`Error inserting tweet with tweetID=${id}`, e)
-                    } 
-                }, 
-                onError: reject, 
-                onEnd: resolve
-            })
+            QueryService.fetchAPIHistoric(this.query, 
+                {next_token: this.historicNext, since_id: this.historicNewestID}, 
+                {
+                    onResult: async id=>{
+                        try{
+                            const t  = await TweetService.fetchAPI(id);
+                            const tweet = new TweetModel(t);
+                            await tweet.upload({shouldUploadRetweets: true});
+                            this.savedTweets.push(tweet);
+                            await QueryTweetService.create({tweetID: tweet.tweetID, queryID: this.queryID});
+                            await QueryService.update(this.queryID, {executeDate: new Date()});
+                            console.log(`Added tweet ${tweet.tweetID} to query ${this.queryID}`);
+                        } catch(e){
+                            console.error(`Error inserting tweet with tweetID=${id}`, e)
+                        } 
+                    }, 
+                    onError: reject, 
+                    onEnd: async (meta)=>{
+                        try{
+                            const {next_token, newest_id} = meta;
+                            await QueryService.update(this.queryID, {historicNext: next_token, historicNewestID: newest_id});
+                            console.log(meta);
+                            resolve();
+                        } catch(e){
+                            reject(e)
+                        }
+                    }
+                }
+            )
         })
     }
 
