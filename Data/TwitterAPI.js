@@ -74,6 +74,7 @@ class TwitterClientExtended extends TwitterClient{
                 params = args[0]
             }
             super.get(path, params, (error, data, response)=>{
+                if(response == undefined) this.get(path, ...args);
                 this.executions[endpoint].remainingCalls = response.headers['x-rate-limit-remaining'];
                 this.executions[endpoint].limitReset = new Date(response.headers['x-rate-limit-reset']*1000)
                 console.log(`🌐${this.id} ${endpoint}  🕖 ${this.executions[endpoint].delayTime} with ${this.executions[endpoint].remainingCalls} left`)
@@ -97,6 +98,7 @@ class TwitterClientExtended extends TwitterClient{
                 params = args[0]
             }
             super.post(path, params, (error, data, response)=>{
+                if(response == undefined) this.post(path, ...args);
                 this.executions[endpoint].remainingCalls = response.headers['x-rate-limit-remaining'];
                 this.executions[endpoint].limitReset = new Date(response.headers['x-rate-limit-reset']*1000)
                 console.log(`🌐${this.id} ${endpoint}  🕖 ${this.executions[endpoint].delayTime} with ${this.executions[endpoint].remainingCalls} left`)
