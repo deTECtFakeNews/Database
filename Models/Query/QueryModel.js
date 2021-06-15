@@ -112,8 +112,7 @@ class QueryModel {
                     onError: reject, 
                     onEnd: async (meta)=>{
                         try{
-                            const {next_token, newest_id} = meta;
-                            await QueryService.update(this.queryID, {historicNext: next_token, historicNewestID: newest_id});
+                            await QueryService.update(this.queryID, {historicNext: meta?.next_token, historicNewestID: meta?.newest_id});
                             console.log(meta);
                             resolve();
                         } catch(e){
