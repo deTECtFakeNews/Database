@@ -12,7 +12,7 @@ const QueryTweetService = require("./QueryTweetService");
  * @property {Boolean} shouldExecute Determines if the server should execute the query
  * 
  * @property {String} historicNext Indicates token to be searched using fullarchive search
- * @property {String} oldestID Indicates the oldest ID in db
+ * @property {Date} oldestDate Indicates the oldest ID in db
 */
 
 
@@ -133,14 +133,14 @@ const fetchAPI = (search, options) => new Promise(async (resolve, reject) => {
     })
 }) */
 
-const fetchAPIHistoric = (search, {next_token, start_time, until_id}, {
+const fetchAPIHistoric = (search, {next_token, start_time, end_time, until_id}, {
     onResult = async ()=>{}, 
     onPage = async()=>{},
     onError = ()=>{}, 
     onEnd = async ()=>{}
 }) => {
     Connection.Twitter.get('https://api.twitter.com/2/tweets/search/all', 
-        { query: search + " -is:retweet", max_results: 500, next_token, start_time, until_id}, 
+        { query: search + " -is:retweet", max_results: 500, next_token, start_time, end_time, until_id}, 
         async (error, data, response) => {
             // Reject if there is an error    
             if (error) return onError(error);

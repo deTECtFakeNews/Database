@@ -17,7 +17,7 @@ class QueryModel {
     /**@type {String} Parameter to be used to get the next page of results in Full Archive Search*/
     historicNext;
     /**@type {String} */
-    oldestID;
+    oldestDate;
     /**@type {Array<TweetModel>} */
     savedTweets = [];
     /**@type {Array<TweetModel>} */
@@ -34,7 +34,7 @@ class QueryModel {
         this.shouldExecute = query.shouldExecute;
         
         this.historicNext = query.historicNext || undefined;
-        this.oldestID = query.oldestID || undefined;
+        this.oldestDate = new Date(query.oldestDate) || new Date();
     }
 
     /* async execute({historic = false} = {}){
@@ -97,8 +97,8 @@ class QueryModel {
                 {
                     next_token: this.historicNext, 
                     start_time: "2020-01-01T00:00:00Z", 
-                    // end_time: this.firstExecuteDate.toISOString(), 
-                    until_id: this.oldestID
+                    end_time: this.oldestDate.toISOString(), 
+                    // until_id: this.oldestID
                 }, 
                 {
                     onResult: async id=>{
@@ -108,7 +108,7 @@ class QueryModel {
                             await tweet.upload({shouldUploadRetweets: true});
                             this.savedTweets.push(tweet);
                             await QueryTweetService.create({tweetID: tweet.tweetID, queryID: this.queryID});
-                            await QueryService.update(this.queryID, {executeDate: new Date(), historicNewestID: tweet.tweetID});
+                            await QueryService.update(this.queryID, {executeDate: new Date(), oldestDate: tweet.creationDate});
                             console.log(`Added tweet ${tweet.tweetID} to query ${this.queryID}`);
                         } catch(e){
                             console.error(`Error inserting tweet with tweetID=${id}`, e)
