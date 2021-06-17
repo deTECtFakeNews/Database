@@ -3,13 +3,12 @@ const TwitterClient = require('twitter');
 const SystemService = require('../Services/System/SystemService');
 
 class TwitterClientEndpoint {
-    static compareTime = new Date();
-    constructor({remainingCalls, limitReset, hasExecuted} = {}){
+    constructor({remainingCalls, limitReset} = {}){
         this.remainingCalls = remainingCalls;
         this.limitReset = limitReset || new Date();
-        this.hasExecuted = false;
     }
     getDelay(){
+        // Default to 15 seconds
         if(this.remainingCalls == 0 || this.remainingCalls == undefined){
             this.delayTime = 15*1000;
         } else {

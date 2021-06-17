@@ -12,7 +12,7 @@ const QueryTweetService = require("./QueryTweetService");
  * @property {Boolean} shouldExecute Determines if the server should execute the query
  * 
  * @property {String} historicNext Indicates token to be searched using fullarchive search
- * @property {String} historicNewestID Indicates the newest tweetID from the last execution
+ * @property {String} oldestID Indicates the oldest ID in db
 */
 
 
@@ -133,26 +133,26 @@ const fetchAPI = (search, options) => new Promise(async (resolve, reject) => {
     })
 }) */
 
-const fetchAPIHistoric = (search, {next_token, since_id}, {
+const fetchAPIHistoric = (search, {next_token, start_time, until_id}, {
     onResult = async ()=>{}, 
+    onPage = async()=>{},
     onError = ()=>{}, 
     onEnd = async ()=>{}
 }) => {
     Connection.Twitter.get('https://api.twitter.com/2/tweets/search/all', 
-        { query: search + " -is:retweet", max_results: 500, next_token, since_id }, 
+        { query: search + " -is:retweet", max_results: 500, next_token, start_time, until_id}, 
         async (error, data, response) => {
             // Reject if there is an error    
             if (error) return onError(error);
             // Call on result fot each tweet id
             if(Array.isArray(data?.data)){
                 for(let {id} of data?.data){ await onResult(id); }
-            }            
-            // Call function again if there is another token
-            /* if(data.meta.next_token){
-                fetchAPIHistoric(search, {onResult, onError, onEnd}, data.meta.next_token)
-            } */
-            // Otherwise, call onEnd
-            await onEnd(data.meta)
+            } 
+            if(data.meta.next_token){
+                await onPage(data.meta.next_token);
+            } else {
+                await onEnd();
+            }
     })
 }
 
