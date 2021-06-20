@@ -156,6 +156,5 @@ const fetchAPIHistoric = (search, {next_token, start_time, end_time, until_id}, 
     })
 }
 
-
 const QueryService = {create, read, stream, update, fetchAPI, fetchAPIHistoric, QueryTweetService};
 module.exports = QueryService;
