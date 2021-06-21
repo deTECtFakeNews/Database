@@ -90,8 +90,6 @@ class TweetModel{
         try{
             let tweetJSON = await TweetService.read(this.tweetID);
             tweetJSON = tweetJSON[0];
-
-
             this.authorID = tweetJSON?.authorID || -1;
             this.inReplyToUserID = tweetJSON?.inReplyToUserID || -1;
             this.inReplyToTweetID = tweetJSON?.inReplyToTweetID || -1;
@@ -180,10 +178,10 @@ class TweetModel{
             await this.author.upload({uploadFollowers});
             // In reply to tweetID
             // console.log(this.repliedTweet)
-            await this.repliedTweet.getSelf();
+            await this.repliedTweet.fetchSelfFromAPI();
             await this.repliedTweet.upload({uploadRetweets, uploadFollowers});
             // Quotes
-            await this.quotedTweet.getSelf();
+            await this.quotedTweet.fetchSelfFromAPI();
             await this.quotedTweet.upload({uploadRetweets, uploadFollowers});
             // In reply to userID
             if(this.inReplyToUserID != this.authorID && this.inReplyToUserID != this.repliedTweet.authorID){

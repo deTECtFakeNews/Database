@@ -61,6 +61,10 @@ Connection.connect().then(()=>{
             console.log("Executing query", node.id, "in PST")
             // Get query
             let query = queries[node.id];
+            // If has children
+            if(node.children.length > 0){
+                
+            }
             if(node.filter.length > 0){
                 // Get filtered from node
                 let filtered = node.filter.flat(10).join(' OR ');
