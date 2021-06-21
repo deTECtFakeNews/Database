@@ -38,6 +38,10 @@ const twitter = [
     {
         bearer_token: 'AAAAAAAAAAAAAAAAAAAAAG15NAEAAAAAFlZbssLOSRpbHQ4%2BwZfxYx73oUc%3DRYJXGLfaonLI5X1yH621w8cR8eGNIKuoVS6ytOzdYDoBaxshHd', 
         fullArchiveAccess: true
+    }, 
+    {
+        // Edgar. Está pendiente acceso académico
+        bearer_token: 'AAAAAAAAAAAAAAAAAAAAANOdQwEAAAAA2nCrK%2B8cGj%2BpEe1E9FooIvQZDig%3DGcz8lWvT0wSkCwCeVr90CScNgM5Hw2bkXacBTueT45ZZRG1Qsc'
     }
 ]
 const seed = 0;
