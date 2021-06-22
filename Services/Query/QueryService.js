@@ -114,25 +114,6 @@ const fetchAPI = (search, options) => new Promise(async (resolve, reject) => {
     })
 });
 
-
-/* const fetchAPIHistoric = (search, options) => new Promise(async (resolve, reject) => {
-    // Connection.Twitter.get('https://api.twitter.com/2/tweets/search/all', {
-    Connection.Twitter.get('tweets/search/fullarchive/development', {
-        query: search, 
-        maxResults: 500,
-        ...options
-    }, (error, data, response) => {
-        if(error) reject(error);
-        if(data.results == undefined) reject();
-        resolve({
-            meta: {
-                next: data.next
-            },
-            tweets: data.results?.map(TweetService.normalize) || []
-        })
-    })
-}) */
-
 const fetchAPIHistoric = (search, {next_token, start_time, end_time, until_id}, {
     onResult = async ()=>{}, 
     onPage = async()=>{},

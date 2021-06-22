@@ -32,9 +32,6 @@ class Node {
         if(
             // Avoid pushing node into itself
             this.id != node.id &&
-            // Avoid pushing node of higher depth than this
-            // (That means node has already been asigned somewhere else)
-            node.depth >= this.depth &&
             // Test with regex to see if matches
             this.regex.test(node.content)
         ) {

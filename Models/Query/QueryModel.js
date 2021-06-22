@@ -117,8 +117,10 @@ class QueryModel {
                     onPage: async (next_token)=>{
                         try{
                             await QueryService.update(this.queryID, {historicNext: next_token});
+                            // Free up some ram for giant execution
+                            this.savedTweets = [];
                             this.historicNext = next_token;
-                            await this.executeAll();
+                            await this.executeAll({onPage});
                         } catch(e){
                             reject(e);
                         }

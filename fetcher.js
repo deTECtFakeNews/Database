@@ -46,14 +46,15 @@ Connection.connect().then(()=>{
     QueryService.read().then(data=>{
         let queries = {};
         let pool = new NodePool();
-        data.forEach(query => {
+        data.forEach(async query => {
             // Create node
-            let queryNode = new Node({ content: query.query, regex:  query.query.replace(/(([A-zÀ-ú]|\d|#|&)+)( *)/img, "(?=.*($1)\\b)")});
+            let queryNode = new Node({ content: query.query, regex:  query.regex });
             queryNode.id = query.queryID;
             pool.push(queryNode);
             // Create querymodel
             let queryModel = new QueryModel(query);
             queries[query.queryID] = queryModel;
+
         });
         pool.getTree()
 
@@ -63,7 +64,14 @@ Connection.connect().then(()=>{
             let query = queries[node.id];
             // If has children
             if(node.children.length > 0){
-                
+                for(let child of node.children){
+                    try{
+                        await QueryService.QueryTweetService.copy(child.id, node.id);
+                        console.log('\​u0007')
+                    } catch(e){
+
+                    }
+                }
             }
             if(node.filter.length > 0){
                 // Get filtered from node
@@ -73,7 +81,7 @@ Connection.connect().then(()=>{
             }
             try{
                 if(!query.shouldExecute) return;
-                await query.executeAll()
+                await query.executeAll();
             } catch(e){
                 console.log(`An error ocurred executing query ${query.query}`)
                 console.error(e)
