@@ -98,7 +98,6 @@ class QueryModel {
                     next_token: this.historicNext, 
                     start_time: "2020-01-01T00:00:00Z", 
                     end_time: this.oldestDate.toISOString(), 
-                    // until_id: this.oldestID
                 }, 
                 {
                     onResult: async id=>{
@@ -125,7 +124,10 @@ class QueryModel {
                             reject(e);
                         }
                     },
-                    onEnd: resolve, 
+                    onEnd: async ()=>{
+                        await QueryService.update(this.queryID, {isComplete: true})
+                        resolve();
+                    }, 
                     onError: reject, 
                 }
             )

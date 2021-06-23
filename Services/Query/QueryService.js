@@ -13,6 +13,7 @@ const QueryTweetService = require("./QueryTweetService");
  * 
  * @property {String} historicNext Indicates token to be searched using fullarchive search
  * @property {Date} oldestDate Indicates the oldest ID in db
+ * @property {Boolean} isComplete Indicates whether execution has completed
 */
 
 
