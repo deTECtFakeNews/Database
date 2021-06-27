@@ -32,8 +32,6 @@ class QueryModel {
         this.query = query.query;
         this.firstExecuteDate = new Date(query.firstExecuteDate);
         this.shouldExecute = query.shouldExecute;
-        
-        this.historicNext = query.historicNext || undefined;
         this.oldestDate = new Date(query.oldestDate) || new Date();
     }
 
@@ -95,7 +93,7 @@ class QueryModel {
         return new Promise((resolve, reject) => {
             QueryService.fetchAPIHistoric(this.query, 
                 {
-                    next_token: this.historicNext, 
+                    next_token: this.next_token,
                     start_time: "2020-01-01T00:00:00Z", 
                     end_time: this.oldestDate.toISOString(), 
                 }, 
@@ -115,11 +113,9 @@ class QueryModel {
                     }, 
                     onPage: async (next_token)=>{
                         try{
-                            await QueryService.update(this.queryID, {historicNext: next_token});
-                            // Free up some ram for giant execution
                             this.savedTweets = [];
-                            this.historicNext = next_token;
-                            await this.executeAll({onPage});
+                            this.next_token = next_token;
+                            await this.executeAll();
                         } catch(e){
                             reject(e);
                         }
