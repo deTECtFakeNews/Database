@@ -1,4 +1,5 @@
 let Connection = require('../../Data/index');
+let {seed} = require('../../Data/constants');
 const SystemService = require('../System/SystemService');
 const UserService = require('../User/UserService');
 const TweetEntitiesService = require('./TweetEntitiesService');
@@ -53,10 +54,10 @@ const normalize = data => ({
         tweetID: data.id_str,
         updateDate: new Date(), 
         retweetCount: data.retweet_count, 
-        favoriteCount: data.favorite_count, 
-        replyCount: data.reply_count
+        favoriteCount: data.retweeted_status ? data.retweeted_status.favorite_count : data.favorite_count, 
+        replyCount: data.reply_count  || -1
     },
-    author: UserService.normalize(data.user)
+    author: data.user!=undefined ? UserService.normalize(data.user) : undefined
 });
 
 /**
@@ -83,7 +84,7 @@ const read = (query_params) => new Promise((resolve, reject) => {
     if(typeof query_params == 'string' || typeof query_params == 'number'){
         query_params = {tweetID: query_params}
     }
-    let query = query_params == undefined ? 'SELECT * FROM Tweet ORDER BY creationDate DESC' : 'SELECT * FROM Tweet WHERE ? ORDER BY creationDate DESC';
+    let query = query_params == undefined ? 'SELECT * FROM Tweet ORDER BY creationDate ASC' : 'SELECT * FROM Tweet WHERE ? ORDER BY creationDate ASC';
     const database = Connection.connections['tweet-main-read'];
     database.query(query, query_params, (error, results, fields)=>{
         database.release();
@@ -103,8 +104,9 @@ const stream = (query_params, {onError=()=>{}, onFields=()=>{}, onResult=()=>{},
     if(typeof query_params == 'string' || typeof query_params == 'number'){
         query_params = {userID: query_params}
     }
-    let query = query_params == undefined ? 'SELECT * FROM Tweet ORDER BY creationDate DESC' : 'SELECT * FROM Tweet WHERE ? ORDER BY creationDate DESC';
-    const database = Connection.connections['tweet-main-read'];
+    //let query = query_params == undefined ? 'SELECT * FROM Tweet ORDER BY creationDate ASC' : 'SELECT * FROM Tweet WHERE ? ORDER BY creationDate ASC';
+    let query = `SELECT Tweet.* FROM Tweet LEFT JOIN TweetStatsFreeze USING(tweetID) WHERE TweetStatsFreeze.tweetID IS NULL`;
+    const database = Connection.connections['tweet-main-read-2'];
     database.query(query, query_params)
         .on('end', ()=>{
             database.release();
@@ -147,11 +149,10 @@ const fetchAPI = (tweetID) => new Promise(async (resolve, reject) => {
     await Connection.Twitter.delay('statuses/show/:id');
     Connection.Twitter.get(`statuses/show/${tweetID}`, {tweet_mode: 'extended'}, (error, data, response) => {
         if(error) reject(error);
-        if(data == undefined) reject();
-        if(data.user == undefined) reject(); // Reject data if user object is not present
+        if(data == undefined) reject(error);
         try{
             resolve(normalize(data)); 
-        } catch(e) {reject(e)} 
+        } catch(e){reject(e)}
     })
 })
 

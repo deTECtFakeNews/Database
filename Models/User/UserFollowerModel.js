@@ -14,10 +14,9 @@ class UserFollowerModel {
         if(this.userID == -1 || this.latestFollowers.length > 0) return;
         try{
             this.latestFollowers = await UserFollowerService.fetchAPI(this.userID);
-            this.latestFollowers = this.latestFollowers.map(l=>({userID: this.userID, followerID: l}))
             return this.latestFollowers;
         } catch(e){
-            console.error(e)
+            throw e;
         }
     }
     async read(){
@@ -26,28 +25,19 @@ class UserFollowerModel {
             this.savedFollowers = await UserFollowerService.read(this.userID);
             return this.savedFollowers;
         } catch (e){
-
+            throw e;
         }
     }
     async upload(){
-        if(this.userID == -1) return;
-        /* let count = 0;
-        for(let follower of this.latestFollowers){
-            if(this.savedFollowers.find(({followerID})=>followerID==follower)) continue;
-            try{
-                await UserFollowerService.create({userID: this.userID, followerID: follower});
-                count++;
-                console.log(`Added follower ${follower} to ${this.userID}`)
-            } catch(e){
-                if(e.code != 'ER_NO_REFERENCED_ROW_2' && e.code != 'ER_DUP_ENTRY') throw e;
-            }
+        try{
+            await UserFollowerService.bulkCreate(
+                [[this.userID, this.userID], ...this.latestFollowers.map(followerID=>[this.userID, followerID])]
+            );
+            await UserFollowerService.purge(this.userID);
+            console.log('Uploaded followers for', this.userID);
+        } catch(e){
+            throw e;
         }
-        console.log(`Added ${count} followers to ${this.userID}`) */
-        console.log('Uploading followers')
-        await UserFollowerService.bulkCreate(
-            // Make 2D array
-            this.latestFollowers.map(({userID, followerID})=>[userID, followerID])
-        );
     }
 
 }

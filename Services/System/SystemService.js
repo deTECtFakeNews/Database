@@ -13,5 +13,18 @@ const fetchSpreadsheet = async (spreadsheetID, sheetID) => {
     return data.feed;
 }
 
-const SystemService = {delay, fetchSpreadsheet};
+const getProcessArguments = () => {
+    const argsJSON = {};
+    process.argv.forEach(arg => {
+        if(arg.slice(0, 2) == '--'){
+            const argArr = arg.split('=');
+            const argFlag = argArr[0].slice(2, argArr[0].len);
+            const argVal = argArr[1];
+            argsJSON[argFlag] = argVal;
+        }
+    });
+    return argsJSON;
+}
+
+const SystemService = {delay, fetchSpreadsheet, getProcessArguments}
 module.exports = SystemService;

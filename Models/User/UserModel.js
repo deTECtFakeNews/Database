@@ -128,19 +128,23 @@ class UserModel {
         }
     }
 
-    async upload(){
+    async upload({uploadFollowers = true} = {}){
         if(this.userID == -1) return;
         try{
             await UserService.create(this.toJSON());
+            if(this.stats.latestStats == undefined) await this.stats.readSelf();
             await this.stats.upload();
-            console.log(`- Uploaded user ${this.userID} (${this.stats.latestStats?.followersCount} Followers)`)
-            if(this.stats.latestStats == undefined) return;
-            if(this.stats.latestStats.followersCount > 10000){
-                await this.followers.fetchFromAPI();
-                await this.followers.upload();
+            console.log(`Uploaded User ${this.userID} (followers: ${this.stats.latestStats?.followersCount})`)
+            if(this.stats.latestStats?.followersCount >= 10000 && uploadFollowers){
+                if(this.followers.savedFollowers.length == 0) await this.followers.read();
+                if(this.followers.savedFollowers.length == 0){
+                    await this.followers.fetchFromAPI();
+                    await this.followers.upload();
+                } else {
+                    console.log('User already has followers')
+                }
             }
         } catch(e){
-            console.log(`Error uploading user ${this.userID}`, this.toJSON())
             throw e;
         }
     }

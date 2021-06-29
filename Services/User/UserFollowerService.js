@@ -19,14 +19,33 @@ const create = ({userID, followerID}) => new Promise(async (resolve, reject) => 
 
 const bulkCreate = (values) => new Promise((resolve, reject)=>{
     const database = Connection.connections['user-followers-write'];
-    let query = `INSERT IGNORE INTO UserFollower (userID, followerID) VALUES ?`;
+    let query = `
+    SET FOREIGN_KEY_CHECKS=0; INSERT IGNORE INTO UserFollower (userID, followerID) VALUES ?; SET FOREIGN_KEY_CHECKS=1;`;
     database.query(query, [values], (error, results, fields)=>{
         database.release();
         if(error) reject(error);
-        resolve(results)
+        resolve(fields)
     })
 })
 
+const purge = (userID) => new Promise((resolve, reject) => {
+    const database = Connection.connections['user-followers-write'];
+    let query = `
+    DELETE FROM UserFollower WHERE userID = ${userID} AND followerID IN (
+        SELECT * FROM (
+            SELECT UserFollower.followerID FROM UserFollower
+            LEFT JOIN User ON User.userID = UserFollower.followerID
+            WHERE User.userID IS NULL
+        ) AS A
+    );
+    `;
+    database.query(query, (error, results, fields) => {
+        database.release();
+        if(error) reject(error);
+        resolve(results);
+    })
+})
+ 
 /**
  * Database - Read rows from `UserFollower` table
  * @param {{userID: String, followerID: String}|String} query_params Parameters to search | userID of user to fetch
@@ -81,5 +100,5 @@ const fetchAPI = userID => new Promise(async (resolve, reject) => {
     })
 });
 
-const UserFollowerService = {create, bulkCreate, read, stream, fetchAPI};
+const UserFollowerService = {create, bulkCreate, read, stream, purge, fetchAPI};
 module.exports = UserFollowerService;

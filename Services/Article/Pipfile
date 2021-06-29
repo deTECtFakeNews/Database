@@ -4,13 +4,6 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-vadersentiment = "*"
-deep-translator = "*"
-matplotlib = "*"
-tweet-preprocessor = "*"
-textblob = "*"
-nltk = "*"
-pandas = "*"
 
 [dev-packages]
 

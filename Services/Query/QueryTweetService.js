@@ -61,5 +61,18 @@ const stream = async (query_params, { onError = ()=>{}, onFields = ()=>{}, onRes
         })
 };
 
-const QueryTweetService = {create, read, stream};
+
+const copy = (fromID, toID) => new Promise((resolve, reject) => {
+    const database = Connection.connections['query-tweet-write'];
+    let query = `
+        INSERT IGNORE INTO QueryTweet (queryID, tweetID)
+        (SELECT ?, tweetID FROM QueryTweet WHERE queryID=?)
+    `;
+    database.query(query, [toID, fromID], (error, results, fields) => {
+        if(error) reject(error);
+        resolve(results);
+    })
+})
+
+const QueryTweetService = {create, read, stream, copy};
 module.exports = QueryTweetService;

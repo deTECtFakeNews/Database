@@ -1,3 +1,4 @@
+const { response } = require("express");
 const Connection = require("../../Data");
 const TweetService = require("../Tweet/TweetService");
 const QueryTweetService = require("./QueryTweetService");
@@ -9,6 +10,10 @@ const QueryTweetService = require("./QueryTweetService");
  * @property {String} query Text to execute
  * @property {Date} firstExecuteDate Date of first execution
  * @property {Boolean} shouldExecute Determines if the server should execute the query
+ * 
+ * @property {String} historicNext Indicates token to be searched using fullarchive search
+ * @property {Date} oldestDate Indicates the oldest ID in db
+ * @property {Boolean} isComplete Indicates whether execution has completed
 */
 
 
@@ -53,7 +58,7 @@ const stream = (query_params, { onError = ()=>{}, onFields = ()=>{}, onResult = 
     if(typeof query_params == 'string' || typeof query_params == 'number'){
         query_params = {queryID: query_params}
     }
-    let query = query_params == undefined ? 'SELECT * FROM Query ORDER BY queryID DESC' : 'SELECT * FROM Query WHERE ? ORDER BY queryID DESC';
+    let query = query_params == undefined ? 'SELECT * FROM Query ORDER BY queryID ASC' : 'SELECT * FROM Query WHERE ? ORDER BY queryID ASC';
     const database = Connection.connections['query-main-read'];
     database.query(query, query_params)
         .on('end', ()=>{
@@ -95,7 +100,6 @@ const update = (queryID, query) => new Promise(async (resolve, reject) => {
  * @returns {Promise<{meta: Object, tweets: Array<import("../Tweet/TweetService").TweetJSON>}>}
  */
 const fetchAPI = (search, options) => new Promise(async (resolve, reject) => {
-    await Connection.Twitter.delay('search/tweets');
     Connection.Twitter.get('search/tweets', {
         q: search + '-filter:retweets -RT',
         result_type: 'mixed', 
@@ -109,7 +113,30 @@ const fetchAPI = (search, options) => new Promise(async (resolve, reject) => {
             tweets: data.statuses?.map(TweetService.normalize) || []
         })
     })
-})
+});
 
-const QueryService = {create, read, stream, update, fetchAPI, QueryTweetService};
+const fetchAPIHistoric = (search, {next_token, start_time, end_time, until_id}, {
+    onResult = async ()=>{}, 
+    onPage = async()=>{},
+    onError = ()=>{}, 
+    onEnd = async ()=>{}
+}) => {
+    Connection.Twitter.get('https://api.twitter.com/2/tweets/search/all', 
+        { query: search + " -is:retweet", max_results: 500, next_token, start_time, end_time, until_id}, 
+        async (error, data, response) => {
+            // Reject if there is an error    
+            if (error) return onError(error);
+            // Call on result fot each tweet id
+            if(Array.isArray(data?.data)){
+                for(let {id} of data?.data){ await onResult(id); }
+            } 
+            if(data.meta.next_token){
+                await onPage(data.meta.next_token);
+            } else {
+                await onEnd();
+            }
+    })
+}
+
+const QueryService = {create, read, stream, update, fetchAPI, fetchAPIHistoric, QueryTweetService};
 module.exports = QueryService;

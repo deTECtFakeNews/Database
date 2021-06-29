@@ -3,7 +3,7 @@ const TweetEntitiesModel = require("./TweetEntitiesModel");
 const TweetStatsModel = require("./TweetStatsModel");
 // const TweetRetweetModel = require("./TweetRetweetModel");
 const TweetService = require("../../Services/Tweet/TweetService");
-
+const {TweetRetweetService} = TweetService;
 class TweetModel{
     /**@type {String} Id of Tweet in Twitter and Database */
     tweetID;
@@ -87,20 +87,24 @@ class TweetModel{
 
     async readSelf(){
         if(this.tweetID == -1) return;
-        let tweetJSON = (await TweetService.read(this.tweetID))[0];
-        if(tweetJSON == undefined) throw 'No results';
-        this.authorID = tweetJSON.authorID || -1;
-        this.inReplyToUserID = tweetJSON.inReplyToUserID || -1;
-        this.inReplyToTweetID = tweetJSON.inReplyToTweetID || -1;
-        this.quotesTweetID = tweetJSON.quotesTweetID || -1;
-        this.creationDate = tweetJSON.creationDate;
-        this.fullText = tweetJSON.fullText;
-        this.language = tweetJSON.language;
-        this.placeLng = tweetJSON.placeLng;
-        this.placeLat = tweetJSON.placeLat;
-        this.placeDescription = tweetJSON.placeDescription;
-
-        this.entities = new TweetEntitiesModel({tweetID: this.tweetID, fullText: this.fullText});
+        try{
+            let tweetJSON = await TweetService.read(this.tweetID);
+            tweetJSON = tweetJSON[0];
+            this.authorID = tweetJSON?.authorID || -1;
+            this.inReplyToUserID = tweetJSON?.inReplyToUserID || -1;
+            this.inReplyToTweetID = tweetJSON?.inReplyToTweetID || -1;
+            this.quotesTweetID = tweetJSON?.quotesTweetID || -1;
+            this.creationDate = tweetJSON?.creationDate;
+            this.fullText = tweetJSON?.fullText;
+            this.language = tweetJSON?.language;
+            this.placeLng = tweetJSON?.placeLng;
+            this.placeLat = tweetJSON?.placeLat;
+            this.placeDescription = tweetJSON?.placeDescription;
+    
+            this.entities = new TweetEntitiesModel({tweetID: this.tweetID, fullText: this.fullText});
+        } catch(e){
+            throw e;
+        }
     }
 
     async fetchSelfFromAPI(){
@@ -166,33 +170,42 @@ class TweetModel{
         }
     }
 
-    async upload({shouldUploadRetweets = false} = {}){
+    async upload({uploadRetweets = true, uploadFollowers = true} = {}){
         if(this.tweetID == -1) return;
         try{
             // Author
             await this.author.getSelf();
-            await this.author.upload();
+            await this.author.upload({uploadFollowers});
             // In reply to tweetID
-            await this.repliedTweet.getSelf();
-            await this.repliedTweet.upload();
+            // console.log(this.repliedTweet)
+            await this.repliedTweet.fetchSelfFromAPI();
+            await this.repliedTweet.upload({uploadRetweets, uploadFollowers});
             // Quotes
-            await this.quotedTweet.getSelf();
-            await this.quotedTweet.upload();
+            await this.quotedTweet.fetchSelfFromAPI();
+            await this.quotedTweet.upload({uploadRetweets, uploadFollowers});
             // In reply to userID
             if(this.inReplyToUserID != this.authorID && this.inReplyToUserID != this.repliedTweet.authorID){
                 await this.repliedUser.getSelf();
-                await this.repliedUser.upload();
+                await this.repliedUser.upload({uploadFollowers});
             }
             // Create tweet
             await TweetService.create(this.toJSON());
             // Upload stats and entities
+            // await this.stats.read();
+            await this.stats.readSelf();
             await this.stats.upload();
-            if(this.stats.latestStats?.retweetCount > 20 && shouldUploadRetweets) {
-                await this.retweets.upload();
+            console.log(`uploaded Tweet ${this.tweetID} ${this.fullText.substr(0, 20)}...  (author ${this.authorID}, retweets: ${this.stats.latestStats.retweetCount})`)
+            if(this.stats.latestStats?.retweetCount >= 20 && uploadRetweets) {
+                // console.log('Uploading rts');
+                await this.retweets.read();
+                if(this.retweets.savedRetweets.length==0){
+                    await this.retweets.fetchFromAPI();
+                    await this.retweets.upload();
+                }
             }
             await this.entities.upload();
-
         } catch(e){
+            console.log('Perdoname pero no', e)
             throw e;
         }
     }
@@ -203,7 +216,7 @@ class TweetRetweetModel{
     /**@type {String} */
     tweetID;
     /**@type {Array<TweetModel>} */
-    latestRetweets;
+    latestRetweets = [];
     /**@type {Array<TweetModel>} */
     savedRetweets;
     constructor({tweetID}){
@@ -213,14 +226,11 @@ class TweetRetweetModel{
         if(this.tweetID == -1) return;
         try{
             this.latestRetweets = (await TweetRetweetService.fetchAPI(this.tweetID))
-                .map(t => {
-                    let tweet = new TweetModel(t);
-                    tweet.shouldUploadRetweets = false;
-                    return tweet;
-                })
+                .map(t => new TweetModel(t))
             return this.latestRetweets;
         } catch(e){
-            console.log('Could not fetch retweets', e)
+            console.log('Could not fetch retweets', e);
+            throw e;
         }
     }
     async read(){
@@ -239,14 +249,15 @@ class TweetRetweetModel{
     }
     async upload(){
         if(this.tweetID == -1) return;
-        try{
-            for(let retweet of this.latestRetweets){
-                await TweetRetweetService.create({authorID: retweet.authorID, creationDate: retweet.creationDate, tweetID: retweet.tweetID});
-                await retweet.author.upload();
+        for(let retweet of this.latestRetweets){
+            try{
+                await retweet.author.upload({uploadFollowers: false});
+                await TweetRetweetService.create({authorID: retweet.authorID, creationDate: retweet.creationDate, tweetID: this.tweetID});
+                console.log(`Uploaded rt by ${retweet.authorID}`)
+            } catch(e){
+                console.log('Error uploading retweets', e);
             }
-        } catch(e){
-
-        }
+	    }
     }
     
 }

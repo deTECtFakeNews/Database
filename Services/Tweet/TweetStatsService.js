@@ -7,6 +7,7 @@ const Connection = require("../../Data");
  * @property {Number} retweetCount Number of times this Tweet has been retweeted
  * @property {Number} favoriteCount Number of times people have liked this Tweet
  * @property {Number} replyCount Number of Tweets that reply to this Tweet
+ * @property {String} status Status of the tweet (active/private/deleted)
  * */
 
 
@@ -14,7 +15,6 @@ const create = (tweetStats) => new Promise(async (resolve, reject) => {
     const database = await Connection.connections['tweet-stats-write'];
     database.query('INSERT INTO TweetStatsFreeze SET ?', tweetStats, (error, results, fields) => {
         if(error && error.code != 'ER_DUP_ENTRY') reject(error);
-        if(results == undefined) reject();
         resolve(results);
     })
 })

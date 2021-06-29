@@ -87,7 +87,13 @@ const stream = (query_params, { onError = ()=>{}, onFields = ()=>{}, onResult = 
     if(typeof query_params == 'string' || typeof query_params == 'number'){
         query_params = {userID: query_params}
     }
-    let query = query_params == undefined ? 'SELECT * FROM User' : 'SELECT * FROM User WHERE ?';
+    let query = `
+        SELECT User.* FROM User 
+            JOIN UserStatsFreeze USING (userID)
+            LEFT JOIN UserFollower USING (userID)
+            WHERE UserStatsFreeze.followersCount >= 10000 AND UserFollower.userID IS NULL GROUP BY userID ORDER BY UserStatsFreeze.followersCount DESC
+    `
+    // let query = query_params == undefined ? 'SELECT * FROM User' : 'SELECT * FROM User WHERE ?';
     const database = Connection.connections['user-main-read'];
     database.query(query, query_params)
         .on('end', ()=>{
