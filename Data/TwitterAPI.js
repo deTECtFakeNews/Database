@@ -15,6 +15,7 @@ class TwitterClientEndpoint {
             this.delayTime = (this.limitReset - new Date())/this.remainingCalls;
             this.delayTime = this.delayTime > 0 ? this.delayTime : 0
         }
+        this.delayTime/=CONSTANTS.twitter.length;
         return this.delayTime;
     }
 }
