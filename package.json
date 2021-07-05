@@ -1,6 +1,6 @@
 {
   "name": "itesm-fake-news-database",
-  "version": "1.0.0",
+  "version": "3.0.0",
   "description": "Cloud API with wrappers for twitter api and mysql, abstracted on different levels",
   "main": "Data.js",
   "scripts": {
@@ -21,6 +21,9 @@
     "node-fetch": "^2.6.1",
     "ssh2": "^0.8.9",
     "twitter": "^1.7.1",
-    "twitter-v2": "^1.0.2"
+    "twitter-search-query-parser": "^1.0.0",
+    "twitter-text": "^3.1.0",
+    "twitter-v2": "^1.0.2",
+    "xregexp": "^5.0.2"
   }
 }
