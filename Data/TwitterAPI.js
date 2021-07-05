@@ -1,3 +1,8 @@
+/**
+ * DEPRECATED - TRANSITIONING TO twitter.js
+ */
+
+
 const CONSTANTS = require('./constants');
 const TwitterClient = require('twitter');
 const SystemService = require('../Services/System/SystemService');

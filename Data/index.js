@@ -1,7 +1,7 @@
 const CONSTANTS = require('./constants');
 const mysql = require('mysql2');
 const {Client} = require('ssh2');
-const Twitter = require('./TwitterAPI');
+const Twitter = require('./twitter');
 
 const DatabasePoolCluster = mysql.createPoolCluster();
 
