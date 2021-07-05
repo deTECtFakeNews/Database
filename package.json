@@ -1,6 +1,6 @@
 {
   "name": "itesm-fake-news-database",
-  "version": "1.0.0",
+  "version": "3.0.0",
   "description": "Cloud API with wrappers for twitter api and mysql, abstracted on different levels",
   "main": "Data.js",
   "scripts": {
