@@ -2,6 +2,25 @@ const CONSTANTS = require('./constants');
 const TwitterClient = require("twitter");
 const SystemService = require("../Services/System/SystemService");
 
+const normalizePath = (path) => {
+    // if path is full url
+    if(/^https*:\/\/api.twitter.com\//.test(path)){
+        // Get content after host
+        path = path.replace(/^https*:\/\/api.twitter.com\//, '');
+    }
+    // Remove leading / if exists
+    path = path.replace(/^\/+/, '');
+    // Detect if endpoint begins by version number
+    let beginsWithVersionNumber = /^(?:\d\.*)+(?:\/:*\w+)+/.test(path);
+    // Add default 1.1 if does not begin with version number
+    if(!beginsWithVersionNumber) path = "1.1/"+path;
+    // Replace end digits with :id
+    let normalizedPath = path.replace(/\d+\/*$/, ':id');
+    return normalizedPath;
+    
+}
+
+
 class TwitterClientEndpoint {
     /**@type {Number} Number of remaining calls in time period */
     remainingCalls;
@@ -13,7 +32,7 @@ class TwitterClientEndpoint {
      * Creates an object to manage endpoint delays
      */
     constructor({remainingCalls, limitResetDate}){
-        this.remainingCalls = 1;
+        this.remainingCalls = remainingCalls;
         this.limitResetDate = limitResetDate || new Date();
     }
     /**
@@ -22,6 +41,7 @@ class TwitterClientEndpoint {
     getDelay(){
         // Get remaining time
         let remainingTime = this.limitResetDate.getTime() - (new Date()).getTime();
+        if(this.remainingCalls == 0) return remainingTime + 10;
         // Get only possitive values
         if(remainingTime <= 0) remainingTime = 0;
         // Divide remaining time into remaining calls
@@ -32,7 +52,7 @@ class TwitterClientEndpoint {
 }
 
 class TwitterClientExtended extends TwitterClient{
-    static counter;
+    static counter = 0;
     id;
     /**@type {{String, TwitterClientEndpoint}} Contains all available endpoints*/
     endpoints = {
@@ -57,7 +77,8 @@ class TwitterClientExtended extends TwitterClient{
         this.id = TwitterClientExtended.counter++;
         // Add full archive search endpoints if available
         if(props?.fullArchiveAccess){
-            this.endpoints['2/tweets/search/all'] = new TwitterClientEndpoint({remainingCalls: 300})
+            this.endpoints['2/tweets/search/all'] = new TwitterClientEndpoint({remainingCalls: 300});
+            this.endpoints['2/tweets/counts/all'] = new TwitterClientEndpoint({remainingCalls: 300});
         }
     }
     /**
@@ -66,14 +87,7 @@ class TwitterClientExtended extends TwitterClient{
      * @returns {TwitterClientEndpoint}
      */
     getEndpoint(path){
-        // Remove leading /
-        path = path.replace(/^\/+/, '');
-        // Detect if endpoint begins by version number
-        let beginsWithVersionNumber = /^(?:\d\.*)+(?:\/:*\w+)+/.test(path);
-        // Add default 1.1 if does not begin with version number
-        if(!beginsWithVersionNumber) path = "1.1/"+path;
-        // Replace end digits with :id
-        let normalizedPath = path.replace(/\d+\/*$/, ':id');
+        let normalizedPath = normalizePath(path);
         // Get endpoint
         let endpoint = this.endpoints[normalizedPath];
         // If endpoint exists, return else raise error
@@ -86,14 +100,15 @@ class TwitterClientExtended extends TwitterClient{
             // Get endpoint
             let endpoint = this.getEndpoint(path);
             // Get delay (AND DIVIDE BY THE NUMBER OF CLIENTS)
-            let delay = endpoint.getDelay()/CONSTANTS.twitter.length;
+            let delay = endpoint.getDelay()/(CONSTANTS.twitter.length);
             SystemService.delay( delay ).then(()=>{
                 super.get(path, params, (error, data, response) => {
                     // Throw error if response is undefined
                     if(response == undefined) throw "[Connection/Twitter/TwitterClientExtended] response is undefined";
                     // Update remaining calls and limit reset date
                     endpoint.remainingCalls = response.headers['x-rate-limit-remaining']
-                    endpoint.limitResetDate = response.headers['x-rate-limit-reset']*1000 // To convert to ms
+                    endpoint.limitResetDate = new Date(response.headers['x-rate-limit-reset']*1000) // To convert to ms
+                    endpoint.getDelay();
                     // Log execution
                     console.log(`🌐${this.id} ${path} ⌛${delay}ms. (${endpoint.remainingCalls} remaining)`)
                     // Call callback
