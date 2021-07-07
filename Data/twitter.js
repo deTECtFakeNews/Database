@@ -45,7 +45,7 @@ class TwitterClientEndpoint {
         // Get only possitive values
         if(remainingTime <= 0) remainingTime = 0;
         // Divide remaining time into remaining calls
-        let delayTime = remainingTime/this.remainingCalls;
+        let delayTime = remainingTime/(this.remainingCalls+1);
         return delayTime;
         // Return delay time divided by number of clients
     }
