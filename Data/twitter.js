@@ -62,6 +62,7 @@ class TwitterClientExtended extends TwitterClient{
         // 1.1 Tweets
         '1.1/statuses/show/:id': new TwitterClientEndpoint({remainingCalls: 900}),
         '1.1/statuses/retweets/:id': new TwitterClientEndpoint({remainingCalls: 75}),
+        '1.1/statuses/retweets': new TwitterClientEndpoint({remainingCalls: 75}),
         '1.1/statuses/oembed': new TwitterClientEndpoint({remainingCalls: 0}),
         // 1.1 Search
         '1.1/search/tweets': new TwitterClientEndpoint({remainingCalls: 180}),
@@ -99,6 +100,7 @@ class TwitterClientExtended extends TwitterClient{
         try{
             // Get endpoint
             let endpoint = this.getEndpoint(path);
+            // console.log(path, endpoint)
             // Get delay (AND DIVIDE BY THE NUMBER OF CLIENTS)
             let delay = endpoint.getDelay()/(CONSTANTS.twitter.length);
             SystemService.delay( delay ).then(()=>{
@@ -170,6 +172,9 @@ class TwitterPool {
     }
     post(path, params, callback){
         this.getAvailableClient(path).post(path, params, callback);
+    }
+    async delay(){
+        return 0;
     }
 }
 

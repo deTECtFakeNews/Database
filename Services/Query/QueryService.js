@@ -61,9 +61,9 @@ const stream = (query_params, { onError = ()=>{}, onFields = ()=>{}, onResult = 
     let query = query_params == undefined ? 'SELECT * FROM Query ORDER BY queryID ASC' : 'SELECT * FROM Query WHERE ? ORDER BY queryID ASC';
     const database = Connection.connections['query-main-read'];
     database.query(query, query_params)
-        .on('end', ()=>{
+        .on('end', async ()=>{
             database.release();
-            onEnd();
+            await onEnd();
         })
         .on('error', (error)=>{
             onError(error);
@@ -100,8 +100,8 @@ const update = (queryID, query) => new Promise(async (resolve, reject) => {
  * @returns {Promise<{meta: Object, tweets: Array<import("../Tweet/TweetService").TweetJSON>}>}
  */
 const fetchAPI = (search, options) => new Promise(async (resolve, reject) => {
-    Connection.Twitter.get('search/tweets', {
-        q: search + '-filter:retweets -RT',
+    Connection.Twitter.get('1.1/search/tweets', {
+        q: search + ' -filter:retweets -RT',
         result_type: 'mixed', 
         tweet_mode: 'extended', 
         ...options
@@ -110,10 +110,20 @@ const fetchAPI = (search, options) => new Promise(async (resolve, reject) => {
         if(data.statuses == undefined) reject();
         resolve({
             meta: data.search_metadata,
-            tweets: data.statuses?.map(TweetService.normalize) || []
+            tweets: data.statuses?.map?.(TweetService.normalize)
         })
     })
 });
+
+
+const fetchAPIHistoricCount = (search, options) => new Promise((resolve, reject) => {
+    Connection.Twitter.get('https://api.twitter.com/2/tweets/counts/all', 
+        {query: search + " -is:retweet", ...options}, 
+        (error, data, response) => {
+            if(error) reject(error);
+            resolve(data);
+    })
+})
 
 const fetchAPIHistoric = (search, {next_token, start_time, end_time, until_id}, {
     onResult = async ()=>{}, 
@@ -138,5 +148,5 @@ const fetchAPIHistoric = (search, {next_token, start_time, end_time, until_id}, 
     })
 }
 
-const QueryService = {create, read, stream, update, fetchAPI, fetchAPIHistoric, QueryTweetService};
+const QueryService = {create, read, stream, update, fetchAPI, fetchAPIHistoric, fetchAPIHistoricCount, QueryTweetService};
 module.exports = QueryService;

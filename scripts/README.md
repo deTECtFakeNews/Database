@@ -10,5 +10,6 @@ The results are stored in a `tree.json` file in the root of this project.
 
 ## query-executor.js
 ```bash
-node scritp
+node scripts/query-executor.js
 ```
+Reads tree in `tree.json` in post-order. Then fetches complete Query object from database and calls `executeAll()` method to retrieve and upload tweets. 

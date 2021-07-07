@@ -146,8 +146,7 @@ const update = (tweetID, tweet) => new Promise((resolve, reject) => {
  * @returns {Promise<TweetJSONExtended>}
  */
 const fetchAPI = (tweetID) => new Promise(async (resolve, reject) => {
-    await Connection.Twitter.delay('statuses/show/:id');
-    Connection.Twitter.get(`statuses/show/${tweetID}`, {tweet_mode: 'extended'}, (error, data, response) => {
+    Connection.Twitter.get(`1.1/statuses/show/${tweetID}`, {tweet_mode: 'extended'}, (error, data, response) => {
         if(error) reject(error);
         if(data == undefined) reject(error);
         try{
@@ -162,7 +161,7 @@ const fetchAPI = (tweetID) => new Promise(async (resolve, reject) => {
  * @returns {Promise<String>}
  */
 const getCard = (tweetID) => new Promise((resolve, reject) => {
-    Connection.Twitter.get('/statuses/oembed.json', {id: id, align: 'center', dnt: true}, (error, data, response) => {
+    Connection.Twitter.get('1.1/statuses/oembed.json', {id: id, align: 'center', dnt: true}, (error, data, response) => {
         if(error) reject(error);
         else resolve(data.html);
     })

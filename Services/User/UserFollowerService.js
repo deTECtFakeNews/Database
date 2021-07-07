@@ -92,7 +92,7 @@ const stream = async (query_params, { onError = ()=>{}, onFields = ()=>{}, onRes
 const fetchAPI = userID => new Promise(async (resolve, reject) => {
     if(userID == -1) return;
     await Connection.Twitter.delay('followers/ids');
-    Connection.Twitter.get('followers/ids', {user_id: userID, cursor: -1}, (error, data, response) => {
+    Connection.Twitter.get('1.1/followers/ids', {user_id: userID, cursor: -1}, (error, data, response) => {
         if(error) reject (error[0]);
         else if(data){
             resolve(data.ids)

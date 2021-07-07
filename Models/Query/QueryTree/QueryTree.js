@@ -9,6 +9,8 @@ class QueryNode {
      */
     static fromJSON(json){
         let node = new QueryNode({queryID: json.queryID, query: json.query});
+        node.depth = json.depth;
+        node.weight = json.weight;
         node.children = json.children.map(node => QueryNode.fromJSON(node));
         return node;
     }
@@ -63,6 +65,14 @@ class QueryNode {
             node.setDepth(n+1);
         });
         return this.depth;
+    }
+    async onPostOrderTraverse(callback){
+        // FIrst traverse children (recursively)
+        for(let node of this.children){
+            await node.onPostOrderTraverse(callback);
+        }
+        // Call callback on self
+        return await callback(this);
     }
 }
 
@@ -121,8 +131,13 @@ class QueryTree {
             .sort((a,b) => a.weight - b.weight )
     }
     fromJSON(json){
-        this.#data = json.map(node => QueryNode.fromJSON(node));
+        this.#data = json?.map(node => QueryNode.fromJSON(node));
         return this.getTree();
+    }
+    async onPostOrderTraverse(callback){
+        for(let node of this.getTree()){
+            await node.onPostOrderTraverse(callback);
+        }
     }
 }
 

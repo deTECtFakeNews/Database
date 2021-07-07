@@ -135,7 +135,7 @@ const update = (userID, user) => new Promise((resolve, reject) => {
  */
 const fetchAPI = (userID) => new Promise(async (resolve, reject) => {
     await Connection.Twitter.delay('users/show');
-    Connection.Twitter.get('users/show', {user_id: userID}, (error, data, response) => {
+    Connection.Twitter.get('1.1/users/show', {user_id: userID}, (error, data, response) => {
         if(error) reject(error);
         if(data==undefined) reject();
         resolve(normalize(data));
@@ -149,7 +149,7 @@ const fetchAPI = (userID) => new Promise(async (resolve, reject) => {
  */
 const fetchAPI_id = (screenName) => new Promise(async (resolve, reject) => {
     await Connection.Twitter.delay('users/show');
-    Connection.Twitter.get('users/show', {screen_name: screenName}, (error, data, response) => {
+    Connection.Twitter.get('1.1/users/show', {screen_name: screenName}, (error, data, response) => {
         if(error) reject(error);
         if(data == undefined) reject();
         resolve(data.id)
