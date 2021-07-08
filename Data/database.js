@@ -117,6 +117,5 @@ class DatabaseSSHConnectionPool {
 }
 
 let Database = new DatabaseSSHConnectionPool(CONSTANTS)
-Database.connect();
 
 module.exports = Database;

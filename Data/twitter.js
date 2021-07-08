@@ -61,6 +61,7 @@ class TwitterClientExtended extends TwitterClient{
         '1.1/followers/ids': new TwitterClientEndpoint({remainingCalls: 15}),
         // 1.1 Tweets
         '1.1/statuses/show/:id': new TwitterClientEndpoint({remainingCalls: 900}),
+        '1.1/statuses/show': new TwitterClientEndpoint({remainingCalls: 900}),
         '1.1/statuses/retweets/:id': new TwitterClientEndpoint({remainingCalls: 75}),
         '1.1/statuses/retweets': new TwitterClientEndpoint({remainingCalls: 75}),
         '1.1/statuses/oembed': new TwitterClientEndpoint({remainingCalls: 0}),

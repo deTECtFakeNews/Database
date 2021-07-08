@@ -1,4 +1,4 @@
-const { connect } = require("../Data");
+const { Database, Twitter, connect, connections } = require("../Data");
 const fs = require('fs');
 const { QueryTree, QueryNode } = require("../Models/Query/QueryTree/QueryTree");
 const QueryService = require("../Services/Query/QueryService");
@@ -8,7 +8,7 @@ const QueryModel = require('../Models/Query/QueryModel');
 const tree = new QueryTree();
 // Load tree file
 fs.readFile('tree.json', {encoding: 'utf8'}, async (error, data) => {
-    await connect();
+    await Database.connect();
     tree.fromJSON(JSON.parse(data));
     await tree.onPostOrderTraverse(async node=>{
         // Load node from database
