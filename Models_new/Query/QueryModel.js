@@ -41,9 +41,11 @@ class QueryModel {
                     }
                     // Get tweet stats
                     if(tweet.latestStats.last().retweetCount >= 20){
-                        await tweet.retweets.getFromAPI();
-                        // await tweet.retweets.uploadToDatabase();
-                        console.log('[Models/Query] Uploaded tweet retweets')
+                        try{
+                            await tweet.retweets.getFromAPI();
+                            await tweet.retweets.uploadToDatabase();
+                            console.log('[Models/Query] Uploaded tweet retweets')
+                        } catch(e){}
                     }
                     // Get connection
                     await QueryService.QueryTweetService.create({tweetID: tweet.tweetID, queryID: this.queryID});
