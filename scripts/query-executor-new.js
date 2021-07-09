@@ -14,6 +14,7 @@ fs.readFile('tree.json', {encoding: 'utf8'}, async (error, data) => {
         // Get full from database
         const [q] = await QueryService.read(node.queryID);
         const query = new QueryModel(q);
+        // Update to new query with excludes
         // Copy tweets from children
         if(node.children.length>0){
             for(let child of node.children){

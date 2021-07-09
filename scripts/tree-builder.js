@@ -1,11 +1,11 @@
-const { connect } = require("../Data");
-const { QueryTree, QueryNode } = require("../Models/Query/QueryTree/QueryTree");
+const Connection = require("../Data");
+const { QueryTree, QueryNode } = require("../Models_new/Query/QueryTree");
 const QueryService = require("../Services/Query/QueryService");
 const fs = require('fs')
 // Create a tree
 const tree = new QueryTree();
 // Connect to db
-connect().then(()=>{
+Connection.Database.connect().then(()=>{
     QueryService.stream(undefined, {
         // Create node and add each query
         onResult: ({queryID, query}) => {

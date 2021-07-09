@@ -18,6 +18,8 @@ class QueryNode {
     queryID;
     /**@type {String} Query expression*/
     query;
+    /**@type {String} Query with filters*/
+    queryWithFilters;
     /**@type {Number} Depth of this node relative to its parents*/
     depth;
     /**@type {Number} Assigned weight for sorting*/
@@ -52,7 +54,7 @@ class QueryNode {
             .filter(node => node.depth == this.depth+1)
             .sort((a, b) => a.weight - b.weight);
         this.children.forEach( node => {node.cleanChildren()} );
-
+        this.queryWithFilters = this.query + this.children.map(node => ` -(${node.query})`).join('')
     }
     /**
      * Updates depth of node, and children recursively
@@ -98,7 +100,7 @@ class QueryTree {
             try{
                 // For each node...
                 // Fetch number of tweets
-                let count = await QueryService.fetchAPIHistoricCount(node.query);
+                let count = await QueryService.fetchAPI_historic_count(node.query);
                 node.weight = count.meta.total_tweet_count;
                 // Get matches
                 let {tweets} = await QueryService.fetchAPI(`${node.query} from:ItesmN`);

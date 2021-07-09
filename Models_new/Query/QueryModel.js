@@ -21,7 +21,6 @@ class QueryModel {
         this.oldestDate = data?.oldestDate;
     }
     async executeHistoric(){
-        await QueryService.update(this.queryID, {isComplete: false})
 
         await QueryService.fetchAPI_historic(this.query, {
             start_time: '2020-01-01T00:00:00Z',
