@@ -8,7 +8,7 @@ const Connection = require("../../Data");
  const create = (queryJSON) => new Promise((resolve, reject) => {
     // Do not create if empty or null
     if(queryJSON.queryID == undefined || queryJSON.queryID == -1) return resolve();
-    Connection.connections['query-main-write'].query('INSERT INTO Query SET ?', queryJSON, (error, results, fields) => {
+    Connection.connections['query-main-write'].query('INSERT INTO QueryTweet SET ?', queryJSON, (error, results, fields) => {
         // Reject on error
         if(error && error.code != 'ER_DUP_ENTRY') reject(error);
         // Else return newly added row

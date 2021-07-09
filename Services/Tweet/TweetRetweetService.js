@@ -28,7 +28,7 @@ const normalize = data => ({
  * @returns {Promise<Array<TweetRetweetJSON>>}
  */
 const fetchAPI = (tweetID, {count = 100, trim_user = false} = {}) => new Promise((resolve, reject) => {
-    Connection.Twitter.get('1.1/statuses/retweets', {id: tweetID, count, trim_user}, (error, data, response) => {
+    Connection.Twitter.get('1.1/statuses/retweets', {id: tweetID, count, trim_user: false}, (error, data, response) => {
         if(error) reject(error);
         try{
             resolve(data.map(normalize))
@@ -46,7 +46,7 @@ const fetchAPI = (tweetID, {count = 100, trim_user = false} = {}) => new Promise
  const create = (tweetRetweet) => new Promise((resolve, reject) => {
     if(tweetRetweet.tweetID == undefined || tweetRetweet.tweetID == -1) return resolve();
     if(tweetRetweet.authorID == undefined || tweetRetweet.authorID == -1) return resolve();
-    Connection.connections['tweet-retweet-write'].query('INSERT INTO TweetRetweet SET ?', tweetRetweet, (error, results, fields) => {
+    Connection.connections['tweet-retweets-write'].query('INSERT INTO TweetRetweet SET ?', tweetRetweet, (error, results, fields) => {
         if(error) reject(error);
         else resolve();
     })
@@ -63,7 +63,7 @@ const createMany = undefined;
     if(typeof params === 'string' || typeof params === 'number') params = {tweetID: params};
     // If no params return all
     const query = params == undefined ? 'SELECT * FROM TweetRetweet' : 'SELECT * FROM TweetRetweet WHERE ?';
-    Connection.connections['tweet-retweet-read'].query(query, params, (error, results, fields) => {
+    Connection.connections['tweet-retweets-read'].query(query, params, (error, results, fields) => {
         if(error) reject(error);
         else resolve(results);
     })
@@ -80,13 +80,13 @@ const createMany = undefined;
     if(typeof params === 'string' || typeof params === 'number') params = {tweetID: params};
     // If no params, return all
     const query = params == undefined ? 'SELECT * FROM TweetRetweet' : 'SELECT * FROM TweetRetweet WHERE ?';
-    Connection.connections['tweet-retweet-read'].query(query, params)
+    Connection.connections['tweet-retweets-read'].query(query, params)
         .on('error', onError)
         .on('fields', onFields)
         .on('result', async result => {
-            Connection.connections['tweet-retweet-read'].pause();
+            Connection.connections['tweet-retweets-read'].pause();
             await onResult(result);
-            Connection.connections['tweet-retweet-read'].resume();
+            Connection.connections['tweet-retweets-read'].resume();
         })
         .on('end', async ()=>{
             await onEnd();

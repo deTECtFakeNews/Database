@@ -1,3 +1,4 @@
+const Connection = require("../../Data");
 /**
  * @typedef {Object} TweetStatsJSON 
  * @property {String} tweetID Unique identifier of tweet in Twitter and Database

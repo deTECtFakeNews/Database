@@ -73,6 +73,7 @@ const fetchAPI_historic = (search, options = {}, {
         // Reject on error
         if(error) onError(error);
         // Call on result for each tweet id
+        // console.log(data)
         if(Array.isArray(data?.data)){
             for(let tweet of data?.data){
                 await onResult( TweetService.normalize_v2(tweet) )
@@ -128,5 +129,18 @@ const fetchAPI_historic = (search, options = {}, {
         })
 });
 
-const QueryService = {fetchAPI, fetchAPI_historic, fetchAPI_historic_count, read, stream};
+/**
+ * Database - Update query with new data
+ * @param {String} queryID Tweet id of row to update
+ * @param {QueryJSON} query Data to be updated
+ * @returns {Promise}
+ */
+ const update = (queryID, query) => new Promise((resolve, reject) => {
+    Connection.connections['query-main-write'].query('UPDATE Query SET ? WHERE ?', [query, {queryID: queryID}], (error, result, fields) => {
+        if(error) reject(error);
+        else resolve(query);
+    })
+})
+
+const QueryService = {fetchAPI, fetchAPI_historic, fetchAPI_historic_count, read, stream, update, QueryTweetService};
 module.exports = QueryService;

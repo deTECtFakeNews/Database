@@ -157,10 +157,10 @@ const create = (tweetJSON) => new Promise((resolve, reject) => {
  * @param {TweetJSON} tweet Data to be updated
  * @returns {Promise}
  */
- const update = (userID, user) => new Promise((resolve, reject) => {
-    Connection.connections['tweet-main-write'].query('UPDATE Tweet SET ? WHERE ?', [user, {userID}], (error, result, fields) => {
+ const update = (tweetID, tweet) => new Promise((resolve, reject) => {
+    Connection.connections['tweet-main-write'].query('UPDATE Tweet SET ? WHERE ?', [tweet, {tweetID: tweetID}], (error, result, fields) => {
         if(error) reject(error);
-        else resolve(user);
+        else resolve(tweet);
     })
 })
 
