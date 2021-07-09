@@ -30,7 +30,10 @@ fs.readFile('tree.json', {encoding: 'utf8'}, async (error, data) => {
             console.log('===============================================')
             console.log('===============================================')
             console.log(query.query);
-            if(query.shouldExecute) await query.executeHistoric();
+            if(query.shouldExecute){
+                await QueryService.update(query.queryID, {isComplete: false})
+                await query.executeHistoric();
+            }
         } catch(e){
             console.log("An error ocurred executing query", query.query)
         }

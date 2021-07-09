@@ -61,6 +61,8 @@ class QueryModel {
             }, 
             onPage: async next_token => {
                 try{
+                    this.#next_token = next_token;
+                    // await QueryService.update(this.queryID, {historicNext: next_token})
                     await this.executeHistoric()
                 } catch(e){
                     console.log(e)
