@@ -15,6 +15,7 @@ fs.readFile('tree.json', {encoding: 'utf8'}, async (error, data) => {
         const [q] = await QueryService.read(node.queryID);
         const query = new QueryModel(q);
         // Update to new query with excludes
+        query.query = node.queryWithFilters;
         // Copy tweets from children
         if(node.children.length>0){
             for(let child of node.children){
@@ -30,7 +31,7 @@ fs.readFile('tree.json', {encoding: 'utf8'}, async (error, data) => {
             console.log('===============================================')
             console.log('===============================================')
             console.log('===============================================')
-            console.log(query.query);
+            console.log(node.query, node.queryWithFilters);
             if(query.shouldExecute){
                 await QueryService.update(query.queryID, {isComplete: false})
                 await query.executeHistoric();
