@@ -6,7 +6,7 @@ const fs = require('fs')
 const tree = new QueryTree();
 // Connect to db
 Connection.Database.connect().then(()=>{
-    QueryService.stream(undefined, {
+    QueryService.stream({shouldExecute: 1}, {
         // Create node and add each query
         onResult: ({queryID, query}) => {
             tree.addNode( new QueryNode({queryID, query}) ) 

@@ -24,30 +24,6 @@
         "children": []
     },
     {
-        "queryID": 138,
-        "query": "López Gatell Pronta recuperación recupérese",
-        "queryWithFilters": "López Gatell Pronta recuperación recupérese",
-        "depth": 0,
-        "weight": 1,
-        "children": []
-    },
-    {
-        "queryID": 147,
-        "query": "Almirante marina Rafael Ojeda covid",
-        "queryWithFilters": "Almirante marina Rafael Ojeda covid",
-        "depth": 0,
-        "weight": 1,
-        "children": []
-    },
-    {
-        "queryID": 153,
-        "query": "Ackerman Conacyt pandemia",
-        "queryWithFilters": "Ackerman Conacyt pandemia",
-        "depth": 0,
-        "weight": 1,
-        "children": []
-    },
-    {
         "queryID": 156,
         "query": "ONU florero acaparamiento vacuna",
         "queryWithFilters": "ONU florero acaparamiento vacuna",
@@ -64,25 +40,9 @@
         "children": []
     },
     {
-        "queryID": 184,
-        "query": "Jorge Alcocer vacuna Pfizer",
-        "queryWithFilters": "Jorge Alcocer vacuna Pfizer",
-        "depth": 0,
-        "weight": 1,
-        "children": []
-    },
-    {
         "queryID": 186,
         "query": "Sinovac covid certificado Ebrard",
         "queryWithFilters": "Sinovac covid certificado Ebrard",
-        "depth": 0,
-        "weight": 1,
-        "children": []
-    },
-    {
-        "queryID": 223,
-        "query": "Cepillin coronavirus",
-        "queryWithFilters": "Cepillin coronavirus",
         "depth": 0,
         "weight": 1,
         "children": []
@@ -128,25 +88,9 @@
         "children": []
     },
     {
-        "queryID": 8331,
-        "query": "The Guardian AMLO pandemia",
-        "queryWithFilters": "The Guardian AMLO pandemia",
-        "depth": 0,
-        "weight": 1,
-        "children": []
-    },
-    {
         "queryID": 8333,
         "query": "Zacatenco vacuna error",
         "queryWithFilters": "Zacatenco vacuna error",
-        "depth": 0,
-        "weight": 1,
-        "children": []
-    },
-    {
-        "queryID": 8336,
-        "query": "difamación Sheinbaum vacunación",
-        "queryWithFilters": "difamación Sheinbaum vacunación",
         "depth": 0,
         "weight": 1,
         "children": []
@@ -160,25 +104,9 @@
         "children": []
     },
     {
-        "queryID": 8340,
-        "query": "Alcocer AMLO inmune",
-        "queryWithFilters": "Alcocer AMLO inmune",
-        "depth": 0,
-        "weight": 1,
-        "children": []
-    },
-    {
         "queryID": 8341,
         "query": "#EstudiantesDebenSerVacunados",
         "queryWithFilters": "#EstudiantesDebenSerVacunados",
-        "depth": 0,
-        "weight": 1,
-        "children": []
-    },
-    {
-        "queryID": 8343,
-        "query": "vileza Calderón médicos",
-        "queryWithFilters": "vileza Calderón médicos",
         "depth": 0,
         "weight": 1,
         "children": []
@@ -195,14 +123,6 @@
         "queryID": 8353,
         "query": "vacunación personal educativo Gatell",
         "queryWithFilters": "vacunación personal educativo Gatell",
-        "depth": 0,
-        "weight": 1,
-        "children": []
-    },
-    {
-        "queryID": 8359,
-        "query": "Dresser estrategia de vacunación",
-        "queryWithFilters": "Dresser estrategia de vacunación",
         "depth": 0,
         "weight": 1,
         "children": []
@@ -240,14 +160,6 @@
         "children": []
     },
     {
-        "queryID": 8330,
-        "query": "Krauze Sputnik",
-        "queryWithFilters": "Krauze Sputnik",
-        "depth": 0,
-        "weight": 2,
-        "children": []
-    },
-    {
         "queryID": 8351,
         "query": "UNESCO CDMX covid",
         "queryWithFilters": "UNESCO CDMX covid",
@@ -261,14 +173,6 @@
         "queryWithFilters": "Quadri estrategia de vacunación",
         "depth": 0,
         "weight": 2,
-        "children": []
-    },
-    {
-        "queryID": 181,
-        "query": "Cepillin covid",
-        "queryWithFilters": "Cepillin covid",
-        "depth": 0,
-        "weight": 3,
         "children": []
     },
     {
@@ -304,9 +208,9 @@
         "children": []
     },
     {
-        "queryID": 8304,
-        "query": "AstraZeneca fase 3 México",
-        "queryWithFilters": "AstraZeneca fase 3 México",
+        "queryID": 8309,
+        "query": "#sinvacunasnohayregreso",
+        "queryWithFilters": "#sinvacunasnohayregreso",
         "depth": 0,
         "weight": 4,
         "children": []
@@ -328,14 +232,6 @@
         "children": []
     },
     {
-        "queryID": 8309,
-        "query": "#sinvacunasnohayregreso",
-        "queryWithFilters": "#sinvacunasnohayregreso",
-        "depth": 0,
-        "weight": 5,
-        "children": []
-    },
-    {
         "queryID": 8347,
         "query": "vacunación maestros Gatell",
         "queryWithFilters": "vacunación maestros Gatell",
@@ -349,22 +245,6 @@
         "queryWithFilters": "#VacunaciónChimalhuacán",
         "depth": 0,
         "weight": 5,
-        "children": []
-    },
-    {
-        "queryID": 185,
-        "query": "Jorge Alcocer Gatell covid",
-        "queryWithFilters": "Jorge Alcocer Gatell covid",
-        "depth": 0,
-        "weight": 6,
-        "children": []
-    },
-    {
-        "queryID": 101,
-        "query": "Viri Ríos vacunas covid",
-        "queryWithFilters": "Viri Ríos vacunas covid",
-        "depth": 0,
-        "weight": 7,
         "children": []
     },
     {
@@ -392,19 +272,11 @@
         "children": []
     },
     {
-        "queryID": 230,
-        "query": "Jorge Alcocer covid vacunación",
-        "queryWithFilters": "Jorge Alcocer covid vacunación",
-        "depth": 0,
-        "weight": 9,
-        "children": []
-    },
-    {
         "queryID": 8322,
         "query": "Covaxin Cofepris",
         "queryWithFilters": "Covaxin Cofepris",
         "depth": 0,
-        "weight": 10,
+        "weight": 9,
         "children": []
     },
     {
@@ -416,9 +288,9 @@
         "children": []
     },
     {
-        "queryID": 234,
-        "query": "Sergio Mayer Gatell pandemia",
-        "queryWithFilters": "Sergio Mayer Gatell pandemia",
+        "queryID": 235,
+        "query": "Remdesivir COFEPRIS",
+        "queryWithFilters": "Remdesivir COFEPRIS",
         "depth": 0,
         "weight": 12,
         "children": []
@@ -456,17 +328,9 @@
         "children": []
     },
     {
-        "queryID": 235,
-        "query": "Remdesivir COFEPRIS",
-        "queryWithFilters": "Remdesivir COFEPRIS",
-        "depth": 0,
-        "weight": 14,
-        "children": []
-    },
-    {
-        "queryID": 232,
-        "query": "Fase 3 vacuna Gatell",
-        "queryWithFilters": "Fase 3 vacuna Gatell",
+        "queryID": 74,
+        "query": "Coronavac Sinovac China SER",
+        "queryWithFilters": "Coronavac Sinovac China SER",
         "depth": 0,
         "weight": 15,
         "children": []
@@ -477,14 +341,6 @@
         "queryWithFilters": "Sputnik ssa",
         "depth": 0,
         "weight": 16,
-        "children": []
-    },
-    {
-        "queryID": 226,
-        "query": "Nuevo León Sinovac",
-        "queryWithFilters": "Nuevo León Sinovac",
-        "depth": 0,
-        "weight": 17,
         "children": []
     },
     {
@@ -512,11 +368,11 @@
         "children": []
     },
     {
-        "queryID": 74,
-        "query": "Coronavac Sinovac China SER",
-        "queryWithFilters": "Coronavac Sinovac China SER",
+        "queryID": 8335,
+        "query": "#VacunasDeAire",
+        "queryWithFilters": "#VacunasDeAire",
         "depth": 0,
-        "weight": 19,
+        "weight": 20,
         "children": []
     },
     {
@@ -531,14 +387,6 @@
         "queryID": 8325,
         "query": "Covaxin vacuna México",
         "queryWithFilters": "Covaxin vacuna México",
-        "depth": 0,
-        "weight": 21,
-        "children": []
-    },
-    {
-        "queryID": 8335,
-        "query": "#VacunasDeAire",
-        "queryWithFilters": "#VacunasDeAire",
         "depth": 0,
         "weight": 21,
         "children": []
@@ -560,6 +408,22 @@
         "children": []
     },
     {
+        "queryID": 8356,
+        "query": "CanSino personal educativo",
+        "queryWithFilters": "CanSino personal educativo",
+        "depth": 0,
+        "weight": 33,
+        "children": []
+    },
+    {
+        "queryID": 58,
+        "query": "sputnik gatell",
+        "queryWithFilters": "sputnik gatell",
+        "depth": 0,
+        "weight": 34,
+        "children": []
+    },
+    {
         "queryID": 158,
         "query": "Coronavac vacuna Mexico",
         "queryWithFilters": "Coronavac vacuna Mexico",
@@ -568,19 +432,11 @@
         "children": []
     },
     {
-        "queryID": 8356,
-        "query": "CanSino personal educativo",
-        "queryWithFilters": "CanSino personal educativo",
+        "queryID": 144,
+        "query": "Tláhuac vacuna covid",
+        "queryWithFilters": "Tláhuac vacuna covid",
         "depth": 0,
-        "weight": 35,
-        "children": []
-    },
-    {
-        "queryID": 58,
-        "query": "sputnik gatell",
-        "queryWithFilters": "sputnik gatell",
-        "depth": 0,
-        "weight": 36,
+        "weight": 38,
         "children": []
     },
     {
@@ -588,15 +444,7 @@
         "query": "CanSino Drugmex",
         "queryWithFilters": "CanSino Drugmex",
         "depth": 0,
-        "weight": 39,
-        "children": []
-    },
-    {
-        "queryID": 144,
-        "query": "Tláhuac vacuna covid",
-        "queryWithFilters": "Tláhuac vacuna covid",
-        "depth": 0,
-        "weight": 42,
+        "weight": 41,
         "children": []
     },
     {
@@ -604,7 +452,7 @@
         "query": "sputnik amlo",
         "queryWithFilters": "sputnik amlo",
         "depth": 0,
-        "weight": 52,
+        "weight": 51,
         "children": []
     },
     {
@@ -620,7 +468,7 @@
         "query": "Patria vacuna CONACYT",
         "queryWithFilters": "Patria vacuna CONACYT",
         "depth": 0,
-        "weight": 72,
+        "weight": 70,
         "children": []
     },
     {
@@ -636,7 +484,7 @@
         "query": "sputnik cofepris",
         "queryWithFilters": "sputnik cofepris -(cofepris sputnik v)",
         "depth": 0,
-        "weight": 115,
+        "weight": 109,
         "children": [
             {
                 "queryID": 60,
@@ -653,7 +501,7 @@
         "query": "sputnik LillyTellez",
         "queryWithFilters": "sputnik LillyTellez",
         "depth": 0,
-        "weight": 136,
+        "weight": 126,
         "children": []
     },
     {
@@ -661,7 +509,7 @@
         "query": "Ecatepec vacuna covid",
         "queryWithFilters": "Ecatepec vacuna covid",
         "depth": 0,
-        "weight": 145,
+        "weight": 156,
         "children": []
     },
     {
@@ -669,7 +517,7 @@
         "query": "Sinovac vacuna Mexico",
         "queryWithFilters": "Sinovac vacuna Mexico",
         "depth": 0,
-        "weight": 189,
+        "weight": 180,
         "children": []
     },
     {
@@ -677,7 +525,7 @@
         "query": "#RegresoAClases covid",
         "queryWithFilters": "#RegresoAClases covid",
         "depth": 0,
-        "weight": 198,
+        "weight": 192,
         "children": []
     },
     {
@@ -693,7 +541,7 @@
         "query": "vacuna eficacia México",
         "queryWithFilters": "vacuna eficacia México",
         "depth": 0,
-        "weight": 466,
+        "weight": 441,
         "children": []
     },
     {
@@ -701,7 +549,7 @@
         "query": "AMLO coronavirus",
         "queryWithFilters": "AMLO coronavirus",
         "depth": 0,
-        "weight": 500,
+        "weight": 495,
         "children": []
     },
     {
@@ -709,7 +557,7 @@
         "query": "#VacunacionEdomex",
         "queryWithFilters": "#VacunacionEdomex",
         "depth": 0,
-        "weight": 528,
+        "weight": 515,
         "children": []
     },
     {
@@ -717,7 +565,7 @@
         "query": "#vacuNADA",
         "queryWithFilters": "#vacuNADA",
         "depth": 0,
-        "weight": 621,
+        "weight": 577,
         "children": []
     },
     {
@@ -725,7 +573,7 @@
         "query": "covid mañanera",
         "queryWithFilters": "covid mañanera -(Alcocer mañanera covid)",
         "depth": 0,
-        "weight": 824,
+        "weight": 811,
         "children": [
             {
                 "queryID": 8360,
@@ -742,7 +590,7 @@
         "query": "CanSino maestros",
         "queryWithFilters": "CanSino maestros",
         "depth": 0,
-        "weight": 976,
+        "weight": 915,
         "children": []
     },
     {
@@ -750,7 +598,7 @@
         "query": "AstraZeneca vacuna Mexico",
         "queryWithFilters": "AstraZeneca vacuna Mexico -(AstraZeneca vacuna Mexico Francia) -(AstraZeneca vacuna Mexico Alemania) -(AstraZeneca vacuna Mexico Dinamarca) -(AstraZeneca vacuna Mexico Italia)",
         "depth": 0,
-        "weight": 1040,
+        "weight": 1028,
         "children": [
             {
                 "queryID": 8296,
@@ -791,7 +639,7 @@
         "query": "CanSino vacuna Mexico",
         "queryWithFilters": "CanSino vacuna Mexico",
         "depth": 0,
-        "weight": 1233,
+        "weight": 1109,
         "children": []
     },
     {
@@ -799,7 +647,7 @@
         "query": "Pfizer vacuna Mexico",
         "queryWithFilters": "Pfizer vacuna Mexico",
         "depth": 0,
-        "weight": 1363,
+        "weight": 1299,
         "children": []
     },
     {
@@ -807,7 +655,7 @@
         "query": "sputnik México",
         "queryWithFilters": "sputnik México -(Sputnik V Alberto Fernández México) -(Sputnik V Argentina México) -(Sputnik vacuna Mexico)",
         "depth": 0,
-        "weight": 2325,
+        "weight": 2285,
         "children": [
             {
                 "queryID": 8319,
@@ -822,7 +670,7 @@
                 "query": "Sputnik V Argentina México",
                 "queryWithFilters": "Sputnik V Argentina México",
                 "depth": 1,
-                "weight": 91,
+                "weight": 89,
                 "children": []
             },
             {
@@ -830,7 +678,7 @@
                 "query": "Sputnik vacuna Mexico",
                 "queryWithFilters": "Sputnik vacuna Mexico -(Sputnik vacuna falsa Mexico)",
                 "depth": 1,
-                "weight": 1115,
+                "weight": 1105,
                 "children": [
                     {
                         "queryID": 8307,
@@ -849,7 +697,7 @@
         "query": "Ebrard vacuna",
         "queryWithFilters": "Ebrard vacuna -(Fase 3 vacuna Ebrard) -(Ebrard vacuna México)",
         "depth": 0,
-        "weight": 2538,
+        "weight": 2503,
         "children": [
             {
                 "queryID": 231,
@@ -864,7 +712,7 @@
                 "query": "Ebrard vacuna México",
                 "queryWithFilters": "Ebrard vacuna México",
                 "depth": 1,
-                "weight": 581,
+                "weight": 572,
                 "children": []
             }
         ]
@@ -874,7 +722,7 @@
         "query": "#PrevenirEsSalud",
         "queryWithFilters": "#PrevenirEsSalud",
         "depth": 0,
-        "weight": 3143,
+        "weight": 3073,
         "children": []
     },
     {
@@ -882,7 +730,7 @@
         "query": "#DrMuerte",
         "queryWithFilters": "#DrMuerte",
         "depth": 0,
-        "weight": 3473,
+        "weight": 3371,
         "children": []
     },
     {
@@ -890,15 +738,7 @@
         "query": "vacuna 50 a 59",
         "queryWithFilters": "vacuna 50 a 59",
         "depth": 0,
-        "weight": 3601,
-        "children": []
-    },
-    {
-        "queryID": 45,
-        "query": "covid lopez gatell",
-        "queryWithFilters": "covid lopez gatell",
-        "depth": 0,
-        "weight": 3758,
+        "weight": 3408,
         "children": []
     },
     {
@@ -906,7 +746,15 @@
         "query": "vacunación 50 a 59",
         "queryWithFilters": "vacunación 50 a 59",
         "depth": 0,
-        "weight": 3852,
+        "weight": 3696,
+        "children": []
+    },
+    {
+        "queryID": 45,
+        "query": "covid lopez gatell",
+        "queryWithFilters": "covid lopez gatell",
+        "depth": 0,
+        "weight": 3727,
         "children": []
     },
     {
@@ -914,14 +762,14 @@
         "query": "vacuna ( covid OR coronavirus ) México",
         "queryWithFilters": "vacuna ( covid OR coronavirus ) México -(Coronavirus vacuna México) -(vacuna covid México)",
         "depth": 0,
-        "weight": 3994,
+        "weight": 3914,
         "children": [
             {
                 "queryID": 32,
                 "query": "Coronavirus vacuna México",
                 "queryWithFilters": "Coronavirus vacuna México",
                 "depth": 1,
-                "weight": 732,
+                "weight": 723,
                 "children": []
             },
             {
@@ -929,7 +777,7 @@
                 "query": "vacuna covid México",
                 "queryWithFilters": "vacuna covid México",
                 "depth": 1,
-                "weight": 3624,
+                "weight": 3547,
                 "children": []
             }
         ]
@@ -939,7 +787,7 @@
         "query": "#EstrategiaDeVacunación",
         "queryWithFilters": "#EstrategiaDeVacunación",
         "depth": 0,
-        "weight": 4598,
+        "weight": 4462,
         "children": []
     },
     {
@@ -947,7 +795,7 @@
         "query": "#Covid_19mx",
         "queryWithFilters": "#Covid_19mx",
         "depth": 0,
-        "weight": 4753,
+        "weight": 4564,
         "children": []
     },
     {
@@ -955,14 +803,14 @@
         "query": "AMLO covid",
         "queryWithFilters": "AMLO covid -(Universidad de California covid AMLO) -(The Guardian AMLO covid) -(ONU AMLO vacunas covid) -(AMLO vacuna covid)",
         "depth": 0,
-        "weight": 5531,
+        "weight": 5501,
         "children": [
             {
-                "queryID": 8350,
+                "queryID": "8350",
                 "query": "Universidad de California covid AMLO",
                 "queryWithFilters": "Universidad de California covid AMLO",
                 "depth": 1,
-                "weight": 1,
+                "weight": 0,
                 "children": []
             },
             {
@@ -986,7 +834,7 @@
                 "query": "AMLO vacuna covid",
                 "queryWithFilters": "AMLO vacuna covid -(covid vacuna rusa amlo) -(Vacuna covid AMLO Biden)",
                 "depth": 1,
-                "weight": 772,
+                "weight": 768,
                 "children": [
                     {
                         "queryID": 50,
@@ -1013,7 +861,7 @@
         "query": "covid semaforo",
         "queryWithFilters": "covid semaforo",
         "depth": 0,
-        "weight": 7310,
+        "weight": 6882,
         "children": []
     },
     {
@@ -1021,7 +869,7 @@
         "query": "#CuidemosTodosDeTodos",
         "queryWithFilters": "#CuidemosTodosDeTodos",
         "depth": 0,
-        "weight": 7659,
+        "weight": 7485,
         "children": []
     },
     {
@@ -1029,14 +877,14 @@
         "query": "Covid pruebas",
         "queryWithFilters": "Covid pruebas -(pruebas covid México)",
         "depth": 0,
-        "weight": 19996,
+        "weight": 19530,
         "children": [
             {
                 "queryID": 38,
                 "query": "pruebas covid México",
                 "queryWithFilters": "pruebas covid México",
                 "depth": 1,
-                "weight": 594,
+                "weight": 589,
                 "children": []
             }
         ]
@@ -1046,14 +894,14 @@
         "query": "Covid México",
         "queryWithFilters": "Covid México -(Universidad de California covid México) -(covid 5G México) -(vacunación covid personal médico México) -(Casa Blanca covid Mexico) -(covid cura México) -(covid fake news México) -(covid viajeros México) -(adultos vacunación covid México) -(covid pfizer mexico) -(Covid muertes México)",
         "depth": 0,
-        "weight": 52643,
+        "weight": 51715,
         "children": [
             {
                 "queryID": 8349,
                 "query": "Universidad de California covid México",
                 "queryWithFilters": "Universidad de California covid México",
                 "depth": 1,
-                "weight": 3,
+                "weight": 2,
                 "children": []
             },
             {
@@ -1069,7 +917,7 @@
                 "query": "vacunación covid personal médico México",
                 "queryWithFilters": "vacunación covid personal médico México",
                 "depth": 1,
-                "weight": 10,
+                "weight": 9,
                 "children": []
             },
             {
@@ -1077,7 +925,7 @@
                 "query": "Casa Blanca covid Mexico",
                 "queryWithFilters": "Casa Blanca covid Mexico",
                 "depth": 1,
-                "weight": 10,
+                "weight": 9,
                 "children": []
             },
             {
@@ -1085,7 +933,7 @@
                 "query": "covid cura México",
                 "queryWithFilters": "covid cura México",
                 "depth": 1,
-                "weight": 26,
+                "weight": 23,
                 "children": []
             },
             {
@@ -1093,7 +941,7 @@
                 "query": "covid fake news México",
                 "queryWithFilters": "covid fake news México",
                 "depth": 1,
-                "weight": 35,
+                "weight": 34,
                 "children": []
             },
             {
@@ -1101,7 +949,7 @@
                 "query": "covid viajeros México",
                 "queryWithFilters": "covid viajeros México",
                 "depth": 1,
-                "weight": 73,
+                "weight": 72,
                 "children": []
             },
             {
@@ -1109,7 +957,7 @@
                 "query": "adultos vacunación covid México",
                 "queryWithFilters": "adultos vacunación covid México",
                 "depth": 1,
-                "weight": 122,
+                "weight": 123,
                 "children": []
             },
             {
@@ -1117,7 +965,7 @@
                 "query": "covid pfizer mexico",
                 "queryWithFilters": "covid pfizer mexico",
                 "depth": 1,
-                "weight": 958,
+                "weight": 916,
                 "children": []
             },
             {
@@ -1125,7 +973,7 @@
                 "query": "Covid muertes México",
                 "queryWithFilters": "Covid muertes México",
                 "depth": 1,
-                "weight": 6873,
+                "weight": 6757,
                 "children": []
             }
         ]
@@ -1135,14 +983,14 @@
         "query": "covid vacuna",
         "queryWithFilters": "covid vacuna -(Dolia Estévez SCJN vacuna covid) -(San Pedro Cholula vacuna covid) -(Gustavo A. Madero vacuna covid) -(Venustiano Carranza vacuna covid) -(Coyoacán vacuna covid) -(Toluca vacuna covid) -(Miguel Hidalgo vacuna covid) -(Tlalpan vacuna covid) -(Iztacalco vacuna covid) -(Xochimilco vacuna covid) -(Iztapalapa vacuna covid) -(Azcapotzalco vacuna covid) -(Nuevo León vacuna covid)",
         "depth": 0,
-        "weight": 140517,
+        "weight": 136764,
         "children": [
             {
-                "queryID": 187,
+                "queryID": "187",
                 "query": "Dolia Estévez SCJN vacuna covid",
                 "queryWithFilters": "Dolia Estévez SCJN vacuna covid",
                 "depth": 1,
-                "weight": 1,
+                "weight": 0,
                 "children": []
             },
             {
@@ -1158,7 +1006,7 @@
                 "query": "Gustavo A. Madero vacuna covid",
                 "queryWithFilters": "Gustavo A. Madero vacuna covid",
                 "depth": 1,
-                "weight": 15,
+                "weight": 14,
                 "children": []
             },
             {
@@ -1190,7 +1038,7 @@
                 "query": "Miguel Hidalgo vacuna covid",
                 "queryWithFilters": "Miguel Hidalgo vacuna covid",
                 "depth": 1,
-                "weight": 41,
+                "weight": 40,
                 "children": []
             },
             {
@@ -1198,7 +1046,7 @@
                 "query": "Tlalpan vacuna covid",
                 "queryWithFilters": "Tlalpan vacuna covid",
                 "depth": 1,
-                "weight": 56,
+                "weight": 51,
                 "children": []
             },
             {
@@ -1222,7 +1070,7 @@
                 "query": "Iztapalapa vacuna covid",
                 "queryWithFilters": "Iztapalapa vacuna covid",
                 "depth": 1,
-                "weight": 91,
+                "weight": 90,
                 "children": []
             },
             {
