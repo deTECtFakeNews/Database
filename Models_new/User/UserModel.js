@@ -1,137 +1,7 @@
 const Connection = require("../../Data");
 const UserService = require("../../Services/User/UserService");
-
-class UserStatsModel {
-    userID;
-    followersCount;
-    followingCount;
-    listedCount;
-    favoritesCount;
-    statusesCount;
-    updateDate;
-    status;
-    constructor(data){
-        this.userID = data?.userID || -1;
-        this.followersCount = data?.followersCount;
-        this.followingCount = data?.followingCount;
-        this.listedCount = data?.listedCount;
-        this.favoritesCount = data?.favoritesCount;
-        this.statusesCount = data?.statusesCount;
-        this.updateDate = data?.updateDate;
-        this.status = data?.status;
-    }
-    getData(){
-        return {
-            userID: this.userID,
-            followersCount: this.followersCountuserID,
-            followingCount: this.followingCountuserID,
-            listedCount: this.listedCountuserID,
-            favoritesCount: this.favoritesCountuserID,
-            statusesCount: this.statusesCountuserID,
-            updateDate: this.updateDateuserID,
-            status: this.statususerID
-        }
-    }
-}
-
-class UserStatsArray extends Array{
-    #userID;
-    #shouldUpload;
-    constructor(data){
-        super();
-        this.#userID = data?.userID || -1;
-        this.push( data )
-    }
-    push(data){
-        this.#shouldUpload = true;
-        super.push(new UserStatsModel(data));
-    }
-    last(){
-        return this[this.length-1];
-    }
-    async getFromDatabase(){
-        if(this.#userID == -1) return false;
-        // Avoid updating existing data
-        this.#shouldUpload = false;
-        // Empty
-        this.length = 0;
-        // Get from database
-        try{
-            for(let stats of await UserService.UserStatsService.read(this.#userID)){
-                super.push( new UserStatsModel(stats) )
-            }
-        } catch(e){
-            return false;
-        }
-        if(this.length == 0) return false;
-    }
-    async uploadToDatabase(){
-        if(this.#userID == -1) return false;
-        if(this.#shouldUpload == false) return false;
-        // Upload only latest
-        const latest = this.last();
-        try{
-            await UserService.UserStatsService.create(latest.getData())
-        } catch(e){
-            throw e;
-        }
-    }
-}
-
-class UserFollowerArray extends Array {
-    #userID;
-    #shouldUpload
-    constructor(data){
-        super();
-        this.#userID = data?.userID || -1;
-    }
-    push(data){
-        this.#shouldUpload = true;
-        super.push(data);
-    }
-    async getFromDatabase(){
-        if(this.#userID == -1) return false;
-        // Avoid updating existing data
-        this.#shouldUpload = false;
-        // Empty
-        this.length = 0;
-        // Get from database
-        await UserService.UserFollowerService.stream(this.#userID, {
-            onResult: ({userID, followerID}) => {
-                super.push({userID, followerID})
-            },
-            onError: e => {throw e},
-            onEnd: ()=>{
-                if(this.length == 0) return false;
-            }
-        })
-    }
-    async getFromAPI(){
-        if(this.#userID == -1) return false;
-        // Allow to upload
-        this.#shouldUpload = true;
-        // Empty
-        this.length = 0;
-        // Get from api
-        const followers = await UserService.UserFollowerService.fetchAPI(this.#userID);
-        for(followerID of followers){
-            this.push({userID: this.#userID, followerID: followerID})
-        }
-    }
-    async uploadToDatabase(){
-        // if(this.#userID == -1) return false;
-        if(this.#shouldUpload == false) return;
-        // Upload only latest
-        const latest = this[this.length-1];
-        try{
-            // Normalize
-            const data = [[this.#userID, this.#userID], ...this.map(({userID, followerID})=> [userID, followerID])];
-            await UserService.UserFollowerService.bulkCreate(data);
-        } catch(e){
-            console.log(e)
-        }
-    }
-}
+const UserFollowerArray = require('./UserFollowerArray');
+const UserStatsModel = require('./UserStatsModel')
 
 class UserModel {
     /**@type {String} Unique identifier of user in Twitter and Database */
@@ -167,7 +37,7 @@ class UserModel {
         this.language = data?.language;
         this.placeDescription = data?.placeDescription;
         
-        this.latestStats = new UserStatsArray({userID: data?.userID, ...data?.latestStats});
+        this.latestStats = new UserStatsModel({userID: data?.userID, ...data?.latestStats});
         this.followers = new UserFollowerArray(data)
     }
     getData(){
