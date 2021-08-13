@@ -1,172 +1,168 @@
-let Connection = require('../../Data/index');
-let {seed} = require('../../Data/constants');
-const SystemService = require('../System/SystemService');
-const UserService = require('../User/UserService');
-const TweetEntitiesService = require('./TweetEntitiesService');
-const TweetRetweetService = require('./TweetRetweetService');
-const TweetStatsService = require('./TweetStatsService');
-
+const Connection = require("../../Data");
+const UserService = require("../User/UserService");
+const TweetRetweetService = require("./TweetRetweetService");
+const TweetStatsService = require("./TweetStatsService");
 /**
  * @typedef {Object} TweetJSON
- * @property {String} tweetID Id of Tweet in Twitter
- * @property {String} authorID Id of User who created the Tweet
- * @property {String} inReplyToUserID Id of User this Tweet replies to
- * @property {String} inReplyToTweetID Id of Tweet this Tweet replies to
- * @property {String} quotesTweetID Id of Tweet this Tweet quotes
- * @property {Date} creationDate Date this Tweet was published
- * @property {String} fullText _Unparsed_ text contentof this Tweet
- * @property {String} language _Detected_ language of this Tweet
- * @property {Number} placeLng Longitude of Tweet location
- * @property {Number} placeLat Latitude of Tweet location
- * @property {String} placeDescription Description of Tweet location
+ * @property {String} tweetID Unique identifier of tweet in Twitter and Database
+ * @property {String} authorID Id of user who authored the tweet
+ * @property {String} inReplyToUserID Id of user this tweet replies to
+ * @property {String} inReplyToTweetID Id of tweet this tweet replies to
+ * @property {String} quotesTweetID Id of tweet this tweet quotes
+ * @property {Date} creationDate Date and time this tweet was published
+ * @property {String} fullText Full text containing tweet's body
+ * @property {String} language Detected language of this tweet
+ * @property {Number} placeLng Longitude of tweet location
+ * @property {Number} placeLat Latitude of tweet location
+ * @property {String} placeDescription Description of tweet location
  * 
- */
-
-/**
- * @typedef {Object} TweetJSON_JSON
- * @property {TweetStatsJSON} latestStats Object containing latest stats
+ * @property {TweetStatsJSON} latestStats Latest statistical data
  * @property {UserJSON} author UserJSON object containing author info
+ * @property {UserJSON} repliedUser UserJSON object of user this tweet replies to
+ * @property {TweetJSON} repliedTweet TweetJSON object of tweet this tweet replies to
+ * @property {TweetJSON} quotedTweet TweetJSON object of tweet this tweet quotes
  */
 
 /**
- * @typedef {TweetJSON & TweetJSON_JSON} TweetJSONExtended
+ * @typedef {Object} TweetStatsJSON 
+ * @property {String} tweetID Unique identifier of tweet in Twitter and Database
+ * @property {Date} updateDate Date these stats were retrieved
+ * @property {Number} retweetCount Number of retweets
+ * @property {Number} favoriteCount Number of likes
+ * @property {Number} replyCount Number of replies (note. API v1 returns null)
+ * @property {String} status Status of account (i.e., active, suspended or removed)
  */
 
 /**
- * Transforms Twitter API Tweet Object to Tweet interface
- * @param {Object} data 
- * @returns {TweetJSONExtended}
+ * Transform Twitter API 1.1 JSON into a cannonical structure
+ * @param {Object} data Twitter JSON returned from API v1.1
+ * @returns {TweetJSON}
  */
 const normalize = data => ({
-    tweetID: data.id_str,
-    authorID: data.user.id_str,
-    inReplyToUserID: data.in_reply_to_user_id_str || -1,
-    inReplyToTweetID: data.in_reply_to_status_id_str || -1,
-    quotesTweetID: data.quoted_status_id_str || -1, 
-    creationDate: new Date(data.created_at),
+    tweetID: data.id_str, 
+    authorID: data.user.id_str, 
+    creationDate: new Date(data.created_at), 
     fullText: data.full_text || data.text, 
     language: data.lang || null, 
-    placeLng: data.coordinates?.coordinates?.[0] || null, 
-    placeLat: data.coordinates?.coordinates?.[1] || null, 
-    placeDescription: data.place?.full_name || null, 
+    placeLng: data.coordinates?.coordinates?.[0] || null,
+    placeLat: data.coordinates?.coordinates?.[1] || null,
+    placeDescription: data.place?.full_name || null,
     
-    latestStats: {
-        tweetID: data.id_str,
-        updateDate: new Date(), 
-        retweetCount: data.retweet_count, 
-        favoriteCount: data.retweeted_status ? data.retweeted_status.favorite_count : data.favorite_count, 
-        replyCount: data.reply_count  || -1
-    },
-    author: data.user!=undefined ? UserService.normalize(data.user) : undefined
-});
+    inReplyToUserID: data.in_reply_to_user_id_str || -1, 
+    inReplyToTweetID: data.in_reply_to_status_id_str || -1, 
+    quotesTweetID: data.quoted_status_id_str || -1, 
+    
+    latestStats: TweetStatsService.normalize(data), 
+    author: UserService.normalize(data.user),
+    quotedTweet: data.quoted_status ? normalize(data.quoted_status) : undefined
+})
+
 
 /**
- * Database - Creates a new row in `Tweet`
- * @param {TweetJSON} tweet TweetJSON with data to be added to database 
- * @returns {Promise}
+ * Transforms Twitter API 2 JSON into a cannonical structure
+ * @param {Object} data Twitter JSON returned from API v2
+ * @returns {TweetJSON}
  */
-const create = tweet => new Promise((resolve, reject) => {
-    if(tweet.tweetID == -1 || tweet.tweetID == undefined) return;
-    const database = Connection.connections['tweet-main-write'];
-    database.query('INSERT INTO Tweet SET ?', tweet, (error, results, fields)=>{
-        database.release();
-        if(error && error.code != 'ER_DUP_ENTRY') reject(error);
-        resolve(results);
-    })
+const normalize_v2 = data => ({
+    tweetID: data.id, 
+    authorID: data.author_id, 
+    creationDate: new Date(data.created_at), 
+    fullText: data.text, 
+    language: data.lang || null,
+    placeLng: data.geo?.coordinates?.coordinates[0] || null, 
+    placeLat: data.geo?.coordinates?.coordinates[1] || null, 
+    // TODO: Parse with geo
+    placeDescription: data.geo?.place_id, 
+    inReplyToUserID: data.in_reply_to_user_id,
+    inReplyToTweetID: data.referenced_tweets?.find?.(t => t.type == 'replied_to')?.id || undefined,
+    quotesTweetID: data.referenced_tweets?.find?.(t => t.type == 'quoted')?.id || undefined,
+
+    latestStats: TweetStatsService.normalize_v2(data),
 })
 
 /**
- * Database - Read rows from `Tweet` table
- * @param {UserJSON|String} query_params Parameters to search | tweetID of Tweet to read
- * @returns {Promise<Array<TweetJSON>>}
+ * API v1.1 - Fetch tweet
+ * @param {String} tweetID Tweet id to fetch in API
+ * @returns {Promise<TweetJSON>}
  */
-const read = (query_params) => new Promise((resolve, reject) => {
-    if(typeof query_params == 'string' || typeof query_params == 'number'){
-        query_params = {tweetID: query_params}
-    }
-    let query = query_params == undefined ? 'SELECT * FROM Tweet ORDER BY creationDate ASC' : 'SELECT * FROM Tweet WHERE ? ORDER BY creationDate ASC';
-    const database = Connection.connections['tweet-main-read'];
-    database.query(query, query_params, (error, results, fields)=>{
-        database.release();
+const fetchAPI = tweetID => new Promise((resolve, reject) => {
+    Connection.Twitter.get(`1.1/statuses/show`,  {id: tweetID, tweet_mode: 'extended'}, (error, data, response)=>{
         if(error) reject(error);
-        if(results == undefined) reject();
-        resolve(results);
-    })
-} )
-
-/**
- * Database - Stream rows from `Tweet` table
- * @param {TweetJSON|String} query_params Parameters to search | tweetID of Tweet to read
- * @param {{onError: Function, onFields: Function, onResult: Function, onEnd: Function}} param1 Callback functions
- * @returns {VoidFunction}
- */
-const stream = (query_params, {onError=()=>{}, onFields=()=>{}, onResult=()=>{}, onEnd=()=>{}}) => {
-    if(typeof query_params == 'string' || typeof query_params == 'number'){
-        query_params = {userID: query_params}
-    }
-    //let query = query_params == undefined ? 'SELECT * FROM Tweet ORDER BY creationDate ASC' : 'SELECT * FROM Tweet WHERE ? ORDER BY creationDate ASC';
-    let query = `SELECT Tweet.* FROM Tweet LEFT JOIN TweetStatsFreeze USING(tweetID) WHERE TweetStatsFreeze.tweetID IS NULL`;
-    const database = Connection.connections['tweet-main-read-2'];
-    database.query(query, query_params)
-        .on('end', ()=>{
-            database.release();
-            onEnd();
-        })
-        .on('error', (error)=>{
-            onError(error);
-            database.release();
-        })
-        .on('fields', onFields)
-        .on('result', async result => {
-            database.pause();
-            await onResult(result);
-            database.resume();
-        })
-}
-
-/**
- * Database - Update row from `Tweet` table
- * @param {String} tweetID tweetID of row to update
- * @param {TweetJSON} tweet New tweet data
- * @returns {Promise}
- */
-const update = (tweetID, tweet) => new Promise((resolve, reject) => {
-    const database = Connection.connections['tweet-main-write'];
-    database.query('UPDATE Users SET ? WHERE ?', [tweet, {tweetID}], (error, results, fields) => {
-        database.release();
-        if(error) reject(error);
-        if(results == undefined) reject();
-        resolve(results);
-    })
-})
-
-/**
- * API - Fetches Tweet data from API
- * @param {String} tweetID tweetID to look in API
- * @returns {Promise<TweetJSONExtended>}
- */
-const fetchAPI = (tweetID) => new Promise(async (resolve, reject) => {
-    await Connection.Twitter.delay('statuses/show/:id');
-    Connection.Twitter.get(`statuses/show/${tweetID}`, {tweet_mode: 'extended'}, (error, data, response) => {
-        if(error) reject(error);
-        if(data == undefined) reject(error);
         try{
-            resolve(normalize(data)); 
+            resolve(normalize(data))
         } catch(e){reject(e)}
     })
 })
 
 /**
- * API - Get HTML of Tweet
- * @param {String} tweetID tweetID to look in API
- * @returns {Promise<String>}
+ * Database - Creates a new tweet in database
+ * @param {TweetJSON} tweetJSON Tweet data to insert to database
+ * @returns {Promise}
  */
-const getCard = (tweetID) => new Promise((resolve, reject) => {
-    Connection.Twitter.get('/statuses/oembed.json', {id: id, align: 'center', dnt: true}, (error, data, response) => {
+const create = (tweetJSON) => new Promise((resolve, reject) => {
+    // Do not create if empty or null
+    if(tweetJSON.tweetID == undefined || tweetJSON.tweetID == -1) return resolve();
+    Connection.connections['tweet-main-write'].query('INSERT INTO Tweet SET ?', tweetJSON, (error, results, fields) => {
+        // Reject on error
+        if(error && error.code != 'ER_DUP_ENTRY') reject(error);
+        // Else return newly added row
+        else resolve(tweetJSON);
+    })
+});
+
+/**
+ * Database - Get all tweets that match criteria
+ * @param {TweetJSON|String} params Conditions to search matches
+ * @returns {Promise<Array<TweetJSON>>}
+ */
+ const read = (params) => new Promise((resolve, reject) => {
+    // If params is a string, assume tweetID
+    if(typeof params === 'string' || typeof params === 'number') params = {tweetID: params};
+    // If no params return all
+    const query = params == undefined ? 'SELECT * FROM Tweet' : 'SELECT * FROM Tweet WHERE ?';
+    Connection.connections['tweet-main-read'].query(query, params, (error, results, fields) => {
         if(error) reject(error);
-        else resolve(data.html);
+        else resolve(results);
+    })
+});
+
+/**
+ * Database - Live streams results of all the tweets that match criteria. Recommended when expecting large results
+ * @param {TweetJSON|String} params Conditions to search matches
+ * @param {{onError: Function, onFields: Function, onResult: Function, onEnd: Function}} param1 Callback functions
+ * @returns {Promise}
+ */
+ const stream = (params, {onError = function(){}, onFields = function(){}, onResult = function(){}, onEnd = function(){}}) => new Promise((resolve, reject) => {
+    // If params is a string, assume userID
+    if(typeof params === 'string' || typeof params === 'number') params = {userID: params};
+    // If no params, return all
+    const query = params == undefined ? 'SELECT * FROM Tweet' : 'SELECT * FROM Tweet WHERE ?';
+    Connection.connections['tweet-main-read'].query(query, params)
+        .on('error', onError)
+        .on('fields', onFields)
+        .on('result', async result => {
+            Connection.connections['tweet-main-read'].pause();
+            await onResult(result);
+            Connection.connections['tweet-main-read'].resume();
+        })
+        .on('end', async ()=>{
+            await onEnd();
+            resolve();
+        })
+});
+
+/**
+ * Database - Update tweet with new data
+ * @param {String} tweetID Tweet id of row to update
+ * @param {TweetJSON} tweet Data to be updated
+ * @returns {Promise}
+ */
+ const update = (tweetID, tweet) => new Promise((resolve, reject) => {
+    Connection.connections['tweet-main-write'].query('UPDATE Tweet SET ? WHERE ?', [tweet, {tweetID: tweetID}], (error, result, fields) => {
+        if(error) reject(error);
+        else resolve(tweet);
     })
 })
 
-const TweetService = {normalize, create, read, stream, update, fetchAPI, getCard, TweetStatsService, TweetRetweetService, TweetEntitiesService};
+const TweetService = {normalize, normalize_v2, fetchAPI, create, read, stream, update, TweetStatsService, TweetRetweetService};
 module.exports = TweetService;

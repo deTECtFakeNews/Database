@@ -1,104 +1,115 @@
 const Connection = require("../../Data");
-const SystemService = require("../System/SystemService");
 
 /**
- * Database - Creates a new row in `UserFollower` table
- * @param {{userID: String, followerID: String}} param0 userID of _baseUser_ and _follower_
- * @returns {Promise}
- */
-const create = ({userID, followerID}) => new Promise(async (resolve, reject) => {
-    if(userID == undefined || userID == -1 || followerID == undefined || followerID == -1) resolve();
-    const database = Connection.connections['user-followers-write'];
-    let query = `INSERT INTO UserFollower SET ?`;
-    database.query(query, {userID, followerID}, (error, results, fields)=>{
-        database.release();
-        if(error) reject(error);
-        resolve(results)
-    })
-});
-
-const bulkCreate = (values) => new Promise((resolve, reject)=>{
-    const database = Connection.connections['user-followers-write'];
-    let query = `
-    SET FOREIGN_KEY_CHECKS=0; INSERT IGNORE INTO UserFollower (userID, followerID) VALUES ?; SET FOREIGN_KEY_CHECKS=1;`;
-    database.query(query, [values], (error, results, fields)=>{
-        database.release();
-        if(error) reject(error);
-        resolve(fields)
-    })
-})
-
-const purge = (userID) => new Promise((resolve, reject) => {
-    const database = Connection.connections['user-followers-write'];
-    let query = `
-    DELETE FROM UserFollower WHERE userID = ${userID} AND followerID IN (
-        SELECT * FROM (
-            SELECT UserFollower.followerID FROM UserFollower
-            LEFT JOIN User ON User.userID = UserFollower.followerID
-            WHERE User.userID IS NULL
-        ) AS A
-    );
-    `;
-    database.query(query, (error, results, fields) => {
-        database.release();
-        if(error) reject(error);
-        resolve(results);
-    })
-})
- 
-/**
- * Database - Read rows from `UserFollower` table
- * @param {{userID: String, followerID: String}|String} query_params Parameters to search | userID of user to fetch
- * @returns {Promise<Array<{userID: String, followerID: String}>>}
- */
-const read = (query_params) => new Promise(async (resolve, reject) => {
-    if(typeof query_params == 'string' || typeof query_params == 'number'){
-        query_params = {userID: query_params}
-    }
-    let query = query_params == undefined ? 'SELECT * FROM UserFollower' : 'SELECT * FROM UserFollower WHERE ?';
-    const database = Connection.connections['user-followers-read'];
-    database.query(query, query_params, (error, result, fields) => {
-        database.release();
-        if(error) reject(error);
-        resolve(result);
-    })
-})
-
-const stream = async (query_params, { onError = ()=>{}, onFields = ()=>{}, onResult = ()=>{}, onEnd = ()=>{} }) => {
-    if(typeof query_params == 'string' || typeof query_params == 'number'){
-        query_params = {userID: query_params}
-    }
-    let query = query_params == undefined ? 'SELECT * FROM UserFollower' : 'SELECT * FROM UserFollower WHERE ?';
-    const database = Connection.connections['user-followers-read'];
-    database.query(query, query_params)
-        .on('end', ()=>{
-            database.release();
-            onEnd();
-        })
-        .on('error', onError)
-        .on('fields', onFields)
-        .on('result', async result=>{
-            database.pause();
-            await onResult(result)
-            database.resume();
-        })
-}
-
-/**
- * API - Fetch ids of followers
- * @param {String} userID ID of User to fetch followers from
+ * API v1.1 - Fetches last 500 ids of user followers
+ * @param {String} userID User id to fetch in API
  * @returns {Promise<Array<String>>}
  */
-const fetchAPI = userID => new Promise(async (resolve, reject) => {
-    if(userID == -1) return;
-    await Connection.Twitter.delay('followers/ids');
-    Connection.Twitter.get('followers/ids', {user_id: userID, cursor: -1}, (error, data, response) => {
-        if(error) reject (error[0]);
-        else if(data){
-            resolve(data.ids)
-        }
+const fetchAPI = userID => new Promise((resolve, reject) => {
+    // Skip for empty or null users
+    if(userID == -1 || userID == undefined) resolve([]);
+    Connection.Twitter.get('1.1/followers/ids', {user_id: userID, cursor: -1}, (error, data, response) => {
+        if(error) reject(error);
+        else resolve(data?.ids);
     })
+})
+
+/**
+ * Database - Creates a new connection between users
+ * @param {{userID: String, followerID: String}} param0 Data to be inserted (userID of base user and follower)
+ * @returns {Promise}
+ */
+const create = ({userID, followerID}) => new Promise((resolve, reject) => {
+    if(userID == undefined || userID == -1) return resolve();
+    if(followerID == undefined || followerID == -1) return resolve();
+    Connection.connections['user-followers-write'].query('INSERT INTO UserFollower SET ?', {userID, followerID}, (error, results, fields) => {
+        if(error) reject(error);
+        else resolve();
+    })
+})
+
+/**
+ * Database - Creates many connections between pairs of users
+ * @param {Array<Array<String>>} pairValues Array containing pairs of user and follower (i.e., `[user, follower]`)
+ * @returns {Promise}
+ */
+const createMany = pairValues => new Promise((resolve, reject) => {
+    Connection.connections['user-followers-write']
+        // Foreign keys are disabled to speed up creation. Unassociated records are removed afterwards
+        .query('SET FOREIGN_KEY_CHECKS=0; INSERT IGNORE INTO UserFollower (userID, followerID) VALUES ?; SET FOREIGN_KEY_CHECKS=1;', [pairValues], (error, results, fields) => {
+            if(error) reject(error)
+            else resolve();
+        })
+}) 
+
+/**
+ * Database - Removes all unexistant followers of user
+ * @param {String} userID User id to remove unexistant followers from
+ * @returns {Promise}
+ */
+const removeUnexistant = userID => new Promise((resolve, reject) => {
+    Connection.connections['user-followers-write'].query(`
+        DELETE FROM UserFollower
+        WHERE userID = ${userID} AND followerID NOT IN (
+            SELECT * FROM (
+                SELECT UserFollower.followerID
+                FROM UserFollower
+                LEFT JOIN User ON User.userID = UserFollower.followerID
+                WHERE User.userID IS NULL
+            ) AS A
+        )
+    `, (error, results, fields) => {
+        if(error) reject(error)
+        else resolve();
+    })
+})
+
+/**
+ * Database - Get all user-follower pairs that match criteria
+ * @param {{userID: String, followerID: String}|String} params Conditions to search matches
+ * @returns {Promise<Array<{userID: String, followerID: String}>>}
+ */
+const read = (params) => new Promise((resolve, reject) => {
+    // If params is a string, assume userID
+    if(typeof params === 'string' || typeof params === 'number') params = {userID: params};
+    // If no params return all
+    const query = params == undefined ? 'SELECT * FROM UserFollower' : 'SELECT * FROM UserFollower WHERE ?';
+    Connection.connections['user-followers-read'].query(query, params, (error, results, fields) => {
+        if(error) reject(error);
+        else resolve(results);
+    })
+})
+
+/**
+ * Database - Live streams results of all user-follower pairs that match criteria. Recommended when expecting large results
+ * @param {{UserID: String, followerID: String}|String} params Conditions to search matches
+ * @param {{onError: Function, onFields: Function, onResult: Function, onEnd: Function}} param1 Callback functions
+ * @returns {Promise}
+ */
+ const stream = (params, {onError = function(){}, onFields = function(){}, onResult = function(){}, onEnd = function(){}}) => new Promise((resolve, reject) => {
+    // If params is a string, assume userID
+    if(typeof params === 'string' || typeof params === 'number') params = {userID: params};
+    // If no params, return all
+    const query = params == undefined ? 'SELECT * FROM UserFollower' : 'SELECT * FROM UserFollower WHERE ?';
+    Connection.connections['user-followers-read'].query(query, params)
+        .on('error', onError)
+        .on('fields', onFields)
+        .on('result', async result => {
+            Connection.connections['user-followers-read'].pause();
+            await onResult(result);
+            Connection.connections['user-followers-read'].resume();
+        })
+        .on('end', async ()=>{
+            await onEnd();
+            resolve();
+        })
 });
 
-const UserFollowerService = {create, bulkCreate, read, stream, purge, fetchAPI};
+
+// TODO: Remove and replace
+// These exist only ofr compatibility
+const bulkCreate = createMany;
+const purge = removeUnexistant;
+
+const UserFollowerService = {fetchAPI, create, createMany, removeUnexistant, read, stream, bulkCreate, purge}
 module.exports = UserFollowerService;
