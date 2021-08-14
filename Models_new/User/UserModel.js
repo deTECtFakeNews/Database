@@ -1,4 +1,5 @@
 const UserService = require("../../Services/User/UserService");
+const MemoryModel = require("../MemoryModel");
 const UserFollowerArray = require('./UserFollowerArray');
 const UserStatsModel = require('./UserStatsModel')
 
@@ -25,6 +26,8 @@ class UserModel {
     latestStats;
     /**@type {UserFollowerArray} */
     followers;
+    /**@type {MemoryModel} */
+    _memory;
     /**
      * @constructor
      * @param {import("../../Services/User/UserService").UserJSON} data User data in UserJSON
@@ -42,6 +45,8 @@ class UserModel {
 
         this.latestStats = new UserStatsModel({userID: data?.userID, ...data?.latestStats});
         this.followers = new UserFollowerArray(data);
+
+        this._memory = new MemoryModel();
     }
     /**
      * Get data in JSON format
@@ -108,6 +113,9 @@ class UserModel {
      */
     async get(){
         if(this.userID == -1) return false;
+        if(this._memory.users[this.userID] != undefined){
+            Object.assign(this, this._memory.users[this.userID])
+        }
         try{
             await this.getFromDatabase();
             if(this.latestStats.last() == undefined) await this.getFromAPI()

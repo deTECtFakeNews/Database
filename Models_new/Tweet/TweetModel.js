@@ -2,7 +2,7 @@ const TweetService = require("../../Services/Tweet/TweetService");
 const TweetStatsModel = require('./TweetStatsModel');
 const TweetRetweetArray = require('./TweetRetweetArray');
 const UserModel = require("../User/UserModel");
-const e = require("express");
+const MemoryModel = require("../MemoryModel");
 
 class TweetModel {
     /**@type {String} */
@@ -41,7 +41,8 @@ class TweetModel {
     repliedTweet;
     /**@type {TweetModel} */
     quotedTweet;
-
+    /**@type {MemoryModel} */
+    _memory;
     /**
      * @constructor
      * @param {import("../../Services/Tweet/TweetService").TweetJSON} data Data
@@ -61,11 +62,17 @@ class TweetModel {
         
         this.latestStats = new TweetStatsModel({tweetID: this.tweetID, ...data?.latestStats});
         this.retweets = new TweetRetweetArray(data);
+
+        this._memory = new MemoryModel()
         if(this.tweetID!=-1){
             this.author = new UserModel(data?.author || {userID: this.authorID});
+            this.author._memory = this._memory.addUser(this.author);
             this.repliedUser = new UserModel({userID: this.inReplyToUserID});
+            this.repliedUser._memory = this._memory.addUser(this.repliedUser);
             this.repliedTweet = new TweetModel({tweetID: this.inReplyToTweetID});
+            this.repliedTweet._memory = this._memory.addTweet(this.repliedTweet);
             this.quotedTweet = new TweetModel({tweetID: this.quotesTweetID});
+            this.quotedTweet._memory = this._memory.addTweet(this.quotedTweet);
         }
     }
     /**
@@ -133,7 +140,10 @@ class TweetModel {
      */
     async get(){
         if(this.userID == -1) return false;
-        // if(!this.isEmpty()) return true;
+        if(this._memory.tweets[this.tweetID] != undefined){
+            Object.assign(this, this._memory.tweets[this.tweetID]);
+            return
+        }
         try{
             await this.getFromDatabase();
             if(this.latestStats.last() == undefined) await this.getFromAPI()
