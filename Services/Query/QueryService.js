@@ -29,7 +29,7 @@ const QueryTweetService = require("./QueryTweet");
  */
 const fetchAPI = (search, options) => new Promise((resolve, reject) => {
     Connection.Twitter.get('1.1/search/tweets', {
-        q: `${search} -filter:retweets -RT`,
+        q: `${search} -filter:retweets -RT lang:es`,
         result_type: 'mixed', 
         tweet_mode: 'extended', 
         ...options
@@ -45,7 +45,7 @@ const fetchAPI = (search, options) => new Promise((resolve, reject) => {
 
 
 const fetchAPI_historic_count = (search, options) => new Promise((resolve, reject) => {
-    Connection.Twitter.get('https://api.twitter.com/2/tweets/counts/all', {query: `${search} -is:retweet`, ...options}, (error, data, response) => {
+    Connection.Twitter.get('https://api.twitter.com/2/tweets/counts/all', {query: `${search} -is:retweet lang:es`, ...options}, (error, data, response) => {
         if(error) reject(error)
         resolve(data);
     })
