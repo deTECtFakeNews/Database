@@ -1,31 +1,34 @@
-const Connection = require("../../Data");
 const UserService = require("../../Services/User/UserService");
 const UserFollowerArray = require('./UserFollowerArray');
 const UserStatsModel = require('./UserStatsModel')
 
 class UserModel {
-    /**@type {String} Unique identifier of user in Twitter and Database */
+    /**@type {String} */
     userID;
-    /**@type {Date} Date and time of account creation */
+    /**@type {Date} */
     creationDate;
-    /**@type {String} Full name of user account */
+    /**@type {String} */
     fullName;
-    /**@type {String} Twitter username (e.g., \@edvilme) */
+    /**@type {String} */
     screenName;
-    /**@type {String} Profile description (can contain entities) */
+    /**@type {String} */
     biography;
-    /**@type {Boolean} Is account protected/private? */
+    /**@type {Boolean} */
     isProtected;
-    /**@type {Boolean} Is account's identity verified by Twitter? */
+    /**@type {Boolean} */
     isVerified;
-    /**@type {String} User's language preference */
+    /**@type {String} */
     language;
-    /**@type {String} Place selected by user to be displayed on their profile */
+    /**@type {String} */
     placeDescription;
-    /**@type {UserStatsArray} Latest statistical data  */
+    /**@type {UserStatsModel} */
     latestStats;
-    /**@type {UserFollowerArray} Array of followers*/
+    /**@type {UserFollowerArray} */
     followers;
+    /**
+     * @constructor
+     * @param {import("../../Services/User/UserService").UserJSON} data User data in UserJSON
+     */
     constructor(data){
         this.userID = data?.userID || -1;
         this.creationDate = data?.creationDate;
@@ -36,11 +39,15 @@ class UserModel {
         this.isVerified = data?.isVerified;
         this.language = data?.language;
         this.placeDescription = data?.placeDescription;
-        
+
         this.latestStats = new UserStatsModel({userID: data?.userID, ...data?.latestStats});
-        this.followers = new UserFollowerArray(data)
+        this.followers = new UserFollowerArray(data);
     }
-    getData(){
+    /**
+     * Get data in JSON format
+     * @returns {import("../../Services/User/UserService").UserJSON}
+     */
+    getJSON(){
         return {
             userID: this.userID.toString(),
             creationDate: this.creationDate,
@@ -53,87 +60,77 @@ class UserModel {
             placeDescription: this.placeDescription,
         }
     }
+    /**
+     * Return true if required fields are empty
+     * @returns {Boolean}
+     */
+    isEmpty(){
+        return this.fullName == undefined && this.screenName == undefined
+    }
+    /**
+     * Get data from database
+     * @returns {Promise<void>}
+     */
     async getFromDatabase(){
-        if(this.userID == -1) return false;
+        if(this.userID == -1) return;
         try{
             const [data] = await UserService.read(this.userID);
             if(data==undefined) return false;
-            this.userID = data?.userID || -1;
-            this.creationDate = data?.creationDate;
-            this.fullName = data?.fullName;
-            this.screenName = data?.screenName;
-            this.biography = data?.biography;
-            this.isProtected = data?.isProtected;
-            this.isVerified = data?.isVerified;
-            this.language = data?.language;
-            this.placeDescription = data?.placeDescription;
+            Object.assign(this, new UserModel(data));
             await this.latestStats.getFromDatabase();
-            await this.followers.getFromDatabase();
-            return true;
         } catch(e){
             throw e;
         }
     }
+    /**
+     * Get data from API
+     * @returns {Promise<void>}
+     */
     async getFromAPI(){
-        if(this.userID == -1) return false;
+        if(this.userID == -1) return;
         try{
             const data = await UserService.fetchAPI(this.userID);
             if(data==undefined) return false;
-            this.creationDate = data?.creationDate;
-            this.fullName = data?.fullName;
-            this.screenName = data?.screenName;
-            this.biography = data?.biography;
-            this.isProtected = data?.isProtected;
-            this.isVerified = data?.isVerified;
-            this.language = data?.language;
-            this.placeDescription = data?.placeDescription;
-            this.latestStats.push(data?.latestStats)
+            Object.assign(this, new UserModel(data));
         } catch(e){
-            throw e;
+            // If service error, then user is unavailable.
+            // Set empty values and push error
+            if( UserStatsModel.errorCodes[ e?.[0]?.code ] != undefined ){
+                this.fullName = '_';
+                this.screenName = '_';
+                this.latestStats.pushError(e?.[0]?.code);
+            }
         }
     }
+    /**
+     * Get from database or API
+     * @returns {Promise<void>}
+     */
     async get(){
         if(this.userID == -1) return false;
         try{
-            if( await this.latestStats.getFromDatabase() == false ){
-                await this.getFromAPI();
-            }
+            await this.getFromDatabase();
+            if(this.latestStats.last() == undefined) await this.getFromAPI()
         } catch(e){
             throw e;
         }
     }
+    /**
+     * Upload user data to database
+     * @returns {Promise<void>}
+     */
     async uploadToDatabase(){
         if(this.userID == -1) return false;
         try{
-            await UserService.create(this.getData());
+            if(this.isEmpty()) await this.get();
+            await UserService.create(this.getJSON());
             await this.latestStats.uploadToDatabase();
-            await this.followers.uploadToDatabase();
-            console.log(`[Models/User] Uploaded user ${this.userID} (${this.latestStats.last().followersCount} followers)`)
-        } catch(e){
-            throw e;
-        }
-    }
-    async uploadToDatabaseComplete(){
-        try{
-            await this.uploadToDatabase();
-            if(this.latestStats.last().followersCount >= 10000){
-                    await this.followers.getFromDatabase();
-                    if(this.followers.length == 0){
-                        await this.followers.getFromAPI();
-                        await this.followers.uploadToDatabase();
-                    }
-            }
-        } catch(e){
-            console.log(e)
+            console.log(`[Models/User] Uploaded user ${this.userID} (${this.latestStats.last()?.followersCount} followers)`)
+            
+        } catch(e){ 
+            throw e
         }
     }
 }
 
-module.exports = {UserModel, UserStatsModel, UserStatsArray, UserFollowerArray}
-
-/* Connection.Database.connect().then(async () => {
-    const user = new UserModel({userID: '68844197'});
-    await user.getFromDatabase();
-    await user.getFromAPI();
-    console.dir(user, {depth: null})
-}) */
+module.exports = UserModel;

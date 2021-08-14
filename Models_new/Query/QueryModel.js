@@ -1,4 +1,5 @@
 const QueryService = require("../../Services/Query/QueryService");
+const TweetModel = require("../Tweet/TweetModel");
 
 class QueryModel {
     queryID;
@@ -26,24 +27,16 @@ class QueryModel {
             next_token: this.#next_token
         }, {
             onResult: async t=>{
-                console.log(t.fullText.substring(0, 20)+'...');
+                console.log(t.tweetID, t.fullText.substring(0, 20)+'...');
                 try{
                     const tweet = new TweetModel(t);
-                    // Upload
                     await tweet.uploadToDatabase();
-                    if(tweet.latestStats.last().retweetCount >= 20){
-                        await tweet.retweets.getFromAPI();
-                        await tweet.retweets.uploadToDatabase();
-                    }
-                    // Create connection
                     await QueryService.QueryTweetService.create({tweetID: tweet.tweetID, queryID: this.queryID});
-                    // Update execution date
                     await QueryService.update(this.queryID, {executeDate: new Date(), oldestDate: tweet.creationDate});
-                    console.log('[Models/Query] Uploaded query tweet')
-                    console.log('');
                 } catch(e){
-                    console.error("[Models/Query] Error inserting tweet");
+                    console.error("[Models/Query] Error inserting tweet", e);
                 }
+                console.log('')
             },
             onPage: async next_token => {
                 try {
@@ -65,4 +58,4 @@ class QueryModel {
 
 }
 
-m
+module.exports = QueryModel;

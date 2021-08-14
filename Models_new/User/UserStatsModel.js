@@ -15,9 +15,12 @@ class UserStatsModelRow {
     statusesCount;
     /**@type {Date} */
     updateDate;
-    /**@type {} */
+    /**@type {String} */
     status;
-
+    /**
+     * @constructor
+     * @param {import("../../Services/User/UserService").UserStatsJSON} data Stats snapshot data
+     */
     constructor(data){
         this.userID = data?.userID || -1;
         this.followersCount = data?.followersCount;
@@ -28,10 +31,13 @@ class UserStatsModelRow {
         this.updateDate = data?.updateDate;
         this.status = data?.status;
     }
-
-    getData(){
+    /**
+     * Returns data in JSON format
+     * @returns {import("../../Services/User/UserService").UserStatsJSON}
+     */
+    getJSON(){
         return {
-            userID: this.userID,
+            userID: this.userID.toString(),
             followersCount: this.followersCountuserID,
             followingCount: this.followingCountuserID,
             listedCount: this.listedCountuserID,
@@ -41,29 +47,49 @@ class UserStatsModelRow {
             status: this.statususerID
         }
     }
+    /**
+     * Returns true if all properties are undefined
+     * @returns {Boolean}
+     */
     isEmpty(){
         return this.followersCount == undefined &&
-                this.followingCount == undefined &&
-                this.listedCount == undefined &&
-                this.favoritesCount == undefined &&
-                this.status == undefined &&
-                this.statusesCount == undefined
+            this.followingCount == undefined &&
+            this.listedCount == undefined &&
+            this.favoritesCount == undefined &&
+            this.status == undefined &&
+            this.statusesCount == undefined
     }
 }
 
-class UserStatsModel extends Array<UserStatsModelRow> {
+class UserStatsModel extends Array {
+    /**
+     * Twitter API error codes
+     * @static
+     * @type {Object.<Number, String>}
+     */
+    static errorCodes = {
+        17: 'NOT_FOUND',
+        34: 'NOT_FOUND', 
+        50: 'NOT_FOUND', 
+        109: 'NOT_FOUND',
+        63: 'SUSPENDED', 
+    }
     /**@type {String} */
     #userID;
     /**@type {Boolean} */
     #shouldUpload;
+    /**
+     * @constructor
+     * @param {import("../../Services/User/UserService").UserStatsJSON} data Initial data to load
+     */
     constructor(data){
         super();
         this.#userID = data?.userID || -1;
         this.push( data );
     }
     /**
-     * Pushes new stats data
-     * @param {Object} data Stats record to be uploaded
+     * Push new stats snapshot
+     * @param {import("../../Services/User/UserService").UserStatsJSON} data Stats snapshot to be uploaded
      */
     push(data){
         let row = new UserStatsModelRow(data);
@@ -72,14 +98,14 @@ class UserStatsModel extends Array<UserStatsModelRow> {
         super.push( row )
     }
     /**
-     * Returns the last stats record
+     * Return the last stats record
      * @returns {UserStatsModelRow}
      */
     last(){
         return this[this.length-1];
     }
     /**
-     * Gets all stats from database
+     * Get all stats from database
      * @returns {Promise<void>}
      */
     async getFromDatabase(){
@@ -96,20 +122,38 @@ class UserStatsModel extends Array<UserStatsModelRow> {
         } catch(e){
             throw e;
         }
-        // if (this.length == 0) return false;
     }
     /**
-     * Uploads the latest record to database
+     * Upload last stat to database
      * @returns {Promise<void>}
      */
     async uploadToDatabase(){
         if(this.#userID == -1 || !this.#shouldUpload) return false;
+        if(this.last() == undefined) return false;
         try{
-            await UserService.UserStatsService.create( this.last().getData() )
+            await UserService.UserStatsService.create( this.last().getJSON() )
         } catch(e){
+            console.log('[Models/UserStatsFreeze] ', { userID: this.#userID })
             throw e;
         }
     }
+    /**
+     * Given a Twitter API error number, uploads the error to the stats
+     * @param {Number} e Twitter API error number
+     */
+    pushError(e){
+        this.push({
+            favoritesCount: 0,
+            followersCount: 0, 
+            followingCount: 0, 
+            listedCount: 0, 
+            status: UserStatsModel.errorCodes[0],
+            statusesCount: 0, 
+            updateDate: new Date(),
+            userID: this.#userID
+        })
+    }
+
 }
 
 module.exports = UserStatsModel;

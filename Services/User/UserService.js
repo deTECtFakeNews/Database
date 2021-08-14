@@ -105,7 +105,7 @@ const fetchAPI_v2 = (userID) => new Promise((resolve, reject) => {
  */
 const create = (userJSON) => new Promise((resolve, reject) => {
     // Do not create if empty or null
-    if(userJSON.userID == undefined || userJSON.userID) return resolve();
+    if(userJSON.userID == undefined || userJSON.userID == -1) return resolve();
     Connection.connections['user-main-write'].query('INSERT INTO User SET ?', userJSON, (error, results, fields) => {
         // Reject on error
         if(error && error.code != 'ER_DUP_ENTRY') reject(error);

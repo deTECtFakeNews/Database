@@ -1,5 +1,5 @@
 const TweetService = require("../../Services/Tweet/TweetService");
-const { UserModel } = require("../User/UserModel");
+const UserModel = require("../User/UserModel");
 
 class TweetRetweetModelRow {
     /**@type {String} */
@@ -10,52 +10,81 @@ class TweetRetweetModelRow {
     creationDate;
     /**@type {require('../User/UserModel')} */
     author;
+    /**
+     * @constructor
+     * @param {import("../../Services/Tweet/TweetRetweetService").TweetRetweetJSON} data Retweet data
+     */
     constructor(data){
         this.tweetID = data?.tweetID || -1;
         this.authorID = data?.authorID || -1;
         this.creationDate = data?.creationDate;
-        this.user = new UserModel(data?.author)
+        this.user = new UserModel(data?.author || {userID: data?.authorID})
     }
-    getData(){
+    /**
+     * Get data in JSON format
+     * @returns {import("../../Services/Tweet/TweetRetweetService").TweetRetweetJSON}
+     */
+    getJSON(){
         return {
             tweetID: this.tweetID,
-            authorID: this.authorID;
+            authorID: this.authorID,
             creationDate: this.creationDate
         }
     }
+    /**
+     * Upload tweet-retweet relationship to database 
+     * @returns {Promise<void>}
+     */
     async uploadToDatabase(){
         if(this.tweetID == -1) return false;
+        if(this.isEmpty()) return false;
         try{
             // First upload the user
             await this.user.uploadToDatabase();
             // Upload relationship
-            await TweetService.TweetRetweetService.create(this.getData())
+            await TweetService.TweetRetweetService.create(this.getJSON())
         } catch(e){
             throw e;
         }
     }
+    /**
+     * Return true if required fields are empty
+     * @returns {Boolean}
+     */
     isEmpty(){
         return this.authorID == undefined
     }
 }
 
-class TweetRetweetArray extends Array<TweetRetweetModelRow>{
+class TweetRetweetArray extends Array{
+    /**@type {String} */
     #tweetID;
+    /**@type {Boolean} */
     #shouldUpload;
+    /**
+     * @constructor
+     * @param {{tweetID: String}} data Initial data to load
+     */
     constructor(data){
         super();
         this.#tweetID = data?.tweetID || -1;
         this.push(data)
     }
+    /**
+     * Push retweet
+     * @param {import("../../Services/Tweet/TweetRetweetService").TweetRetweetJSON} data Retweet data
+     * @returns 
+     */
     push(data){
         let row = new TweetRetweetModelRow(data);
         if(row.isEmpty()) return;
         this.#shouldUpload = true;
         super.push(row);
     }
-    last(){
-        return this[this.length-1]
-    }
+    /**
+     * Get retweets from database
+     * @returns {Promise<void>}
+     */
     getFromDatabase(){
         if(this.#tweetID == -1) return false;
         // Avoid updating existing data
@@ -73,16 +102,28 @@ class TweetRetweetArray extends Array<TweetRetweetModelRow>{
             })
         })
     }
+    /**
+     * Get retweets from api
+     * @returns {Promise<void>}
+     */
     async getFromAPI(){
         if(this.#tweetID == -1) return false;
         // Allow to upload
         this.#shouldUpload = true;
         // Empty
         this.length = 0;
-        for(let retweet of await TweetService.TweetRetweetService.fetchAPI(this.#tweetID)){
-            this.push(retweet)
+        try{
+            for(let retweet of await TweetService.TweetRetweetService.fetchAPI(this.#tweetID)){
+                this.push(retweet)
+            }
+        } catch(e){
+            throw e;
         }
     }
+    /**
+     * Upload all retweets to database
+     * @returns {Promise<void>}
+     */
     async uploadToDatabase(){
         if(this.#tweetID == -1 || !this.#shouldUpload) return false;
         for(let i = 0; i < this.length; i++){

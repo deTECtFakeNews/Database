@@ -5,20 +5,25 @@ class UserFollowerArray extends Array {
     #userID;
     /**@type {Boolean} */
     #shouldUpload;
+    /**
+     * @constructor
+     * @param {{userID: String}} data Initial data to load (userID)
+     */
     constructor(data){
         super();
         this.#userID = data?.userID || -1;
     }
     /**
-     * Pushes new user follower relationship
-     * @param {{userID: String, followerID: String}} param0 Relationship data
+     * Push new user-relationship
+     * @param {{userID: String, followerID: String}} param0 user-relationship
      */
-    push({userID, followerID}){
+    push({userID, followerID} = {}){
+        if(userID == undefined && followerID == undefined) return;
         this.#shouldUpload = false;
         super.push({userID, followerID});
     }
     /**
-     * Gets all user follower relationships from database
+     * Get all user-relationships from database
      * @returns {Promise<void>}
      */
     getFromDatabase(){
@@ -27,6 +32,7 @@ class UserFollowerArray extends Array {
         this.#shouldUpload = false;
         // Empty
         this.length = 0;
+        // Push for each, then resolve
         return new Promise(async (resolve, reject) => {
             await UserService.UserFollowerService.stream(this.#userID, {
                 onResult: super.push,
@@ -36,7 +42,7 @@ class UserFollowerArray extends Array {
         })
     }
     /**
-     * Gets all user follower relationships from API
+     * Get user-relationship from API
      * @returns {Promise<void>}
      */
     async getFromAPI(){
@@ -45,18 +51,25 @@ class UserFollowerArray extends Array {
         this.#shouldUpload = true;
         // Empty
         this.length = 0;
-        for(followerIDID of await UserService.UserFollowerService.fetchAPI(this.#shouldUpload)){
-            super.push({userID: this.#userID, followerID})
+        try{
+            for(followerIDID of await UserService.UserFollowerService.fetchAPI(this.#shouldUpload)){
+                super.push({userID: this.#userID, followerID})
+            }
+        } catch(e){
+            throw e;
         }
     }
     /**
-     * Uploads all records to database
+     * Upload all user-relationships to database
      * @returns {Promise<void>}
      */
     async uploadToDatabase(){
         if(this.#userID == -1 || !this.#shouldUpload) return;
         try{
-            const data = [[this.#userID, this.#userID], ...this.map(({userID, followerID}) => [userID, followerID] )];
+            const data = [
+                [this.#userID, this.#userID], 
+                ...this.map(({userID, followerID}) => [userID, followerID] )
+            ];
             await UserService.UserFollowerArray.bulkCreate(data)
         } catch(e) {
             throw e;
