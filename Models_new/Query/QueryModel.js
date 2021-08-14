@@ -15,6 +15,7 @@ class QueryModel {
         this.executeDate = data?.executeDate;
         this.query = data?.query;
         this.oldestDate = data?.oldestDate;
+        this.shouldExecute = data?.shouldExecute;
     }
 
     async executeHistoric(complete = false){

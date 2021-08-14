@@ -33,7 +33,7 @@ fs.readFile('tree.json', {encoding: 'utf8'}, async (error, data) => {
             console.log('===============================================')
             console.log(node.query, node.queryWithFilters);
             if(query.shouldExecute){
-                await QueryService.update(query.queryID, {isComplete: false})
+                await QueryService.update(query.queryID, {isComplete: false, executeDate: new Date()})
                 await query.executeHistoric();
             }
         } catch(e){
