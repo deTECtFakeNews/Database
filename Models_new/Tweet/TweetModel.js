@@ -140,7 +140,7 @@ class TweetModel {
      */
     async get(){
         if(this.userID == -1) return false;
-        if(this._memory.tweets[this.tweetID] != undefined){
+        if(this._memory.tweets[this.tweetID]?.latestStats?.last() != undefined){
             Object.assign(this, this._memory.tweets[this.tweetID]);
             return
         }

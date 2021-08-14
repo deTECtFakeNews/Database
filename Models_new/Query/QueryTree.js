@@ -12,6 +12,7 @@ class QueryNode {
         node.depth = json.depth;
         node.weight = json.weight;
         node.children = json.children.map(node => QueryNode.fromJSON(node));
+        node.queryWithFilters = json.queryWithFilters;
         return node;
     }
     /**@type {Number} Unique identifier*/

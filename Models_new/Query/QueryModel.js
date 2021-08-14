@@ -34,14 +34,14 @@ class QueryModel {
                     await tweet.uploadToDatabase();
                     await QueryService.QueryTweetService.create({tweetID: tweet.tweetID, queryID: this.queryID});
                     await QueryService.update(this.queryID, {executeDate: new Date(), oldestDate: tweet.creationDate});
-                    if(tweet.author.latestStats.last()?.followersCount >= 10000){
+                    /* if(tweet.author.latestStats.last()?.followersCount >= 10000){
                         await tweet.author.followers.getFromAPI();
                         await tweet.author.followers.uploadToDatabase();
                     }
                     if(tweet.latestStats.last()?.retweetCount >= 20){
                         await tweet.retweets.getFromAPI();
                         await tweet.retweets.uploadToDatabase();
-                    }
+                    } */
 
                 } catch(e){
                     console.error("[Models/Query] Error inserting tweet", e);

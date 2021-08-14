@@ -113,7 +113,7 @@ class UserModel {
      */
     async get(){
         if(this.userID == -1) return false;
-        if(this._memory.users[this.userID] != undefined){
+        if(this._memory.users[this.userID]?.latestStats?.last() != undefined){
             Object.assign(this, this._memory.users[this.userID])
         }
         try{
