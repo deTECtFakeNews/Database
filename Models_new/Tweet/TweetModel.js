@@ -63,15 +63,16 @@ class TweetModel {
         this.latestStats = new TweetStatsModel({tweetID: this.tweetID, ...data?.latestStats});
         this.retweets = new TweetRetweetArray(data);
 
-        this._memory = new MemoryModel()
+        this._memory = new MemoryModel();
+        this._memory.addTweet(this);
         if(this.tweetID!=-1){
             this.author = new UserModel(data?.author || {userID: this.authorID});
-            this.author._memory = this._memory.addUser(this.author);
             this.repliedUser = new UserModel({userID: this.inReplyToUserID});
-            this.repliedUser._memory = this._memory.addUser(this.repliedUser);
             this.repliedTweet = new TweetModel({tweetID: this.inReplyToTweetID});
-            this.repliedTweet._memory = this._memory.addTweet(this.repliedTweet);
             this.quotedTweet = new TweetModel({tweetID: this.quotesTweetID});
+            this.author._memory = this._memory.addUser(this.author);
+            this.repliedUser._memory = this._memory.addUser(this.repliedUser);
+            this.repliedTweet._memory = this._memory.addTweet(this.repliedTweet);
             this.quotedTweet._memory = this._memory.addTweet(this.quotedTweet);
         }
     }
@@ -147,10 +148,31 @@ class TweetModel {
         try{
             await this.getFromDatabase();
             if(this.latestStats.last() == undefined) await this.getFromAPI()
+            this._memory.tweets[this.tweetID] = this;
         } catch(e){
             throw e;
         }
     }
+    /**
+     * Gets from database or API
+     * @param {{tweets: Set, users: Set}} mem
+     */
+    async getRecursive(mem){
+        if(this.tweetID == -1) return;
+        try{
+            await this.getFromDatabase();
+            mem?.tweets?.add?.(this);
+            await this.author.getFromDatabase();
+            mem?.users?.add?.(this.author);
+            await this.repliedUser.getFromDatabase();
+            mem?.users?.add?.(this.repliedUser);
+            await this.repliedTweet.getRecursive(mem);
+            await this.quotedTweet.getRecursive(mem);
+        } catch(e){
+
+        }
+    }
+
     /**
      * Upload user data to database
      * @returns {Promise<void>}

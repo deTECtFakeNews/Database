@@ -13,6 +13,7 @@
     "axios": "^0.21.1",
     "express": "^4.17.1",
     "expresss": "0.0.0",
+    "json-2-csv": "^3.14.4",
     "json2csv": "^5.0.6",
     "jsonexport": "^3.2.0",
     "mariadb": "^2.5.2",

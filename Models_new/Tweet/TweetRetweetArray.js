@@ -18,7 +18,7 @@ class TweetRetweetModelRow {
         this.tweetID = data?.tweetID || -1;
         this.authorID = data?.authorID || -1;
         this.creationDate = data?.creationDate;
-        this.user = new UserModel(data?.author || {userID: data?.authorID})
+        this.author = new UserModel(data?.author || {userID: data?.authorID})
     }
     /**
      * Get data in JSON format
@@ -26,7 +26,7 @@ class TweetRetweetModelRow {
      */
     getJSON(){
         return {
-            tweetID: this.tweetID,
+            tweetID: this.tweetID.toString(),
             authorID: this.authorID,
             creationDate: this.creationDate
         }
@@ -40,11 +40,11 @@ class TweetRetweetModelRow {
         if(this.isEmpty()) return false;
         try{
             // First upload the user
-            await this.user.uploadToDatabase();
+            await this.author.uploadToDatabase();
             // Upload relationship
             await TweetService.TweetRetweetService.create(this.getJSON())
         } catch(e){
-            throw e;
+            // throw e;
         }
     }
     /**
@@ -78,6 +78,8 @@ class TweetRetweetArray extends Array{
     push(data){
         let row = new TweetRetweetModelRow(data);
         if(row.isEmpty()) return;
+        // Make row same id
+        row.tweetID = this.#tweetID;
         this.#shouldUpload = true;
         super.push(row);
     }

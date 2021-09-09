@@ -42,7 +42,7 @@ const Connection = require("../../Data");
     // If params is a string, assume userID
     if(typeof params === 'string' || typeof params === 'number') params = {queryID: params};
     // If no params, return all
-    const query = params == undefined ? 'SELECT * FROM QueryTweet' : 'SELECT * FROM QueryTweet WHERE ?';
+    const query = params == undefined ? 'SELECT Tweet.* FROM QueryTweet JOIN Tweet USING (tweetID)' : 'SELECT Tweet.* FROM QueryTweet JOIN Tweet USING (tweetID) WHERE ?';
     Connection.connections['query-main-read'].query(query, params)
         .on('error', onError)
         .on('fields', onFields)

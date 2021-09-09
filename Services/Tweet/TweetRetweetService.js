@@ -46,6 +46,7 @@ const fetchAPI = (tweetID, {count = 100, trim_user = false} = {}) => new Promise
  const create = (tweetRetweet) => new Promise((resolve, reject) => {
     if(tweetRetweet.tweetID == undefined || tweetRetweet.tweetID == -1) return resolve();
     if(tweetRetweet.authorID == undefined || tweetRetweet.authorID == -1) return resolve();
+    console.log(tweetRetweet.tweetID, tweetRetweet.authorID)
     Connection.connections['tweet-retweets-write'].query('INSERT INTO TweetRetweet SET ?', tweetRetweet, (error, results, fields) => {
         if(error) reject(error);
         else resolve();
