@@ -19,6 +19,7 @@ class TweetEntity {
     }
     async uploadToDatabase(){
         try{
+            // console.log(this.getJSON())
             await TweetEntityService.create(this.getJSON())
         } catch(e){
             throw e;
@@ -40,12 +41,11 @@ class TweetEntitiesModel extends Array {
         super.push(entity);
     }
     async uploadToDatabase(){
-        let uploads = this.map(entity => entity.uploadToDatabase)
         try{
-            await Promise.all(uploads);
-            console.log('Uploaded entities')
+            await Promise.all(this.map(entity => entity.uploadToDatabase()));
+            console.log(this.tweetID, 'Uploaded entities')
         } catch(e){
-            console.log('Error uploading entities')
+            console.log('Error uploading entities', e)
         }
     }
 }

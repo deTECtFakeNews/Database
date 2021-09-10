@@ -29,7 +29,7 @@ const extract = text => {
 const create = tweetEntityJSON => new Promise((resolve, reject) => {
     // Do not create if empty or null
     if(tweetEntityJSON.tweetID == undefined || tweetEntityJSON.tweetID == -1) return resolve();
-    Connection.connections['tweet-entity-write'].query('INSERT INTO TweetEntity SET ?', tweetEntityJSON, (error, results, fields) => {
+    Connection.connections['tweet-entities-write'].query('INSERT INTO TweetEntities SET ?', tweetEntityJSON, (error, results, fields) => {
         // Reject on error
         if(error && error.code != 'ER_DUP_ENTRY') reject(error);
         // Else return newly added row
