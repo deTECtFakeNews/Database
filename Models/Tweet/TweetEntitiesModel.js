@@ -17,6 +17,9 @@ class TweetEntity {
             value: this.value
         }
     }
+    getArray(){
+        return [this.tweetID, this.type, this.value];
+    }
     async uploadToDatabase(){
         try{
             // console.log(this.getJSON())
@@ -40,9 +43,12 @@ class TweetEntitiesModel extends Array {
         let entity = new TweetEntity({tweetID: this.tweetID, type, value});
         super.push(entity);
     }
-
+    getArray(){
+        if(this.length == 0) return undefined;
+        return [...this.map(entity=>entity.getArray())];
+    }
     async uploadToDatabase(){
-        let values = this.map(entity=>[entity.tweetID, entity.type, entity.value]);
+        let values = this.getArray();
         try{
             await TweetEntityService.createMany(values);
             console.log(this.tweetID, 'Uploaded entities')
@@ -59,35 +65,42 @@ class TweetEntitiesModel extends Array {
             console.log('Error uploading entities', e)
         }
     }
+
 }
 
 class TweetEntitiesModelBuffer extends Array {
     maxSize;
-    tweetIDs = []
+    tweetIDs = [];
     constructor(maxSize){
         super();
         this.maxSize = maxSize;
     }
-
-    async push(entitiesModel){
-        let values = entitiesModel.map(entity=>[entity.tweetID, entity.type, entity.value])
-        super.push(...values);
-        this.tweetIDs.push(entitiesModel.tweetID)
-        if(this.length >  this.maxSize){
+    /**
+     * Pushes data from TweetEntitiesModel object to array
+     * @param {TweetEntitiesModel} item TweetEntitiesModel object
+     */
+    async push(item){
+        if(item.length == 0) return;
+        super.push(item);
+        this.tweetIDs.push(item.tweetID);
+        if(this.length > this.maxSize){
             await this.uploadToDatabase();
             this.length = 0;
-            this.tweetIDs = [];
+            this.tweetIDs = []
         }
     }
 
     async uploadToDatabase(){
+        let values = [...this.map(item=>[...item.getArray()]).flat(1)];
         try{
-            await TweetEntityService.createMany(this.map(v=>v));
+            await TweetEntityService.createMany(values);
             this.tweetIDs.forEach(tweetID=>{
                 console.log(tweetID, 'Uploaded entities')
-            })
+            });
         } catch(e){
-            throw e;
+            this.tweetIDs.forEach(tweetID=>{
+                console.error(tweetID, 'Error', e)
+            })
         }
     }
 
