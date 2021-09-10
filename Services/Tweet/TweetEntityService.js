@@ -37,10 +37,21 @@ const create = tweetEntityJSON => new Promise((resolve, reject) => {
     })
 })
 
+/**
+ * Database - Creates many connections between pairs of users
+ * @param {Array<Array<String>>} arrayValues Array containing tweetID, type and value
+ * @returns {Promise}
+ */
+const createMany = arrayValues => new Promise((resolve, reject)=>{
+    Connection.connections['tweet-entities-write'].query('INSERT IGNORE INTO TweetEntities (tweetID, type, value) VALUES ?', [arrayValues], (error, result, fields) => {
+        if(error) reject(error);
+        else resolve();
+    })
+})
 
 const expandURL = text => {
     // return twitterText.link
 }
 
-const TweetEntityService = {extract, create, expandURL};
+const TweetEntityService = {extract, create, createMany, expandURL};
 module.exports = TweetEntityService;

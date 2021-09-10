@@ -3,7 +3,7 @@ const TweetStatsModel = require('./TweetStatsModel');
 const TweetRetweetArray = require('./TweetRetweetArray');
 const UserModel = require("../User/UserModel");
 const MemoryModel = require("../MemoryModel");
-const TweetEntitiesModel = require("./TweetEntitiesModel");
+const {TweetEntitiesModel} = require("./TweetEntitiesModel");
 // TweetEntitiesModel
 class TweetModel {
     /**@type {String} */
