@@ -14,7 +14,7 @@ Connection.Database.connect().then(()=>{
     `).on('result', async (row)=>{
         let tweet = new TweetModel(row);
         try{
-            tweet.entities.uploadToDatabase();
+            await tweet.entities.uploadToDatabase();
         } catch(e){
             console.log(tweet.tweetID, 'Error');
         }
