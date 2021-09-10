@@ -1,5 +1,5 @@
 const Connection = require("../Data");
-const { QueryTree, QueryNode } = require("../Models_new/Query/QueryTree");
+const { QueryTree, QueryNode } = require("../Models/Query/QueryTree");
 const QueryService = require("../Services/Query/QueryService");
 const fs = require('fs')
 // Create a tree

@@ -1,5 +1,5 @@
 const Connection = require("../Data");
-const QueryModel = require("../Models_new/Query/QueryModel");
+const QueryModel = require("../Models/Query/QueryModel");
 const QueryService = require("../Services/Query/QueryService");
 
 Connection.Database.connect().then(async ()=>{

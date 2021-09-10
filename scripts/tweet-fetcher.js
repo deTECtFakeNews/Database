@@ -1,5 +1,5 @@
 const Connection = require("../Data");
-const TweetModel = require("../Models_new/Tweet/TweetModel");
+const TweetModel = require("../Models/Tweet/TweetModel");
 const TweetService = require("../Services/Tweet/TweetService");
 
 Connection.Database.connect().then(async ()=>{

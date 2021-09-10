@@ -1,5 +1,5 @@
 const Connection = require("../Data");
-const UserModel = require("../Models_new/User/UserModel");
+const UserModel = require("../Models/User/UserModel");
 
 Connection.Database.connect().then(()=>{
     Connection.connections['user-main-read'].query(`

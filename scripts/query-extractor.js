@@ -1,6 +1,6 @@
 const converter = require("json-2-csv");
 const Connection = require("../Data");
-const TweetModel = require("../Models_new/Tweet/TweetModel");
+const TweetModel = require("../Models/Tweet/TweetModel");
 const QueryService = require("../Services/Query/QueryService");
 const fs = require('fs');
 

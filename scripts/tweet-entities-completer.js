@@ -1,8 +1,8 @@
 const Connection = require("../Data");
-const {TweetEntitiesModelBuffer} = require("../Models_new/Tweet/TweetEntitiesModel");
-const TweetModel = require("../Models_new/Tweet/TweetModel");
+const {TweetEntitiesModelBuffer} = require("../Models/Tweet/TweetEntitiesModel");
+const TweetModel = require("../Models/Tweet/TweetModel");
 
-const order = process.argv[2] || 'asc'
+// const order = process.argv[2] || 'asc'
 
 
 let entitiesBuffer = new TweetEntitiesModelBuffer(20);
@@ -16,7 +16,6 @@ Connection.Database.connect().then(()=>{
         WHERE TweetEntities.tweetID IS NULL
         AND Tweet.fullText REGEXP '#|@'
         GROUP BY tweetID
-        ORDER BY tweetID ${order}
     `).on('result', async (row)=>{
         Connection.connections['tweet-entities-read'].pause();
         let tweet = new TweetModel(row);
@@ -28,7 +27,12 @@ Connection.Database.connect().then(()=>{
             console.log(tweet.tweetID, 'Error', e);
         }
         Connection.connections['tweet-entities-read'].resume();
+        // console.log('Hi')
     }).on('end', async ()=>{
-        await entitiesBuffer.uploadToDatabase();
+        try{
+            await entitiesBuffer.uploadToDatabase();
+        } catch(e){
+            console.error("Could not upload last chunk", entitiesBuffer.tweetIDs)
+        }
     })
 })

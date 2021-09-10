@@ -1,6 +1,6 @@
 const { Database, Twitter, connect, connections } = require("../Data");
 const fs = require('fs');
-const { QueryTree, QueryNode } = require("../Models/Query/QueryTree/QueryTree");
+const { QueryTree, QueryNode } = require("../Models/Query/QueryTree");
 const QueryService = require("../Services/Query/QueryService");
 const QueryModel = require('../Models/Query/QueryModel');
 
@@ -25,7 +25,7 @@ fs.readFile('tree.json', {encoding: 'utf8'}, async (error, data) => {
         // Execute
         try{
             console.log(query.query);
-            if(query.shouldExecute) await query.executeAll();
+            if(query.shouldExecute) await query.executeHistoric();
         } catch(e){
             console.log("An error ocurred executing query ", query.query);
             console.error(e)
