@@ -15,6 +15,7 @@ Connection.Database.connect().then(()=>{
         try{
             await tweet.getFromAPI();
             await tweet.latestStats.uploadToDatabase();
+            await tweet.entities.uploadToDatabase();
             console.log(tweet.tweetID, 'Success');
         } catch(e){
             console.log(tweet.tweetID, 'Error');
