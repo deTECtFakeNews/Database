@@ -5,7 +5,7 @@ const TweetModel = require("../Models_new/Tweet/TweetModel");
 const order = process.argv[2] || 'asc'
 
 
-let entitiesBuffer = new TweetEntitiesModelBuffer(10);
+let entitiesBuffer = new TweetEntitiesModelBuffer(20);
 
 Connection.Database.connect().then(()=>{
     Connection.connections['tweet-entities-read'].query(`
