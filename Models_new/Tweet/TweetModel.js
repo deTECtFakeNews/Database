@@ -3,7 +3,8 @@ const TweetStatsModel = require('./TweetStatsModel');
 const TweetRetweetArray = require('./TweetRetweetArray');
 const UserModel = require("../User/UserModel");
 const MemoryModel = require("../MemoryModel");
-
+const TweetEntitiesModel = require("./TweetEntitiesModel");
+// TweetEntitiesModel
 class TweetModel {
     /**@type {String} */
     tweetID;
@@ -32,7 +33,8 @@ class TweetModel {
     latestStats;
     /**@type {TweetRetweetArray} */
     retweets;
-    
+    /**@type {TweetEntitiesModel} */
+    entities;
     /**@type {UserModel} */
     author;
     /**@type {UserModel} */
@@ -62,6 +64,7 @@ class TweetModel {
         
         this.latestStats = new TweetStatsModel({tweetID: this.tweetID, ...data?.latestStats});
         this.retweets = new TweetRetweetArray(data);
+        this.entities = new TweetEntitiesModel({tweetID: this.tweetID, fullText: this.fullText})
 
         this._memory = new MemoryModel();
         this._memory.addTweet(this);
@@ -196,6 +199,8 @@ class TweetModel {
             await TweetService.create(this.getJSON());
             // Upload stats
             await this.latestStats.uploadToDatabase();
+            // Upload entities
+            await this.entities.uploadToDatabase();
             console.log(`[Models/Tweet] Uploaded tweet ${this.tweetID} (${this.latestStats.last()?.retweetCount} retweets)`)
         } catch(e) {error = e}
         console.groupEnd();
