@@ -53,7 +53,8 @@ Connection.Database.connect().then(async ()=>{
             FROM TweetEntities
             WHERE type='mention' OR type='userMention'
             AND 'userID_count'=0 
-            GROUP BY TweetEntities.tweetID;
+            GROUP BY TweetEntities.tweetID
+            ORDER BY value;
         `).on('result', async ({tweetID, value: screenName})=>{
             try{
                 if(Object.keys(existingIDs).length > 300) 
