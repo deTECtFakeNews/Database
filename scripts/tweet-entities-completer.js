@@ -52,7 +52,7 @@ Connection.Database.connect().then(async ()=>{
                 SUM(CASE WHEN type = 'userMention' THEN 1 ELSE 0 END) as 'userID_count'
             FROM TweetEntities
             WHERE type='mention' OR type='userMention'
-            AND 'userID_count'>0 
+            AND 'userID_count'=0 
             GROUP BY TweetEntities.tweetID;
         `).on('result', async ({tweetID, value: screenName})=>{
             try{
