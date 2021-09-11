@@ -46,16 +46,17 @@ Connection.Database.connect().then(async ()=>{
         let existingIDs = {};
         let nonexistingIDs = {};
         await Connection.connections['tweet-entities-read'].query(`
-            SELECT * FROM (
-                SELECT tweetID, value AS 'screenName' FROM TweetEntities WHERE type='mention'
-            ) AS screenNameEntities
-            LEFT JOIN (
-                SELECT tweetID, value AS 'userID' FROM TweetEntities WHERE type='UserMention'
-            ) AS userIDEntities USING (tweetID)
-            WHERE userIDEntities.userID IS NULL
-            ORDER BY screenName DESC;
-        `).on('result', async ({tweetID, screenName})=>{
+            SELECT
+                TweetEntities.*,
+                SUM(CASE WHEN type = 'mention' THEN 1 ELSE 0 END) as 'screenName_count',
+                SUM(CASE WHEN type = 'userMention' THEN 1 ELSE 0 END) as 'userID_count'
+            FROM TweetEntities
+            WHERE type='mention' OR type='userMention'
+            AND 'userID_count'>0 
+            GROUP BY TweetEntities.tweetID;
+        `).on('result', async ({tweetID, value: screenName})=>{
             try{
+                if(Object.keys(existingIDs).length > 300) 
                 if(nonexistingIDs[screenName] != undefined) throw "user not in db";
                 let userID = existingIDs[screenName];
                 if(userID == undefined){
