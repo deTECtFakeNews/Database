@@ -123,7 +123,7 @@ const read = (params) => new Promise((resolve, reject) => {
     // If params is a string, assume userID
     if(typeof params === 'string' || typeof params === 'number') params = {userID: params};
     // If no params return all
-    const query = params == undefined ? 'SELECT * FROM User' : 'SELECT * FROM User WHERE ?';
+    const query = params == undefined ? 'SELECT * FROM `User`' : 'SELECT * FROM `User` WHERE ?';
     Connection.connections['user-main-read'].query(query, params, (error, results, fields) => {
         if(error) reject(error);
         else resolve(results);

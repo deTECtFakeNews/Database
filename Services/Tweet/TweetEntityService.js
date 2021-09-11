@@ -49,9 +49,35 @@ const createMany = arrayValues => new Promise((resolve, reject)=>{
     })
 })
 
+/**
+ * Database - Live streams results of all the tweet entities that match criteria. Recommended when expecting large results
+ * @param {TweetEntityJSON|String} params Conditions to search matches
+ * @param {{onError: Function, onFields: Function, onResult: Function, onEnd: Function}} param1 Callback functions
+ * @returns {Promise}
+ */
+ const stream = (params, {onError = function(){}, onFields = function(){}, onResult = function(){}, onEnd = function(){}}) => new Promise((resolve, reject) => {
+    // If params is a string, assume userID
+    if(typeof params === 'string' || typeof params === 'number') params = {tweetID: params};
+    // If no params, return all
+    const query = params == undefined ? 'SELECT * FROM TweetEntities' : 'SELECT * FROM TweetEntities WHERE ?';
+    Connection.connections['tweet-stats-read'].query(query, params)
+        .on('error', onError)
+        .on('fields', onFields)
+        .on('result', async result => {
+            Connection.connections['tweet-entities-read'].pause();
+            await onResult(result);
+            Connection.connections['tweet-entities-read'].resume();
+        })
+        .on('end', async ()=>{
+            await onEnd();
+            resolve();
+        })
+});
+
+
 const expandURL = text => {
     // return twitterText.link
 }
 
-const TweetEntityService = {extract, create, createMany, expandURL};
+const TweetEntityService = {extract, create, createMany, expandURL, stream};
 module.exports = TweetEntityService;

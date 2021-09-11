@@ -75,7 +75,7 @@ const normalize_v2 = data => ({
  */
  const stream = (params, {onError = function(){}, onFields = function(){}, onResult = function(){}, onEnd = function(){}}) => new Promise((resolve, reject) => {
     // If params is a string, assume userID
-    if(typeof params === 'string' || typeof params === 'number') params = {userID: params};
+    if(typeof params === 'string' || typeof params === 'number') params = {tweetID: params};
     // If no params, return all
     const query = params == undefined ? 'SELECT * FROM Tweet' : 'SELECT * FROM Tweet WHERE ?';
     Connection.connections['tweet-stats-read'].query(query, params)
