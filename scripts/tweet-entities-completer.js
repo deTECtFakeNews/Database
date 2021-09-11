@@ -85,7 +85,7 @@ Connection.Database.connect().then(async ()=>{
                 console.log('Error uploading', e);
             }
         }).on('end', async ()=>{
-            await mentionsBuffer.push(entity);
+            await mentionsBuffer.uploadToDatabase();
         })
     } catch(e){
 
