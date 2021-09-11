@@ -40,6 +40,49 @@ Connection.Database.connect().then(async ()=>{
 
     }
 
+    try{
+        let mentionsBuffer = new TweetEntitiesModelBuffer(30);
+        let existingIDs = {};
+        let nonexistingIDs = {};
+        await Connection.connections['tweet-entities-read'].query(`
+            SELECT * FROM (
+                SELECT tweetID, value AS 'screenName' FROM TweetEntities WHERE type='mention'
+            ) AS screenNameEntities
+            LEFT JOIN (
+                SELECT tweetID, value AS 'userID' FROM TweetEntities WHERE type='UserMention'
+            ) AS userIDEntities USING (tweetID)
+            WHERE userIDEntities.userID IS NULL
+            ORDER BY screenName;
+        `).on('result', async ({tweetID, screenName})=>{
+            try{
+                let userID = existingIDs[screenName];
+                if(nonexistingIDs[screenName] != undefined) throw "user not in db";
+                if(userID == undefined){
+                    let user = await UserService.read({screenName: screenName});
+                    userID = user?.[0]?.userID;
+                    existingIDs[screenName] = userID;
+                }
+                if(userID == undefined){
+                    nonexistingIDs[screenName] = true;
+                    throw "user not in db";
+                }
+                console.log(screenName, userID);
+    
+                let entity = new TweetEntitiesModel({tweetID});
+                entity.push({type: 'userMention', value: userID});
+    
+                await entitiesBuffer.push(entity);
+            } catch(e){
+                console.log('Error uploading', e);
+            }
+        }).on('end', async ()=>{
+            await mentionsEntitiesBuffer.push(entity);
+        })
+    } catch(e){
+
+    }
+
+/* 
     let mentionsEntitiesBuffer = new TweetEntitiesModelBuffer(30);
     let userIDs = {};
     let userIDsNotInDB = {};
@@ -83,6 +126,6 @@ Connection.Database.connect().then(async ()=>{
 
             }
         }
-    })
+    }) */
 
 })
