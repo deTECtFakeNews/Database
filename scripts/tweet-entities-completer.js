@@ -54,10 +54,10 @@ Connection.Database.connect().then(async ()=>{
             WHERE type='mention' OR type='userMention'
             AND 'userID_count'=0 
             GROUP BY TweetEntities.tweetID
-            ORDER BY value;
+            ORDER BY value DESC;
         `).on('result', async ({tweetID, value: screenName})=>{
             try{
-                if(Object.keys(existingIDs).length > 300) 
+                if(Object.keys(existingIDs).length > 300) existingIDs = {};
                 if(nonexistingIDs[screenName] != undefined) throw "user not in db";
                 let userID = existingIDs[screenName];
                 if(userID == undefined){
