@@ -42,19 +42,22 @@ Connection.Database.connect().then(async ()=>{
     }
 
     try{
+        let order = process.argv[2] == '1' ? 'ASC' : 'DESC';
+        let mod = process.argv[3] == '1' ? '!=0' : '=0';
         let mentionsBuffer = new TweetEntitiesModelBuffer(30);
         let existingIDs = {};
         let nonexistingIDs = {};
         await Connection.connections['tweet-entities-read'].query(`
             SELECT
                 TweetEntities.*,
-                SUM(CASE WHEN type = 'mention' THEN 1 ELSE 0 END) as 'screenName_count',
-                SUM(CASE WHEN type = 'userMention' THEN 1 ELSE 0 END) as 'userID_count'
+                SUM(CASE WHEN \`type\` = 'mention' THEN 1 ELSE 0 END) as 'screenName_count',
+                SUM(CASE WHEN \`type\` = 'userMention' THEN 1 ELSE 0 END) as 'userID_count'
             FROM TweetEntities
-            WHERE type='mention' OR type='userMention'
-            AND 'userID_count'=0 
-            GROUP BY TweetEntities.tweetID
-            ORDER BY value DESC;
+            WHERE \`type\`='mention' OR \`type\`='userMention'
+            AND 'userID_count'=0
+            AND MOD(tweetID, 2) ${mod} 
+            GROUP BY TweetEntities.tweetID 
+            ORDER BY \`value\` ${order}
         `).on('result', async ({tweetID, value: screenName})=>{
             try{
                 if(Object.keys(existingIDs).length > 300) existingIDs = {};
