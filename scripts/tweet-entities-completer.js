@@ -30,7 +30,7 @@ Connection.Database.connect().then(async ()=>{
             Connection.connections['tweet-entities-read'].resume();
             // console.log('Hi')
         }).on('end', async ()=>{
-            try{
+            try{gi
                 await entitiesBuffer.uploadToDatabase();
             } catch(e){
                 console.error("Could not upload last chunk")
@@ -42,10 +42,14 @@ Connection.Database.connect().then(async ()=>{
 
     let mentionsEntitiesBuffer = new TweetEntitiesModelBuffer(30);
     let userIDs = {};
+    let userIDsNotInDB = {};
     await TweetEntityService.stream({type: 'mention'}, {
         onResult: async row => {
             let screenName = row.value;
             try{
+                if(Object.keys(userIDs).length == 200) userIDs = {};
+                if(Object.keys(userIDsNotInDB).length == 200) userIDsNotInDB = {};
+                if(userIDsNotInDB[screenName] != undefined) throw "User not found in db";
                 let userID = userIDs[screenName];
                 if(userID == undefined){
                     let user = await UserService.read({screenName: screenName});
