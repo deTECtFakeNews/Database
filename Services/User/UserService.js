@@ -83,7 +83,7 @@ const fetchAPI = (userID) => new Promise((resolve, reject) => {
 })
 
 /**
- * API v1.2 - Fetch user
+ * API v2 - Fetch user
  * @param {String} userID User id to fetch in API
  * @returns {Promise<UserJSON>}
  */
@@ -94,6 +94,19 @@ const fetchAPI_v2 = (userID) => new Promise((resolve, reject) => {
         if(error) reject(error);
         if(data != undefined) resolve( normalize_v2(data) );
         // If data is undefined, return an empty object
+        else resolve({})
+    })
+})
+
+/**
+ * API v1.1 - Fetch user with screen name
+ * @param {String} screen_name Screen name to fetch in api 
+ * @returns {Promise<UserJSON>}
+ */
+const fetchAPIWithUsername = (screen_name) => new Promise((resolve, reject) => {
+    Connection.Twitter.get('1.1/users/show', {screen_name}, (error, data, response) => {
+        if(error) reject(error);
+        if(data != undefined) resolve(normalize(data));
         else resolve({})
     })
 })
@@ -168,5 +181,5 @@ const update = (userID, user) => new Promise((resolve, reject) => {
     })
 })
 
-const UserService = {normalize, normalize_v2, fetchAPI, fetchAPI_v2, create, read, stream, update, UserStatsService, UserFollowerService};
+const UserService = {normalize, normalize_v2, fetchAPI, fetchAPI_v2, fetchAPIWithUsername, create, read, stream, update, UserStatsService, UserFollowerService};
 module.exports = UserService;

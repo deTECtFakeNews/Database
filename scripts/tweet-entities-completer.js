@@ -1,6 +1,7 @@
 const Connection = require("../Data");
 const {TweetEntitiesModelBuffer, TweetEntitiesModel} = require("../Models/Tweet/TweetEntitiesModel");
 const TweetModel = require("../Models/Tweet/TweetModel");
+const UserModel = require("../Models/User/UserModel");
 const TweetEntityService = require("../Services/Tweet/TweetEntityService");
 const UserService = require("../Services/User/UserService");
 
@@ -52,19 +53,27 @@ Connection.Database.connect().then(async ()=>{
                 SELECT tweetID, value AS 'userID' FROM TweetEntities WHERE type='UserMention'
             ) AS userIDEntities USING (tweetID)
             WHERE userIDEntities.userID IS NULL
-            ORDER BY screenName;
+            ORDER BY screenName DESC;
         `).on('result', async ({tweetID, screenName})=>{
             try{
-                let userID = existingIDs[screenName];
                 if(nonexistingIDs[screenName] != undefined) throw "user not in db";
+                let userID = existingIDs[screenName];
                 if(userID == undefined){
                     let user = await UserService.read({screenName: screenName});
                     userID = user?.[0]?.userID;
                     existingIDs[screenName] = userID;
                 }
                 if(userID == undefined){
-                    nonexistingIDs[screenName] = true;
-                    throw "user not in db";
+                    try{
+                        let userData = await UserService.fetchAPIWithUsername(screenName);
+                        let user = new UserModel(userData);
+                        await user.uploadToDatabase();
+                        existingIDs[screenName] = user.userID;
+                        userID = user.userID;
+                    } catch(e){
+                        nonexistingIDs[screenName] = true;
+                        throw "user not in api";
+                    }
                 }
                 console.log(screenName, userID);
     
@@ -76,56 +85,10 @@ Connection.Database.connect().then(async ()=>{
                 console.log('Error uploading', e);
             }
         }).on('end', async ()=>{
-            await mentionsEntitiesBuffer.push(entity);
+            await mentionsBuffer.push(entity);
         })
     } catch(e){
 
     }
-
-/* 
-    let mentionsEntitiesBuffer = new TweetEntitiesModelBuffer(30);
-    let userIDs = {};
-    let userIDsNotInDB = {};
-    await TweetEntityService.stream({type: 'mention'}, {
-        onResult: async row => {
-            let screenName = row.value;
-            try{
-                if(Object.keys(userIDs).length == 200) userIDs = {};
-                if(Object.keys(userIDsNotInDB).length == 200) userIDsNotInDB = {};
-                if(userIDsNotInDB[screenName] != undefined) throw "User not found in db";
-                let userID = userIDs[screenName];
-                if(userID == undefined){
-                    let user = await UserService.read({screenName: screenName});
-                    userID = user?.[0]?.userID;
-                    userIDs[screenName] = userID;
-                }
-                if(userID == undefined) throw "User not found in db";
-
-                console.log(screenName, userID);
-
-                let entity = new TweetEntitiesModel({
-                    tweetID: row.tweetID
-                });
-
-                entity.push({
-                    type: 'userMention',
-                    value: userID,
-                });
-
-                // await entity.uploadToDatabase();
-                await mentionsEntitiesBuffer.push(entity);
-
-            } catch(e){
-                console.log('Error uploading', e)
-            }
-        },
-        onEnd: async () => {
-            try{
-                await mentionsEntitiesBuffer.push(entity);
-            } catch(e){
-
-            }
-        }
-    }) */
 
 })
