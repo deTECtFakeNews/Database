@@ -28,7 +28,7 @@ class UserStatsModelRow {
         this.listedCount = data?.listedCount;
         this.favoritesCount = data?.favoritesCount;
         this.statusesCount = data?.statusesCount;
-        this.updateDate = data?.updateDate;
+        this.updateDate = new Date();
         this.status = data?.status;
     }
     /**
@@ -38,13 +38,13 @@ class UserStatsModelRow {
     getJSON(){
         return {
             userID: this.userID.toString(),
-            followersCount: this.followersCountuserID,
-            followingCount: this.followingCountuserID,
-            listedCount: this.listedCountuserID,
-            favoritesCount: this.favoritesCountuserID,
-            statusesCount: this.statusesCountuserID,
-            updateDate: this.updateDateuserID,
-            status: this.statususerID
+            followersCount: this.followersCount,
+            followingCount: this.followingCount,
+            listedCount: this.listedCount,
+            favoritesCount: this.favoritesCount,
+            statusesCount: this.statusesCount,
+            updateDate: this.updateDate,
+            status: this.status
         }
     }
     /**
@@ -129,8 +129,9 @@ class UserStatsModel extends Array {
      */
     async uploadToDatabase(){
         if(this.#userID == -1 || !this.#shouldUpload) return false;
-        if(this.last() == undefined) return false;
+        if(this.last() == undefined || this.last().isEmpty()) return false;
         try{
+            // console.log(JSON.stringify(this.last().getJSON()))
             await UserService.UserStatsService.create( this.last().getJSON() )
         } catch(e){
             console.log('[Models/UserStatsFreeze] ', { userID: this.#userID })
