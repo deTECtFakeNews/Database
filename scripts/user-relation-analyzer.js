@@ -14,8 +14,8 @@ Connection.Database.connect().then(async ()=>{
         Connection.connections['user-stats-write'].query(`
             SELECT userID FROM view_UserStatsLast
             LEFT JOIN UserRelationAnalysis ON UserRelationAnalysis.bUserID = view_UserStatsLast.userID
-            WHERE UserRelationAnalysis.aUserID IS NULL
-                AND view_UserStatsLast.followersCount > 10000
+            WHERE UserRelationAnalysis.bUserID IS NULL
+                AND view_UserStatsLast.followersCount < 10000
                 AND view_UserStatsLast.followersCount >= 1000
         `).on('result', async otherUser => {
             Connection.connections['user-stats-write'].pause()
