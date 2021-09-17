@@ -2,8 +2,13 @@ const UserService = require("../../Services/User/UserService");
 const UserFollowerArray = require("./UserFollowerArray");
 
 class UserFollowingArray extends UserFollowerArray{
+    /**@type {String} */
+    #userID;
+    /**@type {Boolean} */
+    #shouldUpload;
     constructor(data){
         super(data);
+        this.#userID = data?.userID || -1;
     }
     getFromDatabase(){
         if(this.#userID == -1) return false;

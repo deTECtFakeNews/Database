@@ -1,7 +1,7 @@
 const UserService = require("../../Services/User/UserService");
 const MemoryModel = require("../MemoryModel");
 const UserFollowerArray = require('./UserFollowerArray');
-const UserFollowingArray = require("./UserFollowing");
+const UserFollowingArray = require("./UserFollowingArray");
 const UserStatsModel = require('./UserStatsModel')
 
 class UserModel {
