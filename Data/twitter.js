@@ -45,7 +45,7 @@ class TwitterClientEndpoint {
         // Get only possitive values
         if(remainingTime <= 0) remainingTime = 0;
         // Divide remaining time into remaining calls
-        let delayTime = remainingTime/(this.remainingCalls+1);
+        let delayTime = remainingTime/this.remainingCalls;
         return delayTime;
         // Return delay time divided by number of clients
     }
@@ -59,6 +59,7 @@ class TwitterClientExtended extends TwitterClient{
         // 1.1 Users
         '1.1/users/show': new TwitterClientEndpoint({remainingCalls: 90}),
         '1.1/followers/ids': new TwitterClientEndpoint({remainingCalls: 15}),
+        '1.1/friends/ids': new TwitterClientEndpoint({remainingCalls: 15}),
         // 1.1 Tweets
         '1.1/statuses/show/:id': new TwitterClientEndpoint({remainingCalls: 900}),
         '1.1/statuses/show': new TwitterClientEndpoint({remainingCalls: 900}),
@@ -103,7 +104,7 @@ class TwitterClientExtended extends TwitterClient{
             let endpoint = this.getEndpoint(path);
             // console.log(path, endpoint)
             // Get delay (AND DIVIDE BY THE NUMBER OF CLIENTS)
-            let delay = endpoint.getDelay()/(CONSTANTS.twitter.length - 1);
+            let delay = endpoint.getDelay()/(CONSTANTS.twitter.length - 2) + 100;
             SystemService.delay( delay ).then(()=>{
                 super.get(path, params, (error, data, response) => {
                     // Throw error if response is undefined

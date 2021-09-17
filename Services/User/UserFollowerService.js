@@ -9,8 +9,9 @@ const Connection = require("../../Data");
 const fetchAPI = (userID, options = {}) => new Promise((resolve, reject) => {
     // Skip for empty or null users
     if(userID == -1 || userID == undefined) resolve([]);
-    Connection.Twitter.get('1.1/followers/ids', {user_id: userID, cursor: options?.cursor ||-1}, (error, data, response) => {
+    Connection.Twitter.get('1.1/followers/ids', {user_id: userID, cursor: options?.next_cursor ||-1, count: 5000}, (error, data, response) => {
         if(error) reject(error);
+        if(data?.next_cursor_str == undefined) reject("Undefined next cursor");
         else resolve({
             ids: data?.ids, 
             next_cursor: data?.next_cursor_str
@@ -27,8 +28,9 @@ const fetchAPI = (userID, options = {}) => new Promise((resolve, reject) => {
 const fetchAPIFollowings = (userID, options = {}) => new Promise((resolve, reject) => {
     // Skip for empty or null users
     if(userID == -1 || userID == undefined) resolve([]);
-    Connection.Twitter.get('1.1/friends/ids', {user_id: userID, cursor: options?.cursor ||-1}, (error, data, response) => {
+    Connection.Twitter.get('1.1/friends/ids', {user_id: userID, cursor: options?.next_cursor ||-1, count: 5000}, (error, data, response) => {
         if(error) reject(error);
+        if(data?.next_cursor_str == undefined) reject("Undefined next cursor");
         else resolve({
             ids: data?.ids, 
             next_cursor: data?.next_cursor_str

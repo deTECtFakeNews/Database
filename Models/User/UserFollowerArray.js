@@ -58,10 +58,8 @@ class UserFollowerArray extends Array {
             for(followerID of data.ids){
                 super.push({userID: this.#userID, followerID})
             }
-            if(data.next_cursor != "0"){
-                this.api_next_cursor = data.next_cursor;
-                await this.getFromAPI();
-            }
+            this.api_next_cursor = data.next_cursor;
+            console.log(this.#userID, `Fetched ${this.length} items from API. Next cursor is ${data.next_cursor}`)
         } catch(e){
             throw e;
         }
@@ -79,6 +77,18 @@ class UserFollowerArray extends Array {
             ];
             await UserService.UserFollowerArray.bulkCreate(data)
         } catch(e) {
+            throw e;
+        }
+    }
+
+    async getFromAPIAndUploadToDatabase(){
+        if(this.api_next_cursor == "0") return;
+        try{
+            await this.getFromAPI();
+            await this.uploadToDatabase();
+            this.length = 0;
+            await this.getFromAPIAndUploadToDatabase();
+        } catch(e){
             throw e;
         }
     }

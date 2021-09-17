@@ -35,13 +35,11 @@ class UserFollowingArray extends UserFollowerArray{
             // Data
             let data = await UserService.UserFollowerService
                 .fetchAPIFollowings(this.#userID, {next_cursor: this.api_next_cursor});
-            for(userID of data.ids){
-                super.push({userID, followerID: this.#userID})
+            for(let userID of data?.ids){
+                super.push({userID: userID, followerID: this.#userID})
             }
-            if(data.next_cursor != "0"){
-                this.api_next_cursor = data.next_cursor;
-                await this.getFromAPI();
-            }
+            this.api_next_cursor = data.next_cursor;
+            console.log(this.#userID, `Fetched ${this.length} items from API. Next cursor is ${this.api_next_cursor}`)
         } catch(e){
             throw e;
         }
