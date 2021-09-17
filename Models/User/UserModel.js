@@ -1,6 +1,7 @@
 const UserService = require("../../Services/User/UserService");
 const MemoryModel = require("../MemoryModel");
 const UserFollowerArray = require('./UserFollowerArray');
+const UserFollowingArray = require("./UserFollowing");
 const UserStatsModel = require('./UserStatsModel')
 
 class UserModel {
@@ -26,6 +27,8 @@ class UserModel {
     latestStats;
     /**@type {UserFollowerArray} */
     followers;
+    /**@type {UserFollowingArray} */
+    followings;
     /**@type {MemoryModel} */
     _memory;
     /**
@@ -45,6 +48,7 @@ class UserModel {
 
         this.latestStats = new UserStatsModel({userID: data?.userID, ...data?.latestStats});
         this.followers = new UserFollowerArray(data);
+        this.followings = new UserFollowingArray(data);
 
         this._memory = new MemoryModel();
     }

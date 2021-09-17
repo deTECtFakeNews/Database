@@ -51,9 +51,16 @@ class UserFollowerArray extends Array {
         this.#shouldUpload = true;
         // Empty
         this.length = 0;
+        // Data 
         try{
-            for(followerIDID of await UserService.UserFollowerService.fetchAPI(this.#shouldUpload)){
+            let data = await UserService.UserFollowerService
+                .fetchAPI(this.#userID, {next_cursor: this.api_next_cursor});
+            for(followerID of data.ids){
                 super.push({userID: this.#userID, followerID})
+            }
+            if(data.next_cursor != "0"){
+                this.api_next_cursor = data.next_cursor;
+                await this.getFromAPI();
             }
         } catch(e){
             throw e;

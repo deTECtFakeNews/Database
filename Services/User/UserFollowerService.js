@@ -3,14 +3,36 @@ const Connection = require("../../Data");
 /**
  * API v1.1 - Fetches last 500 ids of user followers
  * @param {String} userID User id to fetch in API
- * @returns {Promise<Array<String>>}
+ * @param {{next_cursor: String}} options Options
+ * @returns {Promise<{ids:Array<String>, next_cursor:String}>}
  */
-const fetchAPI = userID => new Promise((resolve, reject) => {
+const fetchAPI = (userID, options = {}) => new Promise((resolve, reject) => {
     // Skip for empty or null users
     if(userID == -1 || userID == undefined) resolve([]);
-    Connection.Twitter.get('1.1/followers/ids', {user_id: userID, cursor: -1}, (error, data, response) => {
+    Connection.Twitter.get('1.1/followers/ids', {user_id: userID, cursor: options?.cursor ||-1}, (error, data, response) => {
         if(error) reject(error);
-        else resolve(data?.ids);
+        else resolve({
+            ids: data?.ids, 
+            next_cursor: data?.next_cursor_str
+        });
+    })
+})
+
+/**
+ * API v1.1 - Fetches last 500 ids of user followers
+ * @param {String} userID User id to fetch in API
+ * @param {{next_cursor: String}} options Options
+ * @returns {Promise<{ids:Array<String>, next_cursor:String}>}
+ */
+const fetchAPIFollowings = (userID, options = {}) => new Promise((resolve, reject) => {
+    // Skip for empty or null users
+    if(userID == -1 || userID == undefined) resolve([]);
+    Connection.Twitter.get('1.1/friends/ids', {user_id: userID, cursor: options?.cursor ||-1}, (error, data, response) => {
+        if(error) reject(error);
+        else resolve({
+            ids: data?.ids, 
+            next_cursor: data?.next_cursor_str
+        });
     })
 })
 
@@ -111,5 +133,5 @@ const read = (params) => new Promise((resolve, reject) => {
 const bulkCreate = createMany;
 const purge = removeUnexistant;
 
-const UserFollowerService = {fetchAPI, create, createMany, removeUnexistant, read, stream, bulkCreate, purge}
+const UserFollowerService = {fetchAPI, fetchAPIFollowings, create, createMany, removeUnexistant, read, stream, bulkCreate, purge}
 module.exports = UserFollowerService;
