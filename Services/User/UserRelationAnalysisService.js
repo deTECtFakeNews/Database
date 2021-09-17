@@ -153,22 +153,31 @@ const weightUserRetweets = (aUserID, bUserID) => new Promise((resolve, reject) =
         })
         .on('error', reject);
 })
-
+/**
+ * 
+ * @param {String} userID Id of user to analyze
+ * @returns {Promise<Array<{hashtag: String, count: Number}>>}
+ */
 const getTopHashtags = (userID) => new Promise((resolve, reject) => {
     Connection.Database.connections['tweet-entities-write'].query(`
-        SELECT
-            *,
-            COUNT(*) as count
-        FROM view_UserHashtags
-        WHERE ?
-        GROUP BY value
-        ORDER BY count DESC
-        LIMIT 10
+        SELECT 
+            TweetEntities.value 
+        FROM TweetEntities 
+        JOIN Tweet USING (tweetID) 
+        WHERE TweetEntities.type = 'hashtag' 
+        AND Tweet.authorID=${userID};
     `, {userID}, (error, results, fields) => {
         if(error) reject(error);
-        resolve(results);
+        let hashtagsCount = {};
+        for(let {value} of results){
+            if(hashtagsCount[value] == undefined) hashtagsCount[value] = 1;
+            else hashtagsCount[value]++;
+        }
+        let hashtagsArray = Object.keys(hashtagsCount).map(key => ({hashtag: key, count: hashtagsCount[key]}))
+        hashtagsArray.sort((a, b) => b.count - a.count)
+        resolve(hashtagsArray);
     })
 })
 
-const UserRelationAnalysisService = {getCommunity, getCommunityIntersection, getCommunity2Deg, weightUserMentions, weightUserRetweets, getTopHashtags};
+const UserRelationAnalysisService = {create, getCommunity, getCommunityIntersection, getCommunity2Deg, weightUserMentions, weightUserRetweets, getTopHashtags};
 module.exports = UserRelationAnalysisService;
