@@ -6,12 +6,16 @@ Connection.Database.connect().then(async ()=>{
     // Read influential users (10k+ followers)
     Connection.connections['user-stats-read'].query(`
         SELECT userID FROM view_UserStatsLast
-        WHERE view_UserStatsLast.followersCount >= 10000
+        LEFT JOIN UserRelationAnalysis ON UserRelationAnalysis.aUserID = view_UserStatsLast.userID
+        WHERE UserRelationAnalysis.aUserID IS NULL AND
+        view_UserStatsLast.followersCount >= 10000
     `).on('result', async influentialUser => {
         // Compare with each of the rest users (1k+ followers)
         Connection.connections['user-stats-write'].query(`
             SELECT userID FROM view_UserStatsLast
-            WHERE view_UserStatsLast.followersCount > 10000
+            LEFT JOIN UserRelationAnalysis ON UserRelationAnalysis.bUserID = view_UserStatsLast.userID
+            WHERE UserRelationAnalysis.aUserID IS NULL
+                AND view_UserStatsLast.followersCount > 10000
                 AND view_UserStatsLast.followersCount >= 1000
         `).on('result', async otherUser => {
             Connection.connections['user-stats-write'].pause()
