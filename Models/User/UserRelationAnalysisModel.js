@@ -23,7 +23,7 @@ class UserRelationAnalysisModel{
         let communityB = await UserRelationAnalysisService.getCommunity(this.bUser.userID);
         let communityIntersection = await UserRelationAnalysisService.getCommunityIntersection(this.bUser.userID, this.aUser.userID);
 
-        this.simCommunity = communityIntersection/(communityA + communityB);
+        this.simCommunity = communityIntersection/Math.min(communityA,communityB);
         return this.simCommunity;
     }
     async executeSimMentions(){
@@ -39,10 +39,13 @@ class UserRelationAnalysisModel{
     async executeSimHastags(){
         let hashtagsA = await UserRelationAnalysisService.getTopHashtags(this.aUser.userID);
         let hashtagsB = await UserRelationAnalysisService.getTopHashtags(this.bUser.userID);
-        hashtagsA = hashtagsA.slice(0, 10).map(elem=>elem.hashtag);
-        hashtagsB = hashtagsB.slice(0, 10).map(elem=>elem.hashtag);
-        let hashtagsIntersection = new Set([...hashtagsA, ...hashtagsB]);
-        this.simHashtags = hashtagsIntersection.size/10;
+        hashtagsA = new Set([...hashtagsA.slice(0, 10).map(elem=>elem.hashtag.toLowerCase())]);
+        hashtagsB = new Set([hashtagsB.slice(0, 10).map(elem=>elem.hashtag.toLowerCase())]);
+        let countIntersection = 0;
+        hashtagsA.forEach(h=>{
+            if(hashtagsB.find(h)) countIntersection++;
+        })
+        this.simHashtags = countIntersection/10;
     }
     async executeSimProfile(){
         await this.aUser.getFromDatabase();
