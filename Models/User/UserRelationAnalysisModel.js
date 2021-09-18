@@ -22,11 +22,7 @@ class UserRelationAnalysisModel{
         let communityA = await UserRelationAnalysisService.getCommunity(this.aUser.userID);
         let communityB = await UserRelationAnalysisService.getCommunity(this.bUser.userID);
         let communityIntersection = await UserRelationAnalysisService.getCommunityIntersection(this.bUser.userID, this.aUser.userID);
-        if(communityA == 0 || communityB == 0){
-            this.simCommunity = 0;
-        } else {
-            this.simCommunity = communityIntersection/Math.min(communityA,communityB);
-        }
+        this.simCommunity = communityIntersection/(communityA + communityB - communityIntersection);
         return this.simCommunity;
     }
     async executeSimMentions(){
