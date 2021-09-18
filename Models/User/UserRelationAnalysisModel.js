@@ -58,7 +58,7 @@ class UserRelationAnalysisModel{
         await this.bUser.latestStats.getFromDatabase();
         let matchPercentageA = Math.max(this.aUser.latestStats.last().followersCount, this.aUser.latestStats.last().followersCount)/300_000_000;
         let matchPercentageB = Math.max(this.bUser.latestStats.last().followersCount, this.bUser.latestStats.last().followersCount)/300_000_000;
-        this.simProfile = Math.max(matchPercentageA, matchPercentageB)
+        this.simProfile = matchPercentageA*matchPercentageB
         // this.simProfile = ((sameLanguages ? 1 : 0) + (samePlaces ? 1 : 0) + dateWeight)/3;
         return this.simProfile;
     }
