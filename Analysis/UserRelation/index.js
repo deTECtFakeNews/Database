@@ -10,7 +10,7 @@ class UserRelation {
     aUserID;
     bUserID;
 
-    simCommunities;
+    simCommunity;
     simHashtags;
     simMentions;
     simProfile;
@@ -21,8 +21,8 @@ class UserRelation {
     }
 
     async getSimCommunities(){
-        this.simCommunities = await UserRelationCommunitiesAnalysis.calculate(this.aUserID, this.bUserID);
-        return this.simCommunities;
+        this.simCommunity = await UserRelationCommunitiesAnalysis.calculate(this.aUserID, this.bUserID);
+        return this.simCommunity;
     }
 
     async getSimHashtags(){
