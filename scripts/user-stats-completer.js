@@ -6,9 +6,8 @@ Connection.Database.connect().then(()=>{
         SELECT
             User.*
         FROM view_UserStatsLast
-        RIGHT JOIN User USING (userID)
-        WHERE
-            view_UserStatsLast.userID IS NULL OR view_UserStatsLast.updateDate IS NULL
+        JOIN User USING (userID)
+        WHERE view_UserStatsLast.updateDate IS NULL
     `).on('result', async row => {
         Connection.connections['user-main-read'].pause();
         let user = new UserModel(row)
