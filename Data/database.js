@@ -56,6 +56,10 @@ class DatabaseSSHConnection {
             .on('error', (e)=>{
                 console.log(e)
             })
+            .on('end', async (e)=>{
+                // console.log(e);
+                await this.connect();
+            })
     }
     // Event handler
     on(event, callback){
@@ -86,33 +90,30 @@ class DatabaseSSHConnectionPool {
     }
 
     async connect(){
-        // Users
-        await this.addConnection('user-main-read');
-        await this.addConnection('user-main-write');
-        // User stats
-        await this.addConnection('user-stats-read');
-        await this.addConnection('user-stats-write');
-        // User followers
-        await this.addConnection('user-followers-read');
-        await this.addConnection('user-followers-write');
-        // Tweets
-        await this.addConnection('tweet-main-read');
-        await this.addConnection('tweet-main-write');
-        // Tweet entities
-        await this.addConnection('tweet-entities-read');
-        await this.addConnection('tweet-entities-write');
-        // Tweet retweets
-        await this.addConnection('tweet-retweets-read');
-        await this.addConnection('tweet-retweets-write');
-        // Tweet stats
-        await this.addConnection('tweet-stats-read');
-        await this.addConnection('tweet-stats-write');
-        // Queries
-        await this.addConnection('query-main-read');
-        await this.addConnection('query-main-write');
-        // Query Tweet
-        await this.addConnection('query-tweet-read');
-        await this.addConnection('query-tweet-write');
+        let connections = [
+            'user-main-read',
+            'user-main-write',
+            'user-stats-read',
+            'user-stats-write',
+            'user-followers-read',
+            'user-followers-write',
+            'tweet-main-read',
+            'tweet-main-write',
+            'tweet-entities-read',
+            'tweet-entities-write',
+            'tweet-retweets-read',
+            'tweet-retweets-write',
+            'tweet-stats-read',
+            'tweet-stats-write',
+            'query-main-read',
+            'query-main-write',
+            'query-tweet-read',
+            'query-tweet-write'
+        ]
+        await Promise.all(connections.filter((l, i) => i < 6).map(name=> this.addConnection(name) ))
+        await Promise.all(connections.filter((l, i) => i >= 6 && i < 9).map(name=> this.addConnection(name) ))
+        await Promise.all(connections.filter((l, i) => i >= 9).map(name=> this.addConnection(name) ))
+        console.log("[Connection/Database] Connected to database")
     }
 }
 

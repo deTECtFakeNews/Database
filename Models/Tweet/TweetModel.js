@@ -1,6 +1,6 @@
 const TweetService = require("../../Services/Tweet/TweetService");
 const TweetStatsModel = require('./TweetStatsModel');
-const TweetRetweetArray = require('./TweetRetweetArray');
+const TweetRetweetArray = require('./TweetRetweetArrayNew');
 const UserModel = require("../User/UserModel");
 const MemoryModel = require("../MemoryModel");
 const {TweetEntitiesModel} = require("./TweetEntitiesModel");

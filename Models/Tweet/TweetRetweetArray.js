@@ -40,9 +40,13 @@ class TweetRetweetModelRow {
         if(this.isEmpty()) return false;
         try{
             // First upload the user
-            await this.author.uploadToDatabase();
+            // await this.author.uploadToDatabase();
             // Upload relationship
-            await TweetService.TweetRetweetService.create(this.getJSON())
+            try{
+                await TweetService.TweetRetweetService.create(this.getJSON())
+            } catch(e){
+                throw e;
+            }
         } catch(e){
             // throw e;
         }
@@ -122,6 +126,7 @@ class TweetRetweetArray extends Array{
             throw e;
         }
     }
+
     /**
      * Upload all retweets to database
      * @returns {Promise<void>}

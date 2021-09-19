@@ -1,3 +1,4 @@
+const { UserFollowerService } = require("../../Services/User/UserService");
 const UserRelationAnalysisService = require("./service");
 const UserRelationCommunitiesAnalysis = require("./UserRelationCommunities");
 const UserRelationHashtagAnalysis = require("./UserRelationHashtag");
@@ -59,6 +60,30 @@ class UserRelation {
             console.log(this.aUserID, this.bUserID, '✔️')
         } catch(e){
             console.error("An error ocurred", this.aUserID, this.bUserID, e);
+        }
+    }
+
+    async verify(){
+        try{
+            let relationshipData = await UserFollowerService.fetchAPIVerify(this.aUserID, this.bUserID);
+            let verificationResult = 0;
+            if(relationshipData.length>0){
+                for(let relation of relationshipData){
+                    try{
+                        await UserFollowerService.create(relation);
+                    } catch(e){
+                        console.log("Error uploading pair", relation)
+                    }
+                }
+                verificationResult = 1;
+            }
+            await UserRelationAnalysisService.update({aUserID: this.aUserID, bUserID: this.bUserID}, {
+                verificationDate: new Date(), 
+                verificationResult
+            })
+            console.log(this.aUserID, this.bUserID, verificationResult == 0 ? '❌' : '✔️');
+        } catch(e){
+            console.error(e)
         }
     }
 }

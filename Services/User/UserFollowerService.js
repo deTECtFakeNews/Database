@@ -39,6 +39,23 @@ const fetchAPIFollowings = (userID, options = {}) => new Promise((resolve, rejec
 })
 
 /**
+ * API v1.1 - Checks relationship between users and returns array with data
+ * @param {String} aUserID User id (a) to fetch in API
+ * @param {String} bUserID User id (b) to fetch in API
+ * @returns {Promise<Array<{userID: String, followerID: String}>>}
+ */
+const fetchAPIVerify = (aUserID, bUserID) => new Promise((resolve, reject) => {
+    if(aUserID == undefined || bUserID == -1) return resolve();
+    Connection.Twitter.get('1.1/friendships/show', {source_id: aUserID, target_id: bUserID}, (error, data, response) => {
+        if(error) reject(error);
+        let results = [];
+        if(data?.relationship?.source?.following) results.push({userID: bUserID, followerID: aUserID});
+        if(data?.relationship?.target?.following) results.push({userID: aUserID, followerID: bUserID});
+        resolve(results);
+    })
+})
+
+/**
  * Database - Creates a new connection between users
  * @param {{userID: String, followerID: String}} param0 Data to be inserted (userID of base user and follower)
  * @returns {Promise}
@@ -135,5 +152,5 @@ const read = (params) => new Promise((resolve, reject) => {
 const bulkCreate = createMany;
 const purge = removeUnexistant;
 
-const UserFollowerService = {fetchAPI, fetchAPIFollowings, create, createMany, removeUnexistant, read, stream, bulkCreate, purge}
+const UserFollowerService = {fetchAPI, fetchAPIFollowings, fetchAPIVerify, create, createMany, removeUnexistant, read, stream, bulkCreate, purge}
 module.exports = UserFollowerService;

@@ -39,6 +39,26 @@ const fetchAPI = (tweetID, {count = 100, trim_user = false} = {}) => new Promise
 })
 
 /**
+ * 
+ * @param {String} tweetID Tweet id to fetch in API
+ * @param {{next_cursor: String}} options Options
+ * @returns {Promise<{ids: Array<String>, next_cursor: String}>}
+ */
+const fetchAPIFast = (tweetID, options) => new Promise((resolve, reject) => {
+    Connection.Twitter.get('1.1/statuses/retweeters/ids', {id: tweetID, stringify_ids: true, cursor: options?.next_cursor, count: 100}, (error, data, response) => {
+        if(error) reject(error);
+        try{
+            resolve({
+                ids: data?.ids, 
+                next_cursor: data?.next_cursor_str
+            })
+        } catch(e){
+            reject(e);
+        }
+    })
+})
+
+/**
  * Database - Creates a new retweet connection between user and tweet
  * @param {TweetRetweetJSON} tweetRetweetJSON Data to be inserted
  * @returns {Promise}
@@ -95,5 +115,5 @@ const createMany = undefined;
         })
 });
 
-const TweetRetweetService = {normalize, fetchAPI, create, read, stream};
+const TweetRetweetService = {normalize, fetchAPI, fetchAPIFast, create, read, stream};
 module.exports = TweetRetweetService;
