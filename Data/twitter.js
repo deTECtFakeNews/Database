@@ -104,7 +104,7 @@ class TwitterClientExtended extends TwitterClient{
             let endpoint = this.getEndpoint(path);
             // console.log(path, endpoint)
             // Get delay (AND DIVIDE BY THE NUMBER OF CLIENTS)
-            let delay = endpoint.getDelay()/(CONSTANTS.twitter.length) + 800;
+            let delay = endpoint.getDelay()/(CONSTANTS.twitter.length - 1) + 800;
             SystemService.delay( delay ).then(()=>{
                 super.get(path, params, (error, data, response) => {
                     // Throw error if response is undefined
