@@ -103,7 +103,6 @@ Connection.Database.connect().then(async () => {
                 SELECT 
                 view_UserStatsLast.userID 
                 FROM view_UserStatsLast
-                LEFT JOIN Tweet ON Tweet.authorID = view_UserStatsLast.userID
                 WHERE followersCount < 10000 AND followersCount > 1000
             `)
             .on('result', async b => {
