@@ -57,7 +57,7 @@ class UserRelation {
         try{
             this.executionDate = new Date();
             await UserRelationAnalysisService.create(this);
-            console.log(this.aUserID, this.bUserID, '✔️', prediction)
+            console.log(this.aUserID, this.bUserID, '✔️')
         } catch(e){
             console.error("An error ocurred", this.aUserID, this.bUserID, e);
         }
