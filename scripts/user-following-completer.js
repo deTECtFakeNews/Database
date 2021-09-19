@@ -7,7 +7,9 @@ Connection.Database.connect().then(()=>{
             User.*
         FROM User
         JOIN view_UserStatsLast USING (userID)
+        LEFT JOIN UserFollower ON UserFollower.followerID = User.userID
         WHERE view_UserStatsLast.followersCount >= 10000
+        AND UserFollower.userID IS NULL
     `).on('result', async row => {
         Connection.connections['user-main-read'].pause();
         let user = new UserModel(row); 
