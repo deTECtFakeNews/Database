@@ -4,6 +4,13 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
+pandas = "*"
+numpy = "*"
+scipy = "*"
+joblib = "*"
+threadpoolctl = "*"
+scikit-learn = "*"
+pymysql = "*"
 
 [dev-packages]
 
