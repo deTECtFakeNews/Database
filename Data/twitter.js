@@ -1,6 +1,6 @@
 const CONSTANTS = require('./constants');
 const TwitterClient = require("twitter");
-const SystemService = require("../Services/System/SystemService");
+// const SystemService = require("../Services/System/SystemService");
 
 const normalizePath = (path) => {
     // if path is full url

@@ -10,8 +10,8 @@ const ssh = {
 const mysql = {
     host: '10.4.27.75', 
     user: 'DataUser', 
-    password: 'TEC.F4keNews', 
     port: 3306, 
+    password: 'TEC.F4keNews', 
     supportBigNumbers: true, 
     bigNumberStrings: true, 
     multipleStatements: true, 

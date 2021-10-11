@@ -41,8 +41,8 @@ def connectToDatabaseOverSSH():
     print("Connected to Database")
 
 def trainModel(df):
-    X_train, X_test, y_train, y_test = train_test_split(df[['simCommunity', 'simMentions', 'simRetweets', 'simHashtags', 'simProfile']], df.verificationResult)
-    model = LogisticRegression(max_iter=100000)
+    X_train, X_test, y_train, y_test = train_test_split(df[['simCommunity', 'simMentions', 'simRetweets', 'simHashtags', 'simProfile']], df.verificationResult, random_state=2, stratify=df.verificationResult)
+    model = LogisticRegression(max_iter=100000, tol=0.005, fit_intercept=False)
     model.fit(X_train, y_train)
 
     results = {

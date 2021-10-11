@@ -1,4 +1,11 @@
 /**
+ * @author Eduardo Villalpando Mello
+ * @version 3.0.1
+ * UserStatsService 
+ * This module contains data for normalizing, reading and writing user statistics
+ */
+
+/**
  * @typedef {Object} UserStatsJSON
  * @property {String} userID Unique identifier of user in Twitter and Database
  * @property {Number} followersCount Number of accounts following this user

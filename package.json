@@ -11,6 +11,7 @@
   "license": "ISC",
   "dependencies": {
     "axios": "^0.21.1",
+    "event-stream": "^4.0.1",
     "express": "^4.17.1",
     "expresss": "0.0.0",
     "json-2-csv": "^3.14.4",
@@ -20,6 +21,7 @@
     "mysql": "^2.18.1",
     "mysql2": "^2.2.5",
     "node-fetch": "^2.6.1",
+    "prompt": "^1.2.0",
     "ssh2": "^0.8.9",
     "twitter": "^1.7.1",
     "twitter-search-query-parser": "^1.0.0",
