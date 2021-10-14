@@ -91,7 +91,10 @@ const calculate = async (aUserID, bUserID) => {
         tweetsRetweetedByB = await countRetweetedTweets(bUserID),
         retweetsFromAToB = await countRetweetsToUser(aUserID, bUserID),
         retweetsFromBToA = await countRetweetsToUser(bUserID, aUserID);
-    return usersRetweetedByBoth/(Math.sqrt(usersRetweetedByA) * Math.sqrt(usersRetweetedByB)) || 0 + (retweetsFromAToB + retweetsFromBToA)/(tweetsRetweetedByA * tweetsRetweetedByB) || 0;
+    let sum = 0;
+    if(usersRetweetedByA > 0 && usersRetweetedByB > 0) sum += usersRetweetedByBoth/(Math.sqrt(usersRetweetedByA) * Math.sqrt(usersRetweetedByB));
+    if(tweetsRetweetedByA > 0 && tweetsRetweetedByB > 0) sum += (retweetsFromAToB + retweetsFromBToA)/(tweetsRetweetedByA * tweetsRetweetedByB);
+    return sum || 0;
 }
 
 module.exports = calculate;
